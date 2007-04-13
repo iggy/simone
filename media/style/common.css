@@ -17,8 +17,7 @@ td {
     border:none;
 }
 
-
-#folderlist {
+#leftbar {
     position:absolute;
     left:0.8em;
     width:15em; /* tied to margin-left of #contentpane */
@@ -27,6 +26,9 @@ td {
     background:#6DC2FF;
     border:solid blue 1px;
     overflow:hidden;
+}
+#leftbartools {
+    border:solid 3px black;
 }
 #contentpane {
     margin-left:17em; /* needs to match width of folderlist + some */
@@ -79,4 +81,7 @@ td {
 }
 .msglist-size {
 	font-size: .8em;
+}
+.msgtoolbar {
+    background:#ACACAC
 }

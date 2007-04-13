@@ -10,12 +10,15 @@
 
 <div id="page">
 
-<div id="folderlist">
-    <ul>
-    {% for f in maildir %}
-        <li><a href="msglist/{{ f }}/">{{ f }}</a></li>
-    {% endfor %}
-    </ul>
+<div id="leftbar">
+    <div id="leftbartools">Check For New Mail | Logout</div>
+    <div id="folderlist">
+        <ul>
+        {% for f in maildir %}
+            <li><a href="msglist/{{ f }}/">{{ f }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
 </div>
 
 <script type="text/javascript">

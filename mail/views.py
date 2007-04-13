@@ -61,6 +61,11 @@ def imaplist(imap, folder="INBOX", number=20, start=None):
 			#msglist.append(msg) # it's our second match
 	return msglist
 
+# TODO leaving index as is for a little bit more development
+# index/login page
+#def index(request):
+#    return render_to_response('mail/index.html', locals())
+
 def index(request):
 	imap = imaplib.IMAP4_SSL('mail.theiggy.com')
 	imap.login('test', '')
@@ -99,7 +104,7 @@ def index(request):
 	# clean up
 	imap.logout()
 
-	return render_to_response('mail/index.html', locals())
+	return render_to_response('mail/main.html', locals())
 		
 def msglist(request, folder_name):
 	imap = imaplib.IMAP4_SSL('mail.theiggy.com')
