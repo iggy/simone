@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block extra_javascript %}
+<script type="text/javascript" src="/site_media/js/utilities.js"></script>
+<script type="text/javascript" src="/site_media/js/ded-chain.js"></script>
+{% endblock %}
+
+{% block title %}Email{% endblock %}
+{% block content %}
+
+<div id="page">
+
+<div id="folderlist">
+    <ul>
+    {% for f in maildir %}
+        <li><a href="msglist/{{ f }}/">{{ f }}</a></li>
+    {% endfor %}
+    </ul>
+</div>
+
+<script type="text/javascript">
+
+// hook a onclick to all the links in the folderlist to fill in msglist ajaxy style
+_$('#folderlist a').on('click', function(el, e) {
+    this.fetch(el.href, {
+        after: function(resp) {
+            _$('#contentpane').setContent(resp);
+        }
+    });
+}, true);
+
+</script>
+
+<div id="contentpane">
+{% include "mail/msglist.html" %}
+</div>
+
+</div><!-- end page -->
+
+{% endblock %}

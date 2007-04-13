@@ -1,0 +1,19 @@
+<div class="msglist">
+    <table id="msglisttbl">
+        <tr class="odd">
+            <th>Subject</th><th>From</th><th>Date</th><th>Size</th>
+        </tr>
+    {% for m in msglist %}
+        <!-- {{ m }} -->
+        <tr class="{% cycle even,odd %}" 
+            onmouseover="_$(this).addClass('tablehover');" 
+            onmouseout="_$(this).removeClass('tablehover')"
+            onclick="_$('#contentpane').populate('viewmsg/{{ folder }}/{{ m.4 }}/');">
+            <td class="msglist-subject">{{ m.0 }}</td>
+			<td class="msglist-from"><a href="newmail/to/{{ m.1 }}/">{{ m.2 }}</a></td>
+			<td class="msglist-date">{{ m.3|timesince }}</td>
+			<td class="msglist-size">{{ m.5 }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+</div>

@@ -1,0 +1,15 @@
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <title>{% block title %}Iggy's Site Of Wonder{% endblock %}</title>
+  {% block extra_cssstyle %}{% endblock %}
+  <link href="/site_media/style/common.css" rel="stylesheet" />
+  {% block extra_javascript %}{% endblock %}
+  <script type="text/javascript" src="/site_media/js/common.js"></script>
+</head>
+<body>
+     {% block content %}{% endblock %}
+</body>
+</html>

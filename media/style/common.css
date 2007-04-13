@@ -1,0 +1,82 @@
+body {
+    font-size:12px;
+	background-color:#E3E3E3;
+}
+li {
+
+}
+ul {
+    list-style:none inside none;
+    padding:0px;
+    margin:0px;
+}
+tr {
+    border:none;
+}
+td {
+    border:none;
+}
+
+
+#folderlist {
+    position:absolute;
+    left:0.8em;
+    width:15em; /* tied to margin-left of #contentpane */
+    padding: 3px;
+    margin:0px;
+    background:#6DC2FF;
+    border:solid blue 1px;
+    overflow:hidden;
+}
+#contentpane {
+    margin-left:17em; /* needs to match width of folderlist + some */
+    border: solid 1px black;
+}
+.even {
+	background:#483EFF;
+	color:#B8B8B8;
+}
+.odd {
+    background:#6DC2FF;
+}
+.tablehover {
+    background-color:red;
+    cursor:pointer;
+}
+.message {
+/* 	margin:.5em; */
+}
+#leftside {
+    float:left;
+    background-color:red;
+}
+#rightside {
+    float:right;
+    background-color:red;
+}
+.clear {
+    clear:both;
+}
+.mailheader {
+    padding:3px;
+    background-color: #6DC2FF;
+}
+.mailbody {
+    padding:3px;
+    background-color: #ACACAC;
+}
+.subject {
+	font-size:125%;
+}
+.msglist-subject {
+	font-size:1em;
+}
+.msglist-from {
+	font-size:1em;
+}
+.msglist-date {
+	font-size:.9em;
+}
+.msglist-size {
+	font-size: .8em;
+}

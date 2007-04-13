@@ -1,0 +1,13 @@
+<div class="message" id="message">
+	<div class="mailheader">
+		<div class="subject">Subject: {{ mailmsg.subject }}</div>
+		<div>From: {{ mailmsg.from }}</div>
+		<div>Date: {{ mailmsg.date }}</div>
+	</div>
+
+	<div class="mailbody">
+{{ body|linebreaksbr }}
+	</div>
+
+</div>
+
