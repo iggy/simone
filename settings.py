@@ -12,7 +12,7 @@ MANAGERS = ADMINS
 DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
 DATABASE_NAME = 'theiggy'             # Or path to database file if using sqlite3.
 DATABASE_USER = 'www_theiggy'             # Not used with sqlite3.
-DATABASE_PASSWORD = '5spotLogic'         # Not used with sqlite3.
+DATABASE_PASSWORD = 'fuckalliforgot'         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
