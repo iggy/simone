@@ -32,6 +32,7 @@ def imaplist(imap, folder="INBOX", number=20, start=None):
 			stat, hdr = msg
 			#r = re.compile('subject:', re.IGNORECASE)
 			msgtext = repr(msg)
+			m = email.message_from_string(msgtext)
 			
 			# round up all the info we need
 			subj = re.search(r'subject:(.*?)\\r\\n', msgtext, re.I)
@@ -42,8 +43,13 @@ def imaplist(imap, folder="INBOX", number=20, start=None):
 			flags = re.search(r'FLAGS \((.*?)\) ', msgtext, re.I)
 			
 			subjtext = subj.group(1).strip().strip('"')
-			fromemail = fromm.group(1).split('<')[1].strip().strip('"').strip('>')
-			fromtext = fromm.group(1).split('<')[0].strip().strip('"').replace('\\', '')
+			# sometimes names are name + email, sometimes just email
+			try:
+				fromemail = fromm.group(1).split('<')[1].strip().strip('"').strip('>')
+				fromtext = fromm.group(1).split('<')[0].strip().strip('"').replace('\\', '')
+			except:
+				fromemail = fromm.group(1).strip().strip('"').replace('\\', '')
+				fromtext = fromm.group(1).strip().strip('"').replace('\\', '')+' '
 			try:
 				datetext = datee.group(1).strip().strip('"')
 			except:
@@ -52,6 +58,7 @@ def imaplist(imap, folder="INBOX", number=20, start=None):
 			sizetext = size.group(1).strip().strip('"')
 			flagstext = flags.group(1).strip().strip('"')
 			
+			#msglist.append([m['subject'],m['from'],m['from'],m['date'],uidtext,sizetext,flagstext,m])
 			msglist.append([
 				subjtext,
 				fromemail,
@@ -81,10 +88,24 @@ def index(request):
 	fldlist = []
 	for fld in list:
 		folder = fld.split('" "')
-		nm = folder[1].strip('"')
+		nm = folder[1].strip('"')  # full folder name
+		# TODO the folder "parsing" shouldn't be in the template, it should be here
+		#nmcopy = nm
+		#splitnm = nmcopy.split('.')
+		#snm = splitnm[-1]
 		#nm = fld
 		fldlist.append(nm)
 		#if(nm.count(".")):
+			#fldlist.fromkeys(nm.split('.'))
+		#else:
+			#fldlist.fromkeys(nm)
+			## folders in imap are seperated by .'s
+			#for sub in nm.split('.'):
+				#try:
+					#thisfldlist.append(sub)
+				#except:
+					#thisfldlist = fldlist[sub]
+					#thisfldlist.append(sub)
 			## folders in imap are seperated by .'s
 			#for sub in nm.split('.'):
 				
@@ -144,3 +165,6 @@ def viewmsg(request, folder, uid):
 				body = part.get_payload().decode('quopri_codec')
 	imap.logout()
 	return render_to_response('mail/viewmsg.html', locals())
+
+@login_required
+def newmail(request):

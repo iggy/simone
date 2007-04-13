@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 
+{% block extra_cssstyle %}
+<link href="/site_media/style/tree.css" rel="stylesheet" />
+{% endblock %}
 {% block extra_javascript %}
 <script type="text/javascript" src="/site_media/js/utilities.js"></script>
 <script type="text/javascript" src="/site_media/js/ded-chain.js"></script>
+<script type="text/javascript" src="/site_media/js/treeview.js"></script>
 {% endblock %}
 
 {% block title %}Email{% endblock %}
@@ -11,26 +15,70 @@
 <div id="page">
 
 <div id="leftbar">
-    <div id="leftbartools">Check For New Mail | Logout</div>
+	<div id="leftbartools">
+		<a href="#"><img src="/site_media/images/mail-get.png" alt="Check For New Mail" title="Check For New Mail" /></a>
+		<a href="newmail/"><img src="/site_media/images/mail-new.png" alt="New Mail" title="Compose New Mail" /></a>
+		<a href="#"><img src="/site_media/images/system-log-out.png" alt="Logout" title="Logout" /></a>
+	</div>
     <div id="folderlist">
-        <ul>
+<!--        <ul>
         {% for f in maildir %}
             <li><a href="msglist/{{ f }}/">{{ f }}</a></li>
         {% endfor %}
-        </ul>
+        </ul>-->
     </div>
 </div>
-
+{% for f in maildir %}
+<!-- f = {{ f }} -->
+{% endfor %}
 <script type="text/javascript">
+var tree;
+var nodes = {};
+
+function initFolderTree() {
+
+	tree = new YAHOO.widget.TreeView('foldertree');
+
+	function onLabelClick(node) {
+		// we need to rebuild the folder name from the (sub)dir names
+		realfoldername = node.label;
+		while(node.parent.depth != -1) {
+			realfoldername = node.parent.label+'.'+realfoldername;
+			node = node.parent;
+		}
+
+		_$('#contentpane').populate('msglist/'+realfoldername+'/');
+	}
+
+{% for f in maildir %}
+	f = '{{ f }}'.split('.');
+	for(var i=0 ; i < f.length ; i++) {
+		// f[i] should equal an actual (sub)dir name (i.e. the part between .'s)
+		if(i == 0)
+			root = tree.getRoot();
+		else
+			root = nodes[f[i-1]];
+		nodename = f[i].replace(' ', '_'); // clean spaces out
+		if(!nodes[nodename]) {
+			nodes[nodename] = new YAHOO.widget.TextNode(f[i], root, false);
+			nodes[nodename].onLabelClick = onLabelClick;
+		}
+	}
+{% endfor %}
+
+	tree.draw();
+}
+YAHOO.util.Event.addListener(window, 'load', initFolderTree, true);
+// _$(window).on('load', initFolderTree, true)
 
 // hook a onclick to all the links in the folderlist to fill in msglist ajaxy style
-_$('#folderlist a').on('click', function(el, e) {
-    this.fetch(el.href, {
-        after: function(resp) {
-            _$('#contentpane').setContent(resp);
-        }
-    });
-}, true);
+// _$('#folderlist a').on('click', function(el, e) {
+//     this.fetch(el.href, {
+//         after: function(resp) {
+//             _$('#contentpane').setContent(resp);
+//         }
+//     });
+// }, true);
 
 </script>
 

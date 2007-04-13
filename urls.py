@@ -9,4 +9,5 @@ urlpatterns = patterns('',
     (r'^mail/', include('mail.urls')),
     #(r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/path/to/media', 'show_indexes': True}),
     (r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': 'media/'}),
+    (r'^accounts/login/$', 'django.contrib.auth.views.login'),
 )
