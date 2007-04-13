@@ -1,71 +1,89 @@
+/*
+colors:
+#E3E3E3 - grayish body background
+#6DD8FF - light blue, leftbar, etc
+
+
+
+*/
 body {
-    font-size:12px;
+	font-size:12px;
 	background-color:#E3E3E3;
 }
 li {
 
 }
 ul {
-    list-style:none inside none;
-    padding:0px;
-    margin:0px;
+	list-style:none inside none;
+	padding:0px;
+	margin:0px;
 }
 tr {
-    border:none;
+	border:none;
 }
 td {
-    border:none;
+	border:none;
+}
+a {
+	border:none;
+	outline:none;
+}
+img {
+	border:none;
 }
 
 #leftbar {
-    position:absolute;
-    left:0.8em;
-    width:15em; /* tied to margin-left of #contentpane */
-    padding: 3px;
-    margin:0px;
-    background:#6DC2FF;
-    border:solid blue 1px;
-    overflow:hidden;
+	position:absolute;
+	left:0.8em;
+	width:15em; /* tied to margin-left of #contentpane */
+	padding: 3px;
+	margin:0px;
+	background:#6DD8FF;
+	border:solid blue 1px;
+	overflow:hidden;
 }
 #leftbartools {
-    border:solid 3px black;
+	border:solid 3px black;
 }
 #contentpane {
-    margin-left:17em; /* needs to match width of folderlist + some */
-    border: solid 1px black;
+	margin-left:17em; /* needs to match width of folderlist + some */
+	border: solid 1px black;
 }
 .even {
-	background:#483EFF;
-	color:#B8B8B8;
+	background:#4A9EFF;
 }
 .odd {
-    background:#6DC2FF;
+	background:#6DD8FF;
 }
 .tablehover {
-    background-color:red;
-    cursor:pointer;
+	background-color:#3060FF;
+	color: white;
+	cursor:pointer;
 }
 .message {
 /* 	margin:.5em; */
 }
 #leftside {
-    float:left;
-    background-color:red;
+	float:left;
+	background-color:red;
 }
 #rightside {
-    float:right;
-    background-color:red;
+	float:right;
+	background-color:red;
 }
 .clear {
-    clear:both;
+	clear:both;
 }
 .mailheader {
-    padding:3px;
-    background-color: #6DC2FF;
+	padding:3px;
+	background-color: #6DD8FF;
+	border-width: 1px 0px;
+	border-color: black;
+	border-style:solid;
 }
 .mailbody {
-    padding:3px;
-    background-color: #ACACAC;
+	padding:3px;
+	background-color: #D2D2D2;
 }
 .subject {
 	font-size:125%;
@@ -83,5 +101,5 @@ td {
 	font-size: .8em;
 }
 .msgtoolbar {
-    background:#ACACAC
+	background:#D2D2D2
 }

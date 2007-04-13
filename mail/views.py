@@ -168,3 +168,4 @@ def viewmsg(request, folder, uid):
 
 @login_required
 def newmail(request):
+	pass

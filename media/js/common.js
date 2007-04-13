@@ -1,5 +1,5 @@
 function updateMsgList(url) {
-    _$('msglistwrap').populate(url);
+	_$('msglistwrap').populate(url);
 }
 
 
