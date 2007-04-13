@@ -1,6 +1,9 @@
 # Create your views here.
 import imaplib, re, email
 from django.shortcuts import render_to_response
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 # list messages in an imap folder
 # if start isn't set
@@ -66,9 +69,10 @@ def imaplist(imap, folder="INBOX", number=20, start=None):
 #def index(request):
 #    return render_to_response('mail/index.html', locals())
 
+@login_required
 def index(request):
-	imap = imaplib.IMAP4_SSL('mail.theiggy.com')
-	imap.login('test', '')
+	imap = imaplib.IMAP4_SSL(settings.IMAP_SERVER)
+	imap.login(request.user.username, request.user.get_profile().imap_password)
 	status, list = imap.list()  # returns status of the command and the results of the command as a list
 								# the values are oddly formatted, so we have to do a little bit of parsing
 	# get the list of folders
@@ -105,10 +109,11 @@ def index(request):
 	imap.logout()
 
 	return render_to_response('mail/main.html', locals())
-		
+
+@login_required
 def msglist(request, folder_name):
-	imap = imaplib.IMAP4_SSL('mail.theiggy.com')
-	imap.login('test', '')
+	imap = imaplib.IMAP4_SSL(settings.IMAP_SERVER)
+	imap.login(request.user, request.user.get_profile().imap_password)
 
 	msglist = imaplist(imap, folder_name)
 	
@@ -119,10 +124,10 @@ def msglist(request, folder_name):
 	imap.logout()
 	return render_to_response('mail/msglist.html', locals())
 
-
+@login_required
 def viewmsg(request, folder, uid):
-	imap = imaplib.IMAP4_SSL('mail.theiggy.com')
-	imap.login('test', '')
+	imap = imaplib.IMAP4_SSL(settings.IMAP_SERVER)
+	imap.login(request.user, request.user.get_profile().imap_password)
 	
 	countup = imap.select(folder, True)
 	
