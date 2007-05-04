@@ -1,0 +1,9 @@
+<form method="post" action="/mail/send/" onsubmit="return sendMail(this);">
+	<label for="newmailfrom">From: </label><input type="text" name="newmailfrom" id="newmailfrom" value="iggy@theiggy.com" /><br />
+	<label for="newmailto">To: </label><input type="text" name="newmailto" id="newmailto" value="brian@iomnis.com" /><br />
+<!-- 	<label for="newmailcc">CC: </label><input type="text" name="newmailcc" id="newmailcc" /><br /> -->
+	<label for="newmailsubject">Subject: </label><input type="text" name="newmailsubject" id="newmailsubject" value="test" /><br />
+	<textarea name="editor" id="editor" style="height: 250px; width: 500px;">Test from django-webmail</textarea><br />
+	<input type="submit" value="Send" />
+</form>
+
