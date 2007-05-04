@@ -1,6 +1,6 @@
 # Create your views here.
 import imaplib, re, email
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, HttpResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -168,4 +168,23 @@ def viewmsg(request, folder, uid):
 
 @login_required
 def newmail(request):
-	pass
+	# TODO need to figure out what email addresses they are allowed to use as from:
+	# TODO also change the whole sending email to use newforms
+	return render_to_response('mail/newmail.html', locals())
+
+@login_required
+def send(request):
+	from django.core.mail import send_mail, BadHeaderError
+	# attempt to send the mail
+	subject = request.POST.get('newmailsubject', '')
+	message = request.POST.get('editor', '')
+	mailfrom = request.POST.get('newmailfrom', '') # TODO should actually get their default from
+	mailto = request.POST.get('newmailto', '') 
+	if subject and message and mailfrom and mailto:
+		try:
+			send_mail(subject, message, mailfrom, [mailto], auth_user=request.user, auth_password=request.user.get_profile().imap_password)
+		except BadHeaderError:
+			return HttpResponse('Invalid Header Found')
+		return HttpResponse('Mail sent succesfully') # we can use short responses since we will only be submitting via ajax
+	else:
+		return HttpResponse('Fill in all fields') # if they get this, they've already lost their mail since we are submitting the mail via ajax
