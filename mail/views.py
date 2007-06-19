@@ -225,7 +225,8 @@ def config(request, action):
         
     else if action == "edit":
         
-        s = request.user.get_profile().imap_servers.get(
+        #s = request.user.get_profile().imap_servers.get() FIXME: not finished here, but I need to go out and drink
+        pass
         
     else:
         # default action / view

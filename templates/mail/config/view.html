@@ -18,12 +18,14 @@
 <td>{{ srv }}</td>
 <td><a href="#" id="{{srv.id}}_edit_link" class="srv_edit_link">Edit</a></td>
 <td>
-    <form method="get" action="/mail/config/edit/{{srv.id}}/">
+<!--FIXME: not finished here, but I need to go out and drink-->
+    <form method="get" action="/mail/config/edit/">
         <p>Address: <input type="text" id="{{srv.id}}_username" name="{{srv.id}}_username" /></p>
         <p>Port: </p>
         <p>Username: </p>
         <p>Password: </p>
-        <p><input type="submit" </p>
+        <p><input type="submit" /></p>
+        <input type="hidden" id="which" name="which" value="{{srv.id}}" />
     </form>
 </td>
 <td><a href="#" id="{{srv.id}}_rem_link" class="srv_rem_link">Remove</a></td>
