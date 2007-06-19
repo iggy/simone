@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}New Configuration{% endblock %}
+{% block content %}
+
+<h1>IMAP Configuration</h1>
+
+<h2>Please enter your IMAP server settings.</h2>
+<form method="post" action="/mail/config/addnew/">
+<table>
+{{ iform }}
+</table>
+<input type="submit" value="Submit" />
+</form>
+
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block extra_cssstyle %}
+{% endblock %}
+{% block extra_javascript %}
+{% endblock %}
+
+{% block title %}Configuration{% endblock %}
+{% block content %}
+
+<h1>Configuration</h1>
+
+<h2>This page currently doesn't do shit.</h2>
+
+<table>
+{% for srv in srvs %}
+<tr>
+<td>{{ srv }}</td>
+<td><a href="#" id="{{srv.id}}_edit_link" class="srv_edit_link">Edit</a></td>
+<td>
+    <form method="get" action="/mail/config/edit/{{srv.id}}/">
+        <p>Address: <input type="text" id="{{srv.id}}_username" name="{{srv.id}}_username" /></p>
+        <p>Port: </p>
+        <p>Username: </p>
+        <p>Password: </p>
+        <p><input type="submit" </p>
+    </form>
+</td>
+<td><a href="#" id="{{srv.id}}_rem_link" class="srv_rem_link">Remove</a></td>
+</tr>
+{% endfor %}
+</table>
+
+<script type="text/javascript">
+initSrvLinks();
+</script>
+
+{% endblock %}
