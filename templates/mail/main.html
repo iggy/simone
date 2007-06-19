@@ -1,76 +1,41 @@
 {% extends "base.html" %}
 
 {% block extra_cssstyle %}
-<link href="/site_media/style/tree.css" rel="stylesheet" />
-<!-- <link href="/site_media/style/container.css" rel="stylesheet" /> -->
-<!-- <link href="/site_media/style/menu.css" rel="stylesheet" /> -->
-<!-- <link href="/site_media/style/editor.css" rel="stylesheet" /> -->
-
 {% endblock %}
+
 {% block extra_javascript %}
-<script type="text/javascript" src="/site_media/js/utilities.js"></script>
-<script type="text/javascript" src="/site_media/js/ded-chain.js"></script>
-<script type="text/javascript" src="/site_media/js/treeview.js"></script>
-<script type="text/javascript" src="/site_media/js/animation.js"></script>
-<script type="text/javascript" src="/site_media/js/ext-yui-adapter.js"></script>
-<script type="text/javascript" src="/site_media/js/ext-all.js"></script>
-<!-- <script type="text/javascript" src="/site_media/js/container.js"></script> -->
-<!-- <script type="text/javascript" src="/site_media/js/menu.js"></script> -->
-<!-- <script type="text/javascript" src="/site_media/js/create.js"></script> -->
-<!-- <script type="text/javascript" src="/site_media/js/editor.js"></script> -->
 {% endblock %}
 
 {% block title %}Email{% endblock %}
 {% block content %}
 
 
-<script type="text/javascript">
-// make update manager parse any scripts we send it
-Ext.UpdateManager.defaults.loadScripts=true;
-</script>
-
-
 <div id="spinner"></div>
-<script type="text/javascript">
-function showSpinner() {
-	var showspinner = new YAHOO.util.Anim('spinner', {
-			//height: { to: 40 },
-			opacity: { to: 100 },
-		}, 0.25, YAHOO.util.Easing.easeOut);
-	showspinner.animate();
-}
-function hideSpinner() {
-	var hidespinner = new YAHOO.util.Anim('spinner', {
-			//height: { to: 0 },
-			opacity: {to: 0 },
-		}, 0.25, YAHOO.util.Easing.easeOut);
-	hidespinner.animate();
-}
-YAHOO.util.Event.on(window, 'load', hideSpinner);
-</script>
+
 
 <div id="page">
 
 <div id="leftbar">
-	<div id="leftbartools">
+	<div id="leftbar_toolbar">
 		<a href="#"><img src="/site_media/images/mail-get.png" alt="Check For New Mail" title="Check For New Mail" /></a>
 		<a href="#" id="newmaillink"><img src="/site_media/images/mail-new.png" alt="New Mail" title="Compose New Mail" /></a>
 		<a href="#"><img src="/site_media/images/system-log-out.png" alt="Logout" title="Logout" /></a>
-		<a href="#" onclick="showSpinner(); return false;">Show</a>
-		<a href="#" onclick="hideSpinner(); return false;">Hide</a>
+        <a href="#" id="prefslink"><img src="/site_media/images/prefs.png" alt="Prefs" title="Preferences" /></a>
+<!--		<a href="#" onclick="showSpinner(); return false;">Show</a>
+		<a href="#" onclick="hideSpinner(); return false;">Hide</a>-->
 	</div>
     <div id="folderlist">
 		<div id="foldertree"></div>
-<!--        <ul>
-        {% for f in maildir %}
-            <li><a href="msglist/{{ f }}/">{{ f }}</a></li>
-        {% endfor %}
-        </ul>-->
+    </div>
+    <div id="leftbar_bottom_info">
+        <p>imap times:</p>
+        <p>{{ con_time }}</p>
+        <p>{{ log_time }}</p>
+        <p>{{ list_time }}</p>
     </div>
 </div>
-{% for f in maildir %}
-<!-- f = {{ f }} -->
-{% endfor %}
+
+<!-- FIXME: move this out to a js file -->
 <script type="text/javascript">
 var tree;
 var nodes = {};
@@ -110,14 +75,6 @@ function initFolderTree() {
 }
 YAHOO.util.Event.addListener(window, 'load', initFolderTree, true);
 
-function initLinks() {
-	// setup  the new mail link
-	Ext.get('newmaillink').on('click', function(el,e) {
-		Ext.get('contentpane').load('newmail/');
-	});
-}
-YAHOO.util.Event.addListener(window, 'load', initLinks, true);
-
 </script>
 
 <noscript><h1>This site requires javascript to be enabled</h1></noscript>
@@ -125,6 +82,8 @@ YAHOO.util.Event.addListener(window, 'load', initLinks, true);
 <div id="contentpane">
 {% include "mail/msglist.html" %}
 </div>
+
+
 
 </div><!-- end page -->
 

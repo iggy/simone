@@ -1,7 +1,60 @@
+/////////////////////////// globals, etc.
+// make update manager parse any scripts it gets back from the server
+YAHOO.util.Event.on(window, 'load', function() {
+        Ext.UpdateManager.defaults.loadScripts=true;
+    }
+);
+
+//////////////////////////// some functions used on the main page
 function updateMsgList(url) {
 	_$('msglistwrap').populate(url);
 }
+function showSpinner() {
+    var showspinner = new YAHOO.util.Anim('spinner', {
+            //height: { to: 40 },
+            opacity: { to: 100 },
+        }, 0.25, YAHOO.util.Easing.easeOut);
+    showspinner.animate();
+}
+function hideSpinner() {
+    var hidespinner = new YAHOO.util.Anim('spinner', {
+            //height: { to: 0 },
+            opacity: {to: 0 },
+        }, 0.25, YAHOO.util.Easing.easeOut);
+    hidespinner.animate();
+}
+YAHOO.util.Event.on(window, 'load', hideSpinner);
 
+function initLinks() {
+    // setup  the new mail link
+    Ext.get('newmaillink').on('click', function(el,e) {
+        Ext.get('contentpane').load('newmail/');
+        YAHOO.util.Event.stopEvent(e);
+    });
+    Ext.get('prefslink').on('click', function(el, e) {
+        Ext.get('contentpane').load('config/view/');
+        YAHOO.util.Event.stopEvent(e);
+    });
+}
+YAHOO.util.Event.addListener(window, 'load', initLinks, true);
+
+
+//////////////////////////// some config page functions
+function initSrvLinks() {
+    function srvEditLinkOnClick(ev, el) {
+        // get the id of the server we want to replace
+        var sid = el.id.replace('_edit_link');
+
+        // show the editor in a new tr below the current line
+    }
+
+    eln = YAHOO.util.Dom.getElementsByClassName('srv_edit_link');
+    rln = YAHOO.util.Dom.getElementsByClassName('srv_rm_link');
+    YAHOO.util.Event.addListener(eln, srvEditLinkOnClick);
+}
+
+
+//////////////////////////// some general use functions
 
 // zebra stripe a table
 // requires css classes even and odd
@@ -34,52 +87,6 @@ function stripe(id) {
 	}
 }
 
-function addScriptEl(script) {
-	var head = document.getElementsByTagName('head')[0];
-	var s = document.createElement('script');
-	s.src = script;
-	s.type = 'text/javascript';
-	head.appendChild(s);
-}
-
-function evalScripts(html) {
-	var s = document.getElementsByTagName("script");
-	var docHead = document.getElementsByTagName("head")[0];
-
-//	For browsers which discard scripts when inserting innerHTML,
-//	extract the scripts using a RegExp
-	if (s.length == 0)
-	{
-		var re = /(?:<script.*(?:src=[\"\'](.*)[\"\']).*>.*<\/script>)|(?:<script.*>([\S\s]*?)<\/script>)/ig; // assumes HTML well formed and then loop through it.
-		var match;
-		while (match = re.exec(html))
-		{
-			var s0 = document.createElement("script");
-			if (match[1])
-				s0.src = match[1];
-			else if (match[2])
-				s0.text = match[2];
-			else
-				continue;
-			docHead.appendChild(s0);
-		}
-	}
-	else
-	{
-		for (var i = 0; i < s.length; i++)
-		{
-			var s0 = document.createElement("script");
-			s0.type = s[i].type;
-			if (s[i].text)
-			{
-				s0.text = s[i].text;
-			}
-			else
-				s0.src = s[i].src;
-			docHead.appendChild(s0);
-		}
-	}
-};
 
 function sendMail(formel) {
 	function callback(el, suc, resp) {

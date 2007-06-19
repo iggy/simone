@@ -6,5 +6,7 @@ urlpatterns = patterns('mail.views',
     (r'msglist/(?P<folder_name>.*?)/$', 'msglist'),
     (r'viewmsg/(?P<folder>.*?)/(?P<uid>.*?)/$', 'viewmsg'),
     (r'newmail/$', 'newmail'),
-	(r'send/$', 'send'),
+    (r'send/$', 'send'),
+    (r'config/(?P<action>.*?)/$', 'config'),
+
 )
