@@ -211,7 +211,7 @@ def config(request, action):
         #uform = UserForm()
         iform = ImapForm(initial={'address':'localhost','port':'143'})
         
-    else if action == "addnew":
+    elif action == "addnew":
         # we are adding some new configuration
         ImapForm = forms.form_for_model(ImapServer)
         iform = ImapForm(request.POST)
@@ -223,7 +223,7 @@ def config(request, action):
         o = request.user.get_profile().imap_servers.remove(request.user.get_profile().imap_servers.all()[0])
         return HttpResponseRedirect('/mail/')
         
-    else if action == "edit":
+    elif action == "edit":
         
         #s = request.user.get_profile().imap_servers.get() FIXME: not finished here, but I need to go out and drink
         pass
