@@ -6,20 +6,23 @@
   <title>{% block title %}Iggy's Site Of Wonder{% endblock %}</title>
   {% block extra_cssstyle %}{% endblock %}
   <link href="/site_media/style/common.css" rel="stylesheet" />
-  <link href="/site_media/style/tree.css" rel="stylesheet" />
+  <link href="/site_media/yui/build/assets/skins/sam/skin.css" rel="stylesheet" />
+<!--  <link href="/site_media/style/tree.css" rel="stylesheet" /> -->
 
+  <script type="text/javascript" src="/site_media/yui/build/utilities/utilities.js"></script>
+  <script type="text/javascript" src="/site_media/yui/build/treeview/treeview.js"></script>
 
-  <script type="text/javascript" src="/site_media/js/utilities.js"></script>
-  <script type="text/javascript" src="/site_media/js/ded-chain.js"></script>
-  <script type="text/javascript" src="/site_media/js/treeview.js"></script>
-  <script type="text/javascript" src="/site_media/js/animation.js"></script>
-<!--  <script type="text/javascript" src="/site_media/js/ext-yui-adapter.js"></script>
-  <script type="text/javascript" src="/site_media/js/ext-all.js"></script>-->
-  <script type="text/javascript" src="/site_media/js/ext.js"></script>
+<!--  <script type="text/javascript" src="/site_media/js/utilities.js"></script> -->
+<!--   <script type="text/javascript" src="/site_media/js/ded-chain.js"></script> -->
+<!--  <script type="text/javascript" src="/site_media/js/treeview.js"></script>
+  <script type="text/javascript" src="/site_media/js/animation.js"></script> -->
+  <script type="text/javascript" src="/site_media/ext/adapter/yui/ext-yui-adapter.js"></script>
+  <script type="text/javascript" src="/site_media/ext/ext-all.js"></script>
+<!--  <script type="text/javascript" src="/site_media/js/ext.js"></script>-->
   <script type="text/javascript" src="/site_media/js/common.js"></script>
   {% block extra_javascript %}{% endblock %}
 </head>
-<body>
+<body class="yui-skin-sam">
      {% block content %}{% endblock %}
 </body>
 </html>

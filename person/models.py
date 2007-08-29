@@ -9,6 +9,7 @@ class Signature(models.Model):
 
 # holds imap server connection info
 # FIXME needs to be unique(address,port,username,passwd)
+# FIXME also need a "friendly name" field
 class ImapServer(models.Model):
     address = models.CharField(maxlength=255,null=True)
     port = models.CharField(maxlength=5,default="143",null=True)

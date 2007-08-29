@@ -1,4 +1,13 @@
 /////////////////////////// globals, etc.
+
+// A few handy shortcuts
+var $U = YAHOO.util;
+var $D = YAHOO.util.Dom;
+var $ = YAHOO.util.Dom.get;
+// setup a namespace for django-webmail
+YAHOO.namespace('dw');
+
+
 // make update manager parse any scripts it gets back from the server
 YAHOO.util.Event.on(window, 'load', function() {
         Ext.UpdateManager.defaults.loadScripts=true;
@@ -7,20 +16,20 @@ YAHOO.util.Event.on(window, 'load', function() {
 
 //////////////////////////// some functions used on the main page
 function updateMsgList(url) {
-	_$('msglistwrap').populate(url);
+	Ext.get('msglistwrap').load(url);
 }
 function showSpinner() {
     var showspinner = new YAHOO.util.Anim('spinner', {
             //height: { to: 40 },
             opacity: { to: 100 },
-        }, 0.25, YAHOO.util.Easing.easeOut);
+        }, 0.5, YAHOO.util.Easing.easeOut);
     showspinner.animate();
 }
 function hideSpinner() {
     var hidespinner = new YAHOO.util.Anim('spinner', {
             //height: { to: 0 },
             opacity: {to: 0 },
-        }, 0.25, YAHOO.util.Easing.easeOut);
+        }, 0.5, YAHOO.util.Easing.easeOut);
     hidespinner.animate();
 }
 YAHOO.util.Event.on(window, 'load', hideSpinner);
@@ -47,10 +56,24 @@ function initSrvLinks() {
 
         // show the editor in a new tr below the current line
     }
+	function srvRemLinkOnClick(ev, el) {
+		// verify they really want to do this
+		// get the id of the server we are removing
+
+		// call back to handle the remove server ajax request
+		function RSCSuccess(o) {
+				// we get back a json response
+				// hide the tr that had the srv we just removed
+		}
+
+		// send an ajax request to remove the server
+	}
+
 
     eln = YAHOO.util.Dom.getElementsByClassName('srv_edit_link');
     rln = YAHOO.util.Dom.getElementsByClassName('srv_rm_link');
     YAHOO.util.Event.addListener(eln, srvEditLinkOnClick);
+	YAHOO.util.Event.addListener(rln, srvRemLinkOnClick);
 }
 
 
@@ -89,19 +112,48 @@ function stripe(id) {
 
 
 function sendMail(formel) {
-	function callback(el, suc, resp) {
-		if(suc == false)
-			Ext.get('contentpane').update(resp.responseText); // FIXME this can be dropped in the future
-	}
-	Ext.get('contentpane').load(formel.action, 
-		{
-			newmailfrom:formel.newmailfrom.value,
-			newmailto:formel.newmailto.value,
-			newmailsubject:formel.newmailsubject.value,
-			editor:formel.editor.value,
+	var callback = {
+		success:	function(o) {
+			console.log(o);
+			$U.Dom.get('contentpane').innerHTML = o.responseText;
 		},
-		callback
-	);
+		failure:	function(o) {
+			console.log(o);
+		}
+	}
+
+	$U.Connect.setForm(formel);
+
+	$U.Connect.asyncRequest('GET', formel.action, callback);
+
 	// don't want the form to actually submit
 	return false;
 }
+
+/*
+ * load an element with content from source
+ * what = element to fill
+ * source = url|var to put into 
+ */
+YAHOO.dw.load = function(what, source) {
+	if(source[0] == '/') { // FIXME need to do MUCH more exhaustive checking
+		// source is a url I think
+		console.log('url', what, source);
+		var callback = {
+			success: function(o) {
+				what = o.argument[0];
+				$U.Dom.get(what).innerHTML = o.responseText;
+			},
+			failure: function(o) {
+				;
+			},
+			argument: [what]
+		}
+		$U.Connect.asyncRequest('GET', source, callback);
+	} else {
+		// source is a var
+		console.log('var', what, source);
+		$U.Dom.get(what).innerHTML = source;
+	}
+}
+YAHOO.dw.load('contentpane', 'some text');

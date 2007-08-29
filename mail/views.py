@@ -229,9 +229,34 @@ def config(request, action):
         pass
         
     else:
-        # default action / view
-        srvs = request.user.get_profile().imap_servers.all()
-        iforms = []
-        for srv in srvs:
-            iforms.append(forms.form_for_instance(srv))
+        # default action / index
+        imapsrvs = request.user.get_profile().imap_servers.all()
+        #iforms = []
+        #for srv in srvs:
+            #iforms.append(forms.form_for_instance(srv))
     return render_to_response('mail/config/'+action+'.html', locals())
+
+
+@login_required
+def json(request, action):
+	import simplejson
+	from imapclient import IMAPClient
+	
+	if action == "folderlist":
+		which = int(request.GET.get('folder'))
+		try:
+			my_imap_server = request.user.get_profile().imap_servers.all()[which]
+		except IndexError:
+			return HttpResponse(simplejson.dumps({'error':'Invalid server'}))
+		server = IMAPClient(my_imap_server.address, use_uid=True)
+		server.login(my_imap_server.username, my_imap_server.passwd)
+		dirs = server.list_folders()
+		return HttpResponse(simplejson.dumps(dirs))
+	elif action == "serverlist":
+		srvlist = []
+		for server in request.user.get_profile().imap_servers.all():
+			srvlist.append(server.address)
+		return HttpResponse(simplejson.dumps(srvlist))
+	
+	
+	

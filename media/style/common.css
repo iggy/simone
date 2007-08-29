@@ -33,14 +33,16 @@ img {
 }
 
 #spinner {
-	position:absolute;
-	left:40%;
-	top:0px;
-	width:20%;
-	height: 40px;
+	position:fixed;
+	left:50%;
+	top:50%;
+	width:150px;
+	height: 50px;
+	margin-left:-75px;
+	margin-top:-25px;
 	background: url('/site_media/images/spinner.gif') center no-repeat #BFBFBF;
 	border: solid 1px black;
-	border-top: none;
+/* 	border-top: none; */
 }
 #leftbar {
 	position:absolute;
@@ -48,7 +50,7 @@ img {
 	width:15em; /* tied to margin-left of #contentpane */
 	padding: 3px;
 	margin:0px;
-	background:#6DD8FF;
+/* 	background:#6DD8FF; */
 	border:solid blue 1px;
 	overflow:hidden;
 }
@@ -115,4 +117,19 @@ img {
 }
 .hidden {
 	display:none;
+}
+.tblOneBrdrFvPd table, table.tblOneBrdrFvPd {
+	border: solid 1px black;
+}
+.tblOneBrdrFvPd td {
+	border: solid 1px black;
+	padding: 5px;
+}
+/* FIXME lookup how to do these table less forms right */
+.floatForm label {
+/* 	float:left; */
+/* 	clear:right; */
+}
+.floatForm input {
+/* 	text-align:right; */
 }
