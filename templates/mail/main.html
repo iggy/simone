@@ -52,7 +52,7 @@ function initFolderTree() {
 			node = node.parent;
 		}
 
-		_$('#contentpane').populate('msglist/'+realfoldername+'/');
+		YAHOO.dw.load('contentpane', 'msglist/'+realfoldername+'/');
 	}
 
 {% for f in maildir %}

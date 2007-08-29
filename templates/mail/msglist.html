@@ -8,7 +8,7 @@
         <tr class="messagelisttr {% cycle even,odd %}" 
             onmouseover="$D.addClass(this, 'tablehover');" 
             onmouseout="$D.removeClass(this, 'tablehover')"
-            onclick="YAHOO.dw.fill('contentpane', 'viewmsg/{{ folder }}/{{ m.4 }}/');">
+            onclick="YAHOO.dw.load('contentpane', 'viewmsg/{{ folder }}/{{ m.4 }}/');">
             <td class="msglist-subject">{{ m.0 }}</td>
 			<td class="msglist-from"><a href="newmail/to/{{ m.1 }}/">{{ m.2 }}</a></td>
 			<td class="msglist-date">{{ m.3 }}</td><!-- TODO prettify the date -->

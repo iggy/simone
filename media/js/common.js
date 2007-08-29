@@ -9,14 +9,15 @@ YAHOO.namespace('dw');
 
 
 // make update manager parse any scripts it gets back from the server
-YAHOO.util.Event.on(window, 'load', function() {
-        Ext.UpdateManager.defaults.loadScripts=true;
-    }
-);
+//YAHOO.util.Event.on(window, 'load', function() {
+//        Ext.UpdateManager.defaults.loadScripts=true;
+//    }
+//);
 
 //////////////////////////// some functions used on the main page
 function updateMsgList(url) {
-	Ext.get('msglistwrap').load(url);
+	//Ext.get('msglistwrap').load(url);
+	YAHOO.dw.load('msglistwrap', url);
 }
 function showSpinner() {
     var showspinner = new YAHOO.util.Anim('spinner', {
@@ -36,13 +37,17 @@ YAHOO.util.Event.on(window, 'load', hideSpinner);
 
 function initLinks() {
     // setup  the new mail link
-    Ext.get('newmaillink').on('click', function(el,e) {
-        Ext.get('contentpane').load('newmail/');
-        YAHOO.util.Event.stopEvent(e);
+    $U.Event.on('newmaillink', 'click', function(el,e) {
+        //Ext.get('contentpane').load('newmail/');
+	YAHOO.dw.load('contentpane', 'newmail/');
+        if(e)
+		YAHOO.util.Event.stopEvent(e);
     });
-    Ext.get('prefslink').on('click', function(el, e) {
-        Ext.get('contentpane').load('config/view/');
-        YAHOO.util.Event.stopEvent(e);
+    $U.Event.on('prefslink', 'click', function(el, e) {
+        //Ext.get('contentpane').load('config/view/');
+	YAHOO.dw.load('contentpane', 'config/view/');
+        if(e)
+		YAHOO.util.Event.stopEvent(e);
     });
 }
 YAHOO.util.Event.addListener(window, 'load', initLinks, true);
@@ -135,8 +140,12 @@ function sendMail(formel) {
  * what = element to fill
  * source = url|var to put into 
  */
+// FIXME if we think the source is a url and try to load it and it fails, maybe 
+// it wasn't really a url and we need to load it like it was a string
 YAHOO.dw.load = function(what, source) {
-	if(source[0] == '/') { // FIXME need to do MUCH more exhaustive checking
+	if(!$(what))
+		return false;
+	if(source[0] == '/' || source[source.length-1] == '/') { // FIXME need to do MUCH more exhaustive checking
 		// source is a url I think
 		console.log('url', what, source);
 		var callback = {
@@ -153,7 +162,7 @@ YAHOO.dw.load = function(what, source) {
 	} else {
 		// source is a var
 		console.log('var', what, source);
-		$U.Dom.get(what).innerHTML = source;
+		$(what).innerHTML = source;
 	}
 }
 YAHOO.dw.load('contentpane', 'some text');

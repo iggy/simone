@@ -1,0 +1,7 @@
+Requirements:
+django (obviously)
+python-simplejson
+probably python-2.5
+
+there's also that mail lib I wanted to look at
+http://trac.dave.cridland.net/cgi-bin/trac.cgi/browser/projects/infotrope/python/setup.py

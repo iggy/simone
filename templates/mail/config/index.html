@@ -1,0 +1,45 @@
+{#{% extends "base.html" %}{% block title %}Configuration{% endblock %}{% block content %}#}
+
+<!-- FIXME: ajax sexiness all around -->
+
+<h1>Configuration</h1>
+
+<h2>This page currently doesn't do shit.</h2>
+
+<h2>IMAP Accounts</h2>
+<table class="tblOneBrdrFvPd">
+{% for srv in imapsrvs %}
+<tr>
+<td>{{ srv }}</td>
+<!-- <td><a href="#" id="{{srv.id}}_edit_link" class="srv_edit_link">Edit</a></td> -->
+<td>
+<!--FIXME: not finished here, but I need to go out and drink-->
+    <form class="floatForm" method="get" action="/mail/config/edit/">
+        <label for="input_username_{{srv.id}}">Address: </label>
+		<input type="text" id="input_address_{{srv.id}}" name="input_address_{{srv.id}}" value="{{srv.address}}" />
+
+        <label for="input_port_{{srv.id}}">Port: </label>
+		<input type="text" id="input_port_{{srv.id}}" name="input_port_{{srv.id}}" value="{{srv.port}}" />
+
+        <label>Username: </label>
+		<input type="text" id="input_username_{{srv.id}}" name="input_username_{{srv.id}}" value="{{srv.username}}" />
+
+        <label>Password: </label>
+		<input type="password" id="input_passwd_{{srv.id}}" name="input_passwd_{{srv.id}}" value="{{srv.passwd}}" />
+
+        <p><input type="submit" value="Save" /></p>
+        <input type="hidden" id="which" name="which" value="{{srv.id}}" />
+    </form>
+</td>
+<td><a href="#" id="{{srv.id}}_rem_link" class="srv_rem_link">Remove</a></td>
+</tr>
+{% endfor %}
+</table>
+
+<a href="#" onclick="">Add New IMAP Server</a>
+
+<div id="addNewIMAPServerDialog">
+</div>
+
+
+{#{% endblock %}#}
