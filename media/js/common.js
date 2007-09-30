@@ -129,7 +129,7 @@ function sendMail(formel) {
 
 	$U.Connect.setForm(formel);
 
-	$U.Connect.asyncRequest('GET', formel.action, callback);
+	$U.Connect.asyncRequest('POST', formel.action, callback);
 
 	// don't want the form to actually submit
 	return false;
@@ -166,3 +166,53 @@ YAHOO.dw.load = function(what, source) {
 	}
 }
 YAHOO.dw.load('contentpane', 'some text');
+
+YAHOO.dw.showFolders = function() {
+	var callback = {
+		success: function(o) {
+			function onLabelClick(node) {
+				// we need to rebuild the folder name from the (sub)dir names
+				realfoldername = node.label;
+				while(node.parent.depth != -1) {
+					realfoldername = node.parent.label+'.'+realfoldername;
+					node = node.parent;
+				}
+		
+				YAHOO.dw.load('contentpane', 'msglist/'+realfoldername+'/');
+			}
+		
+			resp = eval('('+o.responseText+')');
+			console.log(resp);
+			var tree = new YAHOO.widget.TreeView('foldertree');
+			var tvNodes = [];
+			var root = tree.getRoot();
+			//var tmpNode = new YAHOO.widget.TextNode("mylabel", root, false); 
+			for(var i = 0 ; i < resp.length ; i++) {
+				f = resp[i].split('.');
+				console.log(resp[i], f);
+				for(var j=0 ; j < f.length ; j++) {
+					console.log(f[j]);
+					// f[i] should equal an actual (sub)dir name (i.e. the part between .'s)
+					if(j == 0)
+						root = tree.getRoot();
+					else
+						root = tvNodes[f[j-1]];
+					nodename = f[j].replace(' ', '_'); // clean spaces out
+					if(!tvNodes[nodename]) {
+						tvNodes[nodename] = new YAHOO.widget.TextNode(f[j], root, false);
+						tvNodes[nodename].onLabelClick = onLabelClick;
+					}
+				}
+
+			}
+			tree.draw();
+			console.log('tree drawn');
+		},
+		failure: function(o) {
+			;
+		}
+	}
+	$U.Connect.asyncRequest('GET', 'json/folderlist/?server=0', callback);
+
+}
+YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.showFolders);

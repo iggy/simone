@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /**
 * @module button
@@ -58,14 +52,18 @@ with the 2.3.0 release as soon as it is available.
     /**
     * The Button class creates a rich, graphical button.
     * @param {String} p_oElement String specifying the id attribute of the 
-    * <code>&#60;input&#62;</code>, <code>&#60;a&#62;</code> or 
-    * <code>&#60;span&#62;</code> element to be used to create the button.
+    * <code>&#60;input&#62;</code>, <code>&#60;button&#62;</code>,
+    * <code>&#60;a&#62;</code>, or <code>&#60;span&#62;</code> element to 
+    * be used to create the button.
     * @param {<a href="http://www.w3.org/TR/2000/WD-DOM-Level-1-20000929/level-
-    * one-html.html#ID-6043025">HTMLInputElement</a>|<a href="
+    * one-html.html#ID-6043025">HTMLInputElement</a>|<a href="http://www.w3.org
+    * /TR/2000/WD-DOM-Level-1-20000929/level-one-html.html#ID-34812697">
+    * HTMLButtonElement</a>|<a href="
     * http://www.w3.org/TR/2000/WD-DOM-Level-1-20000929/level-one-html.html#
     * ID-33759296">HTMLElement</a>} p_oElement Object reference for the 
-    * <code>&#60;input&#62;</code>, <code>&#60;a&#62;</code> or 
-    * <code>&#60;span&#62;</code> element to be used to create the button.
+    * <code>&#60;input&#62;</code>, <code>&#60;button&#62;</code>, 
+    * <code>&#60;a&#62;</code>, or <code>&#60;span&#62;</code> element to be 
+    * used to create the button.
     * @param {Object} p_oElement Object literal specifying a set of   
     * configuration attributes used to create the button.
     * @param {Object} p_oAttributes Optional. Object literal specifying a set  
@@ -299,7 +297,6 @@ with the 2.3.0 release as soon as it is available.
             
             }
 
-            p_oElement.removeAttribute("name");
             p_oElement.removeAttribute("value");
 
             p_oElement.setAttribute("type", "button");
@@ -309,10 +306,13 @@ with the 2.3.0 release as soon as it is available.
         }
 
         p_oElement.removeAttribute("id");
-    
-        setAttributeFromDOMAttribute("tabindex");
-        setAttributeFromDOMAttribute("accesskey");
-    
+        p_oElement.removeAttribute("name");
+        
+        if ( !("tabindex" in p_oAttributes) ) {
+
+            p_oAttributes.tabindex = p_oElement.tabIndex;
+
+        }
     
         if ( !("label" in p_oAttributes) ) {
     
@@ -913,21 +913,7 @@ with the 2.3.0 release as soon as it is available.
             }
         
         },
-        
-        
-        /**
-        * @method _setAccessKey
-        * @description Sets the value of the button's "accesskey" attribute.
-        * @protected
-        * @param {String} p_sAccessKey String indicating the value for 
-        * the button's "accesskey" attribute.
-        */
-        _setAccessKey: function (p_sAccessKey) {
-        
-            this._button.accessKey = p_sAccessKey;
-        
-        },
-        
+
         
         /**
         * @method _setHref
@@ -2761,14 +2747,18 @@ with the 2.3.0 release as soon as it is available.
         * @method init
         * @description The Button class's initialization method.
         * @param {String} p_oElement String specifying the id attribute of the 
-        * <code>&#60;input&#62;</code>, <code>&#60;a&#62;</code> or 
-        * <code>&#60;span&#62;</code> element to be used to create the button.
+        * <code>&#60;input&#62;</code>, <code>&#60;button&#62;</code>,
+        * <code>&#60;a&#62;</code>, or <code>&#60;span&#62;</code> element to 
+        * be used to create the button.
         * @param {<a href="http://www.w3.org/TR/2000/WD-DOM-Level-1-20000929/
-        * level-one-html.html#ID-6043025">HTMLInputElement</a>|<a href="
-        * http://www.w3.org/TR/2000/WD-DOM-Level-1-20000929/level-one-html.html#
-        * ID-33759296">HTMLElement</a>} p_oElement Object reference for the 
-        * <code>&#60;input&#62;</code>, <code>&#60;a&#62;</code> or 
-        * <code>&#60;span&#62;</code> element to be used to create the button.
+        * level-one-html.html#ID-6043025">HTMLInputElement</a>|<a href="http://
+        * www.w3.org/TR/2000/WD-DOM-Level-1-20000929/level-one-html.html
+        * #ID-34812697">HTMLButtonElement</a>|<a href="http://www.w3.org/TR
+        * /2000/WD-DOM-Level-1-20000929/level-one-html.html#ID-33759296">
+        * HTMLElement</a>} p_oElement Object reference for the 
+        * <code>&#60;input&#62;</code>, <code>&#60;button&#62;</code>, 
+        * <code>&#60;a&#62;</code>, or <code>&#60;span&#62;</code> element to be 
+        * used to create the button.
         * @param {Object} p_oElement Object literal specifying a set of 
         * configuration attributes used to create the button.
         * @param {Object} p_oAttributes Optional. Object literal specifying a 
@@ -2820,10 +2810,23 @@ with the 2.3.0 release as soon as it is available.
         
             var oContainer = this.get("container"),
                 oElement = this.get("element"),
+                bElInDoc = Dom.inDocument(oElement),
                 oParentNode;
 
 
             if (oContainer) {
+        
+                if (oSrcElement && oSrcElement != oElement) {
+                
+                    oParentNode = oSrcElement.parentNode;
+
+                    if (oParentNode) {
+                    
+                        oParentNode.removeChild(oSrcElement);
+                    
+                    }
+
+                }
         
                 if (Lang.isString(oContainer)) {
         
@@ -2841,40 +2844,29 @@ with the 2.3.0 release as soon as it is available.
                 }
         
             }
-            else if (!Dom.inDocument(oElement) && oSrcElement) {
+            else if (!bElInDoc && oSrcElement && oSrcElement != oElement) {
 
-                switch (oSrcElement.nodeName.toUpperCase()) {
-                
-                case "INPUT":
-                case "BUTTON":
-                case "A":
-
-                    oParentNode = oSrcElement.parentNode;
+                oParentNode = oSrcElement.parentNode;
+        
+                if (oParentNode) {
+        
+                    this.fireEvent("beforeAppendTo", {
+                        type: "beforeAppendTo",
+                        target: oParentNode
+                    });
             
-                    if (oParentNode) {
+                    oParentNode.replaceChild(oElement, oSrcElement);
             
-                        this.fireEvent("beforeAppendTo", {
-                            type: "beforeAppendTo",
-                            target: oParentNode
-                        });
-                
-                        oParentNode.replaceChild(oElement, oSrcElement);
-                
-                        this.fireEvent("appendTo", {
-                            type: "appendTo",
-                            target: oParentNode
-                        });
-                    
-                    }
-                
-                    break;
+                    this.fireEvent("appendTo", {
+                        type: "appendTo",
+                        target: oParentNode
+                    });
                 
                 }
         
             }
-            else if (this.get("type") != "link" && 
-                Dom.inDocument(oElement) && oSrcElement && 
-                oSrcElement.nodeName.toUpperCase() == this.NODE_NAME) {
+            else if (this.get("type") != "link" && bElInDoc && oSrcElement && 
+                oSrcElement == oElement) {
         
                 this._addListenersToForm();
         
@@ -3087,7 +3079,6 @@ with the 2.3.0 release as soon as it is available.
             });
         
         
-        
             /**
             * @config menu
             * @description Object specifying the menu for the button.  
@@ -3117,9 +3108,10 @@ with the 2.3.0 release as soon as it is available.
             * <li>Array of strings representing the text labels for each menu 
             * item in the menu.</li>
             * </ul>
-            * @type <a href="YAHOO.widget.Menu.html">YAHOO.widget.Menu</a>|
-            * <a href="http://www.w3.org/TR/2000/WD-DOM-Level-1-20000929/
-            * level-one-html.html#ID-58190037">HTMLElement</a>|String|Array
+            * @type <a href="YAHOO.widget.Menu.html">YAHOO.widget.Menu</a>|<a 
+            * href="YAHOO.widget.Overlay.html">YAHOO.widget.Overlay</a>|<a 
+            * href="http://www.w3.org/TR/2000/WD-DOM-Level-1-20000929/level-
+            * one-html.html#ID-58190037">HTMLElement</a>|String|Array
             * @default null
             */
             this.setAttributeConfig("menu", {
@@ -3709,7 +3701,7 @@ with the 2.3.0 release as soon as it is available.
     
             if (oElement) {
             
-                if (oElement.nodeName.toUpperCase() == this.TAG_NAME) {
+                if (oElement.nodeName.toUpperCase() == this.NODE_NAME) {
     
             
                     fnSuperClass.call(this, oElement, p_oAttributes);
@@ -3723,7 +3715,7 @@ with the 2.3.0 release as soon as it is available.
     
             sNodeName = p_oElement.nodeName;
     
-            if (sNodeName && sNodeName == this.TAG_NAME) {
+            if (sNodeName && sNodeName == this.NODE_NAME) {
         
                 if (!p_oElement.id) {
         
@@ -3763,14 +3755,14 @@ with the 2.3.0 release as soon as it is available.
         
         
         /**
-        * @property TAG_NAME
+        * @property NODE_NAME
         * @description The name of the tag to be used for the button 
         * group's element. 
         * @default "DIV"
         * @final
         * @type String
         */
-        TAG_NAME: "DIV",
+        NODE_NAME: "DIV",
         
         
         /**
@@ -3797,7 +3789,7 @@ with the 2.3.0 release as soon as it is available.
         */
         _createGroupElement: function () {
         
-            var oElement = document.createElement(this.TAG_NAME);
+            var oElement = document.createElement(this.NODE_NAME);
         
             return oElement;
         
@@ -4482,4 +4474,4 @@ with the 2.3.0 release as soon as it is available.
     });
 
 })();
-YAHOO.register("button", YAHOO.widget.Button, {version: "2.3.0", build: "357"});
+YAHOO.register("button", YAHOO.widget.Button, {version: "2.3.0", build: "442"});

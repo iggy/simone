@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /**
  * The dom module provides helper methods for manipulating Dom elements.
@@ -139,7 +133,7 @@ with the 2.3.0 release as soon as it is available.
     }
     
     var testElement = function(node, method) {
-        return node.nodeType == 1 && ( !method || method(node) );
+        return node && node.nodeType == 1 && ( !method || method(node) );
     };
 
     /**
@@ -608,14 +602,14 @@ with the 2.3.0 release as soon as it is available.
             if (!haystack || !needle) { return false; }
             
             var f = function(node) {
-                if (haystack.contains && node.tagName && !isSafari) { // safari contains is broken
+                if (haystack.contains && node.nodeType && !isSafari) { // safari contains is broken
                     YAHOO.log('isAncestor returning ' + haystack.contains(node), 'info', 'Dom');
                     return haystack.contains(node);
                 }
-                else if ( haystack.compareDocumentPosition && node.tagName ) {
+                else if ( haystack.compareDocumentPosition && node.nodeType ) {
                     YAHOO.log('isAncestor returning ' + !!(haystack.compareDocumentPosition(node) & 16), 'info', 'Dom');
                     return !!(haystack.compareDocumentPosition(node) & 16);
-                } else if (node.tagName) {
+                } else if (node.nodeType) {
                     // fallback to crawling up (safari)
                     return !!this.getAncestorBy(node, function(el) {
                         return el == haystack; 
@@ -848,7 +842,8 @@ with the 2.3.0 release as soon as it is available.
          * @return {Object} HTMLElement or null if not found
          */
         getPreviousSiblingBy: function(node, method) {
-            while (node = node.previousSibling) { // NOTE: assignment
+            while (node) {
+                node = node.previousSibling;
                 if ( testElement(node, method) ) {
                     return node;
                 }
@@ -883,7 +878,8 @@ with the 2.3.0 release as soon as it is available.
          * @return {Object} HTMLElement or null if not found
          */
         getNextSiblingBy: function(node, method) {
-            while (node = node.nextSibling) { // NOTE: assignment
+            while (node) {
+                node = node.nextSibling;
                 if ( testElement(node, method) ) {
                     return node;
                 }
@@ -1251,4 +1247,4 @@ YAHOO.util.Point = function(x, y) {
 
 YAHOO.util.Point.prototype = new YAHOO.util.Region();
 
-YAHOO.register("dom", YAHOO.util.Dom, {version: "2.3.0", build: "357"});
+YAHOO.register("dom", YAHOO.util.Dom, {version: "2.3.0", build: "442"});

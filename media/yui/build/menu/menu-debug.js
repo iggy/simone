@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 
 
@@ -898,7 +892,7 @@ var Dom = YAHOO.util.Dom,
             key: "position", 
             value: "dynamic", 
             validator: checkPosition, 
-            supercedes: ["visible"] 
+            supercedes: ["visible", "iframe"]
         }, 
     
         "SUBMENU_ALIGNMENT": { 
@@ -944,7 +938,8 @@ var Dom = YAHOO.util.Dom,
         "MAX_HEIGHT": { 
             key: "maxheight", 
             value: 0, 
-            validator: Lang.isNumber
+            validator: Lang.isNumber,
+            supercedes: ["iframe"]
         }, 
     
         "CLASS_NAME": { 
@@ -1845,6 +1840,7 @@ _addItemToGroup: function (p_nGroupIndex, p_oItem, p_nItemIndex) {
                     " Group Index: " + oGroupItem.groupIndex);
 
                 this.itemAddedEvent.fire(oGroupItem);
+                this.changeContentEvent.fire();
 
                 return oGroupItem;
     
@@ -1895,6 +1891,7 @@ _addItemToGroup: function (p_nGroupIndex, p_oItem, p_nItemIndex) {
         
 
                 this.itemAddedEvent.fire(oGroupItem);
+                this.changeContentEvent.fire();
 
                 return oGroupItem;
     
@@ -1975,7 +1972,8 @@ _removeItemFromGroupByIndex: function (p_nGroupIndex, p_nItemIndex) {
             }
     
 
-            this.itemRemovedEvent.fire(oItem);    
+            this.itemRemovedEvent.fire(oItem);
+            this.changeContentEvent.fire();
 
 
             // Return a reference to the item that was removed
@@ -2819,7 +2817,6 @@ _onClick: function (p_sType, p_aArgs) {
         oItemCfg,
         oSubmenu,
         sURL,
-        bCurrentPageURL,
         oRoot;
 
 
@@ -2863,11 +2860,10 @@ _onClick: function (p_sType, p_aArgs) {
         else {
 
             sURL = oItemCfg.getProperty("url");
-            bCurrentPageURL = (sURL.substr((sURL.length-1),1) == "#");
 
             //  Prevent the browser from following links equal to "#"
             
-            if (oTarget.tagName.toUpperCase() == "A" && bCurrentPageURL) {
+            if ((sURL.substr((sURL.length-1),1) == "#")) {
 
                 Event.preventDefault(oEvent);
 
@@ -3406,7 +3402,8 @@ _onInit: function (p_sType, p_aArgs) {
 
 
     if (((bRootMenu && !bLazyLoad) || 
-        (bRootMenu && (this.cfg.getProperty("visible") || this.cfg.getProperty("position") == "static")) || 
+        (bRootMenu && (this.cfg.getProperty("visible") || 
+        this.cfg.getProperty("position") == "static")) || 
         (!bRootMenu && !bLazyLoad)) && this.getItemGroups().length === 0) {
 
         if (this.srcElement) {
@@ -3785,7 +3782,11 @@ _onBeforeHide: function (p_sType, p_aArgs) {
 
     }
 
-    this.blur();
+    if (this.getRoot() == this) {
+
+        this.blur();
+    
+    }
 
 },
 
@@ -4090,7 +4091,7 @@ _onMenuItemConfigChange: function (p_sType, p_aArgs, p_oItem) {
 */
 enforceConstraints: function (type, args, obj) {
 
-    var oMenuItem = this.parent,
+    var oParentMenuItem = this.parent,
         oElement,
         oConfig,
         pos,
@@ -4111,7 +4112,8 @@ enforceConstraints: function (type, args, obj) {
         oContextElement;
 
 
-    if (oMenuItem && !(oMenuItem.parent instanceof YAHOO.widget.MenuBar)) {
+    if (oParentMenuItem && 
+        !(oParentMenuItem.parent instanceof YAHOO.widget.MenuBar)) {
 
         oElement = this.element;
     
@@ -4130,7 +4132,8 @@ enforceConstraints: function (type, args, obj) {
         scrollX = Dom.getDocumentScrollLeft();
         scrollY = Dom.getDocumentScrollTop();
         
-        nPadding = (oMenuItem.parent instanceof YAHOO.widget.MenuBar) ? 0 : 10;
+        nPadding = 
+            (oParentMenuItem.parent instanceof YAHOO.widget.MenuBar) ? 0 : 10;
         
         topConstraint = scrollY + nPadding;
         leftConstraint = scrollX + nPadding;
@@ -4186,7 +4189,8 @@ enforceConstraints: function (type, args, obj) {
         oConfig.setProperty("xy", [x,y], true);
     
     }
-    else {
+    else if (this == this.getRoot() && 
+        this.cfg.getProperty("position") == "dynamic") {
     
         Menu.superclass.enforceConstraints.call(this, type, args, obj);
     
@@ -4256,9 +4260,12 @@ configVisible: function (p_sType, p_aArgs, p_oMenu) {
 */
 configPosition: function (p_sType, p_aArgs, p_oMenu) {
 
-    var sCSSPosition = p_aArgs[0] == "static" ? "static" : "absolute",
+    var oElement = this.element,
+        sCSSPosition = p_aArgs[0] == "static" ? "static" : "absolute",
+        sCurrentPosition = Dom.getStyle(oElement, "position"),
         oCfg = this.cfg,
         nZIndex;
+
 
     Dom.setStyle(this.element, "position", sCSSPosition);
 
@@ -4281,6 +4288,12 @@ configPosition: function (p_sType, p_aArgs, p_oMenu) {
 
     }
     else {
+
+        if (sCurrentPosition != "absolute") {
+
+            oCfg.setProperty("iframe", (YAHOO.env.ua.ie == 6 ? true : false));
+
+        }
 
         /*
             Even though the "visible" property is queued to 
@@ -4519,6 +4532,8 @@ configMaxHeight: function (p_sType, p_aArgs, p_oMenu) {
     
     }
 
+    this.cfg.refireEvent("iframe");
+
 },
 
 
@@ -4627,13 +4642,14 @@ onRender: function (p_sType, p_aArgs) {
             oShadow = this._shadow;
     
         if (oShadow) {
-    
+
             oShadow.style.width = (oElement.offsetWidth + 6) + "px";
-            oShadow.style.height = (oElement.offsetHeight + 1) + "px"; 
-    
+            oShadow.style.height = (oElement.offsetHeight + 1) + "px";
+            
         }
     
     }
+
 
     function addShadowVisibleClass() {
     
@@ -4641,6 +4657,7 @@ onRender: function (p_sType, p_aArgs) {
     
     }
     
+
     function removeShadowVisibleClass() {
 
         Dom.removeClass(this._shadow, "yui-menu-shadow-visible");
@@ -4652,13 +4669,11 @@ onRender: function (p_sType, p_aArgs) {
 
         var oShadow = this._shadow,
             oElement,
-            nIE,
             me;
 
         if (!oShadow) {
 
             oElement = this.element;
-            nIE = YAHOO.env.ua.ie;
             me = this;
 
             if (!m_oShadowTemplate) {
@@ -4679,24 +4694,25 @@ onRender: function (p_sType, p_aArgs) {
             this.beforeShowEvent.subscribe(addShadowVisibleClass);
             this.beforeHideEvent.subscribe(removeShadowVisibleClass);
 
-            this.destroyEvent.subscribe(function () {
-            
-                this.beforeShowEvent.unsubscribe(addShadowVisibleClass);
-                this.beforeHideEvent.unsubscribe(removeShadowVisibleClass);
-            
-            });
-
-
-            if (nIE == 6 || (nIE == 7 && document.compatMode == "BackCompat")) {
+            if (YAHOO.env.ua.ie) {
+        
+                /*
+                     Need to call sizeShadow & syncIframe via setTimeout for 
+                     IE 7 Quirks Mode and IE 6 Standards Mode and Quirks Mode 
+                     or the shadow and iframe shim will not be sized and 
+                     positioned properly.
+                */
         
                 window.setTimeout(function () { 
-
+        
                     sizeShadow.call(me); 
-
+                    me.syncIframe();
+        
                 }, 0);
 
                 this.cfg.subscribeToConfigEvent("width", sizeShadow);
                 this.cfg.subscribeToConfigEvent("height", sizeShadow);
+                this.changeContentEvent.subscribe(sizeShadow);
 
                 Module.textResizeEvent.subscribe(sizeShadow, me, true);
                 
@@ -4720,6 +4736,7 @@ onRender: function (p_sType, p_aArgs) {
         this.beforeShowEvent.unsubscribe(onBeforeShow);
     
     }
+
 
     if (this.cfg.getProperty("position") == "dynamic") {
 
@@ -4897,6 +4914,8 @@ setItemGroupTitle: function (p_sGroupTitle, p_nGroupIndex) {
                 "first-of-type");
 
         }
+
+        this.changeContentEvent.fire();
 
     }
 
@@ -5248,45 +5267,12 @@ clearContent: function () {
 */
 destroy: function () {
 
-    // Remove all DOM event listeners
-
-    Event.purgeElement(this.element);
-
-
-    // Remove Custom Event listeners
-
-    this.mouseOverEvent.unsubscribeAll();
-    this.mouseOutEvent.unsubscribeAll();
-    this.mouseDownEvent.unsubscribeAll();
-    this.mouseUpEvent.unsubscribeAll();
-    this.clickEvent.unsubscribeAll();
-    this.keyPressEvent.unsubscribeAll();
-    this.keyDownEvent.unsubscribeAll();
-    this.keyUpEvent.unsubscribeAll();
-    this.focusEvent.unsubscribeAll();
-    this.blurEvent.unsubscribeAll();
-    this.itemAddedEvent.unsubscribeAll();
-
-    this.cfg.unsubscribeFromConfigEvent("width", this._onWidthChange);
-    this.cfg.unsubscribeFromConfigEvent("visible", this._onVisibleChange);
-
-    if (this._hasSetWidthHandlers) {
-
-        this.itemAddedEvent.unsubscribe(this._setWidth);
-        this.itemRemovedEvent.unsubscribe(this._setWidth);
-
-        this._hasSetWidthHandlers = false;
-
-    }
-
     Module.textResizeEvent.unsubscribe(this._onTextResize, this);
 
 
     // Remove all items
 
     this.clearContent();
-
-    this.itemRemovedEvent.unsubscribeAll();
 
     this._aItemGroups = null;
     this._aListElements = null;
@@ -7145,7 +7131,7 @@ MenuItem.prototype = {
         /**
         * @config helptext
         * @description String specifying additional instructional text to 
-        * accompany the text for the nenu item.
+        * accompany the text for the menu item.
         * @deprecated Use "text" configuration property to add help text markup.  
         * For example: <code>oMenuItem.cfg.setProperty("text", "Copy &#60;em 
         * class=\"helptext\"&#62;Ctrl + C&#60;/em&#60;");</code>
@@ -7226,7 +7212,6 @@ MenuItem.prototype = {
         * @deprecated Use "text" configuration property to add strong emphasis.  
         * For example: <code>oMenuItem.cfg.setProperty("text", "&#60;strong&#62; 
         * Some Text&#60;/strong&#60;");</code>
-        * menu's markup.
         * @default false
         * @type Boolean
         */
@@ -8254,7 +8239,7 @@ toString: function() {
 * @param {Object} p_oConfig Optional. Object literal specifying the 
 * configuration for the menu bar. See configuration class documentation for
 * more details.
-* @class Menubar
+* @class MenuBar
 * @constructor
 * @extends YAHOO.widget.Menu
 * @namespace YAHOO.widget
@@ -8836,4 +8821,4 @@ toString: function() {
 }
     
 }); // END YAHOO.lang.extend
-YAHOO.register("menu", YAHOO.widget.Menu, {version: "2.3.0", build: "357"});
+YAHOO.register("menu", YAHOO.widget.Menu, {version: "2.3.0", build: "442"});

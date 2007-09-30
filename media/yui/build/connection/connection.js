@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /**
  * The Connection Manager provides a simplified interface to the XMLHttpRequest
@@ -1108,6 +1102,14 @@ YAHOO.util.Connect =
 		var io = document.getElementById(frameId);
 		var oConn = this;
 
+		// Track original HTML form attribute values.
+		var rawFormAttributes =
+		{
+			action:this._formNode.getAttribute('action'),
+			method:this._formNode.getAttribute('method'),
+			target:this._formNode.getAttribute('target')
+		};
+
 		// Initialize the HTML form properties in case they are
 		// not defined in the HTML form.
 		this._formNode.setAttribute('action', uri);
@@ -1148,6 +1150,19 @@ YAHOO.util.Connect =
 		if(oElements && oElements.length > 0){
 			for(var i=0; i < oElements.length; i++){
 				this._formNode.removeChild(oElements[i]);
+			}
+		}
+
+		// Restore HTML form attributes to their original
+		// values prior to file upload.
+		for(var prop in rawFormAttributes){
+			if(YAHOO.lang.hasOwnProperty(rawFormAttributes, prop)){
+				if(rawFormAttributes[prop]){
+					this._formNode.setAttribute(prop, rawFormAttributes[prop]);
+				}
+				else{
+					this._formNode.removeAttribute(prop);
+				}
 			}
 		}
 
@@ -1341,4 +1356,4 @@ YAHOO.util.Connect =
 	}
 };
 
-YAHOO.register("connection", YAHOO.util.Connect, {version: "2.3.0", build: "357"});
+YAHOO.register("connection", YAHOO.util.Connect, {version: "2.3.0", build: "442"});

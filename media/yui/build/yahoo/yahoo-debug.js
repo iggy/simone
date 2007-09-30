@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /**
  * The YAHOO object is the single global object used by YUI Library.  It
@@ -692,8 +686,9 @@ return (o && (typeof o === 'object' || YAHOO.lang.isFunction(o))) || false;
      * @return {String} the substituted string
      */
     substitute: function (s, o, f) {
-        var i, j, k, key, v, meta, l=YAHOO.lang, 
+        var i, j, k, key, v, meta, l=YAHOO.lang, saved=[], token, 
             DUMP='dump', SPACE=' ', LBRACE='{', RBRACE='}';
+
 
         for (;;) {
             i = s.lastIndexOf(LBRACE);
@@ -706,7 +701,8 @@ return (o && (typeof o === 'object' || YAHOO.lang.isFunction(o))) || false;
             }
 
             //Extract key and meta info 
-            key = s.substring(i + 1, j);
+            token = s.substring(i + 1, j);
+            key = token;
             meta = null;
             k = key.indexOf(SPACE);
             if (k > -1) {
@@ -743,10 +739,21 @@ return (o && (typeof o === 'object' || YAHOO.lang.isFunction(o))) || false;
                     }
                 }
             } else if (!l.isString(v) && !l.isNumber(v)) {
-                break;
+                // This {block} has no replace string. Save it for later.
+                v = "~-" + saved.length + "-~";
+                saved[saved.length] = token;
+
+                // break;
             }
 
             s = s.substring(0, i) + v + s.substring(j + 1);
+
+
+        }
+
+        // restore saved {block}s
+        for (i=saved.length-1; i>=0; i=i-1) {
+            s = s.replace(new RegExp("~-" + i + "-~"), "{"  + saved[i] + "}", "g");
         }
 
         return s;
@@ -858,4 +865,4 @@ YAHOO.augment = YAHOO.lang.augmentProto;
  */
 YAHOO.extend = YAHOO.lang.extend;
 
-YAHOO.register("yahoo", YAHOO, {version: "2.3.0", build: "357"});
+YAHOO.register("yahoo", YAHOO, {version: "2.3.0", build: "442"});

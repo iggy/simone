@@ -187,6 +187,7 @@ def newmail(request):
 @login_required
 def send(request):
     from django.core.mail import send_mail, BadHeaderError
+    from smtplib import SMTPAuthenticationError
     # attempt to send the mail
     subject = request.POST.get('newmailsubject', '')
     message = request.POST.get('editor', '')
@@ -194,12 +195,14 @@ def send(request):
     mailto = request.POST.get('newmailto', '') 
     if subject and message and mailfrom and mailto:
         try:
-            send_mail(subject, message, mailfrom, [mailto], auth_user=request.user, auth_password=request.user.get_profile().imap_password)
+            send_mail(subject, message, mailfrom, [mailto], auth_user=request.user, auth_password=request.user.get_profile().imap_servers.all()[0].passwd)
         except BadHeaderError:
             return HttpResponse('Invalid Header Found')
+        except SMTPAuthenticationError:
+            return HttpResponse('Invalid SMTP server settings')
         return HttpResponse('Mail sent succesfully') # we can use short responses since we will only be submitting via ajax
     else:
-        return HttpResponse('Fill in all fields') # if they get this, they've already lost their mail since we are submitting the mail via ajax
+        return HttpResponse('Fill in all fields'+subject+message+mailfrom+mailto) # if they get this, they've already lost their mail since we are submitting the mail via ajax
 
 @login_required
 def config(request, action):
@@ -243,10 +246,10 @@ def json(request, action):
 	from imapclient import IMAPClient
 	
 	if action == "folderlist":
-		which = int(request.GET.get('folder'))
 		try:
+			which = int(request.GET.get('server'))
 			my_imap_server = request.user.get_profile().imap_servers.all()[which]
-		except IndexError:
+		except (IndexError, TypeError):
 			return HttpResponse(simplejson.dumps({'error':'Invalid server'}))
 		server = IMAPClient(my_imap_server.address, use_uid=True)
 		server.login(my_imap_server.username, my_imap_server.passwd)
@@ -257,6 +260,8 @@ def json(request, action):
 		for server in request.user.get_profile().imap_servers.all():
 			srvlist.append(server.address)
 		return HttpResponse(simplejson.dumps(srvlist))
-	
+	elif action == "msglist":
+		msgs = []
+		return HttpResponse(simplejson.dumps(msgs))
 	
 	

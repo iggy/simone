@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /**
  * The treeview widget is a generic tree building tool.
@@ -681,17 +675,20 @@ YAHOO.widget.TreeView.removeHandler = function (el, sType, fn) {
 YAHOO.widget.TreeView.preload = function(e, prefix) {
     prefix = prefix || "ygtv";
 
+
     var styles = ["tn","tm","tmh","tp","tph","ln","lm","lmh","lp","lph","loading"];
     // var styles = ["tp"];
 
     var sb = [];
     
-    for (var i = 0; i < styles.length; ++i) { 
+    // save the first one for the outer container
+    for (var i=1; i < styles.length; i=i+1) { 
         sb[sb.length] = '<span class="' + prefix + styles[i] + '">&#160;</span>';
     }
 
     var f = document.createElement("div");
     var s = f.style;
+    s.className = prefix + styles[0];
     s.position = "absolute";
     s.height = "1px";
     s.width = "1px";
@@ -2269,4 +2266,4 @@ YAHOO.widget.TVFadeOut.prototype = {
     }
 };
 
-YAHOO.register("treeview", YAHOO.widget.TreeView, {version: "2.3.0", build: "357"});
+YAHOO.register("treeview", YAHOO.widget.TreeView, {version: "2.3.0", build: "442"});

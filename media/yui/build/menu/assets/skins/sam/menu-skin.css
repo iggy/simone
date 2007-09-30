@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /* MenuBar style rules */
 
@@ -24,6 +18,7 @@ with the 2.3.0 release as soon as it is available.
     floating LIs.
 */
 
+.yui-skin-sam .yuimenubar .bd,
 .yui-skin-sam .yuimenubar ul {
 
     *zoom: 1;   /* For IE */
@@ -336,8 +331,12 @@ with the 2.3.0 release as soon as it is available.
 }
 
 .yui-skin-sam .visible .bd,
-.yui-skin-sam .visible ul,
-.yui-skin-sam .visible .yuimenuitem, 
+.yui-skin-sam .visible .yuimenuitem {
+
+    _zoom: 1;   /* For IE 7 Quirks Mode and IE 6 Standards and Quirks Mode */
+
+}
+
 .yui-skin-sam .visible .yuimenuitemlabel {
 
     *zoom: 1;   /* For IE */

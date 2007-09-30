@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 
 /**
@@ -669,6 +663,9 @@ if (!YAHOO.util.Event) {
              * The number of times it will poll and the frequency are
              * configurable.  By default it will poll for 10 seconds.
              *
+             * <p>The callback is executed with a single parameter:
+             * the custom object parameter, if provided.</p>
+             *
              * @method onAvailable
              *
              * @param {string}   p_id the id of the element to look for.
@@ -705,6 +702,13 @@ if (!YAHOO.util.Event) {
              * window onload event has fired without having had a listener attached 
              * to it when it did so?
              *
+             * <p>The callback is a CustomEvent, so the signature is:</p>
+             * <p>type <string>, args <array>, customobject <object></p>
+             * <p>For DOMReady events, there are no fire argments, so the
+             * signature is:</p>
+             * <p>"DOMReady", [], obj</p>
+             *
+             *
              * @method onDOMReady
              *
              * @param {function} p_fn what to execute when the element is found.
@@ -738,6 +742,9 @@ if (!YAHOO.util.Event) {
              * Works the same way as onAvailable, but additionally checks the
              * state of sibling elements to determine if the content of the
              * available element is safe to modify.
+             *
+             * <p>The callback is executed with a single parameter:
+             * the custom object parameter, if provided.</p>
              *
              * @method onContentReady
              *
@@ -1847,7 +1854,7 @@ if (!YAHOO.util.Event) {
                 //}
 
             } else {
-document.write('<scr'+'ipt id="_yui_eu_dr" defer="true" src="//:"><'+'/script>');
+    d.write('<scr'+'ipt id="_yui_eu_dr" defer="true" src="//:"><'+'/script>');
                 el=document.getElementById("_yui_eu_dr");
             }
             
@@ -2312,4 +2319,4 @@ YAHOO.util.KeyListener.KEYDOWN = "keydown";
 * @type String
 */
 YAHOO.util.KeyListener.KEYUP = "keyup";
-YAHOO.register("event", YAHOO.util.Event, {version: "2.3.0", build: "357"});
+YAHOO.register("event", YAHOO.util.Event, {version: "2.3.0", build: "442"});

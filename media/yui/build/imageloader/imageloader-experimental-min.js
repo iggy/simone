@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 
 if(typeof(YAHOO.util.ImageLoader)=='undefined'){YAHOO.util.ImageLoader={};}
@@ -24,4 +18,4 @@ YAHOO.log('Fetching image with id "'+this.domId+'".','info','imageloader');this.
 if(this.width){el.width=this.width;}
 if(this.height){el.height=this.height;}
 this._fetched=true;};YAHOO.util.ImageLoader.imgObj.prototype._applyUrl=function(el){};YAHOO.util.ImageLoader.bgImgObj=function(domId,url){YAHOO.util.ImageLoader.bgImgObj.superclass.constructor.call(this,domId,url);};YAHOO.lang.extend(YAHOO.util.ImageLoader.bgImgObj,YAHOO.util.ImageLoader.imgObj);YAHOO.util.ImageLoader.bgImgObj.prototype._applyUrl=function(el){el.style.backgroundImage="url('"+this.url+"')";};YAHOO.util.ImageLoader.srcImgObj=function(domId,url,width,height){YAHOO.util.ImageLoader.srcImgObj.superclass.constructor.call(this,domId,url);this.width=width;this.height=height;};YAHOO.lang.extend(YAHOO.util.ImageLoader.srcImgObj,YAHOO.util.ImageLoader.imgObj);YAHOO.util.ImageLoader.srcImgObj.prototype._applyUrl=function(el){el.src=this.url;};YAHOO.util.ImageLoader.pngBgImgObj=function(domId,url){YAHOO.util.ImageLoader.pngBgImgObj.superclass.constructor.call(this,domId,url);};YAHOO.lang.extend(YAHOO.util.ImageLoader.pngBgImgObj,YAHOO.util.ImageLoader.imgObj);YAHOO.util.ImageLoader.pngBgImgObj.prototype._applyUrl=function(el){if(YAHOO.env.ua.ie&&YAHOO.env.ua.ie<=6){el.style.filter='progid:DXImageTransform.Microsoft.AlphaImageLoader(src="'+this.url+'", sizingMethod="scale")';}
-else{el.style.backgroundImage="url('"+this.url+"')";}};YAHOO.register("imageloader",YAHOO.util.ImageLoader,{version:"2.3.0",build:"357"});
+else{el.style.backgroundImage="url('"+this.url+"')";}};YAHOO.register("imageloader",YAHOO.util.ImageLoader,{version:"2.3.0",build:"442"});

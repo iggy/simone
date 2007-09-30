@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /* default space between tabs */
 .yui-navset .yui-nav li,
@@ -72,7 +66,7 @@ with the 2.3.0 release as soon as it is available.
 }
 
 .yui-navset .yui-nav a {
-    outline:0; /* gecko: keep from shifting */
+    Xoutline:0; /* gecko: keep from shifting */
 }
 
 .yui-navset .yui-nav a { position:relative; } /* IE: to allow overlap */

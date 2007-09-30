@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /****************************************************************************/
 /****************************************************************************/
@@ -1948,4 +1942,4 @@ if(!YAHOO.widget.Logger) {
 }
 
 
-YAHOO.register("logger", YAHOO.widget.Logger, {version: "2.3.0", build: "357"});
+YAHOO.register("logger", YAHOO.widget.Logger, {version: "2.3.0", build: "442"});

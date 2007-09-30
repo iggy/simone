@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /**
  * Provides color conversion and validation utils
@@ -784,10 +778,7 @@ YAHOO.util.Color = function() {
         var inc = (e.shiftKey) ? 10 : 1;
         switch (command) {
             case 6: // return, update the value
-                var val = parseInt(el.value, 10);
-                if (val !== this.get(prop)) {
-                    this.set(prop, val);
-                }
+                _useFieldValue.apply(this, arguments);
                 break;
                         
             case 3: // up arrow, increment
@@ -817,10 +808,27 @@ YAHOO.util.Color = function() {
     var _hexFieldKeypress = function(e, el, prop) {
         var command = _getCommand(e);
         if (command === 6) { // return, update the value
-            var val = el.value;
-            if (val !== this.get(prop)) {
-                this.set(prop, val);
-            }
+            _useFieldValue.apply(this, arguments);
+        }
+    };
+
+    /**
+     * Use the value of the text field to update the control
+     * @method _hexFieldKeypress
+     * @param e {Event} an event
+     * @param el {HTMLElement} the field
+     * @param prop {string} the key to the linked property
+     * @private
+     */
+    var _useFieldValue = function(e, el, prop) {
+        var val = el.value;
+
+        if (prop !== this.OPT.HEX) {
+            val = parseInt(val, 10);
+        }
+
+        if (val !== this.get(prop)) {
+            this.set(prop, val);
         }
     };
 
@@ -1178,7 +1186,9 @@ YAHOO.util.Color = function() {
                    o.SHOW_RGB_CONTROLS,
                    o.SHOW_HSV_CONTROLS,
                    o.SHOW_HEX_CONTROLS,
-                   o.SHOW_HEX_SUMMARY];
+                   o.SHOW_HEX_SUMMARY,
+                   o.SHOW_WEBSAFE
+                   ];
 
         for (i=0; i<els.length; i=i+1) {
             this.set(els[i], this.get(els[i]));
@@ -1219,14 +1229,19 @@ YAHOO.util.Color = function() {
             }, this);
 
         Event.on(this.getElement(this.ID.HEX), "keypress", _hexOnly, this);
+        Event.on(this.getElement(this.ID.HEX), "blur", function(e, me) {
+                _useFieldValue.call(me, e, this, me.OPT.HEX);
+            }, this);
     };
 
     _attachRGBHSV = function(id, config) {
         Event.on(this.getElement(id), "keydown", function(e, me) {
                 _rgbFieldKeypress.call(me, e, this, config);
             }, this);
-
         Event.on(this.getElement(id), "keypress", _numbersOnly, this);
+        Event.on(this.getElement(id), "blur", function(e, me) {
+                _useFieldValue.call(me, e, this, config);
+            }, this);
     };
 
 
@@ -1529,6 +1544,19 @@ YAHOO.util.Color = function() {
             });
 
         /**
+         * Hide/show the websafe swatch
+         * @config showwebsafe
+         * @type boolean
+         * @default true
+         */
+        this.setAttributeConfig(this.OPT.SHOW_WEBSAFE, {
+                value: (attr.showwebsafe) || true,
+                method: function(on) {
+                    _hideShowEl.call(this, this.ID.WEBSAFE_SWATCH, on);
+                }
+            });
+
+        /**
          * Hide/show the hex summary
          * @config showhexsummary
          * @type boolean
@@ -1545,7 +1573,6 @@ YAHOO.util.Color = function() {
                     }
                 }
             });
-
         this.setAttributeConfig(this.OPT.ANIMATE, {
                 value: (attr.animate) || true,
                 method: function(on) {
@@ -1715,4 +1742,4 @@ YAHOO.util.Color = function() {
 
 
 })();
-YAHOO.register("colorpicker", YAHOO.widget.ColorPicker, {version: "2.3.0", build: "357"});
+YAHOO.register("colorpicker", YAHOO.widget.ColorPicker, {version: "2.3.0", build: "442"});

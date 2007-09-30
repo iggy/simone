@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 
 YAHOO.util.History=(function(){var _iframe=null;var _storageField=null;var _initialized=false;var _storageFieldReady=false;var _bhmReady=false;var _modules=[];var _fqstates=[];function _trim(str){return str.replace(/^\s*(\S*(\s+\S+)*)\s*$/,"$1");}
@@ -48,4 +42,4 @@ moduleObj=_modules[module];if(!moduleObj){throw new Error("No such registered mo
 return unescape(moduleObj.currentState);},getBookmarkedState:function(module){var i;var len;var hash;var states;var tokens;var moduleName;if(typeof module!=="string"){throw new Error("Missing or invalid argument passed to YAHOO.util.History.getBookmarkedState");}
 hash=top.location.hash.substr(1);states=hash.split("&");for(i=0,len=states.length;i<len;i++){tokens=states[i].split("=");if(tokens.length===2){moduleName=tokens[0];if(moduleName===module){return unescape(tokens[1]);}}}
 return null;},getQueryStringParameter:function(paramName,url){var i;var len;var idx;var queryString;var params;var tokens;url=url||top.location.href;idx=url.indexOf("?");queryString=idx>=0?url.substr(idx+1):url;params=queryString.split("&");for(i=0,len=params.length;i<len;i++){tokens=params[i].split("=");if(tokens.length>=2){if(tokens[0]===paramName){return unescape(tokens[1]);}}}
-return null;}};})();YAHOO.register("history",YAHOO.util.History,{version:"2.3.0",build:"357"});
+return null;}};})();YAHOO.register("history",YAHOO.util.History,{version:"2.3.0",build:"442"});

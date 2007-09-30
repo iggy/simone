@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 (function () {
 
@@ -258,10 +252,10 @@ with the 2.3.0 release as soon as it is available.
                     !Lang.isUndefined(this.initialConfig[key])) {
     
                     this.setProperty(key, this.initialConfig[key]);
+
+                    return true;
     
                 }
-    
-                return true;
     
             } else {
     
@@ -471,14 +465,38 @@ with the 2.3.0 release as soon as it is available.
         */
         applyConfig: function (userConfig, init) {
         
-            var prop;
-        
+            var sKey,
+                oValue,
+                oConfig;
+
             if (init) {
-                this.initialConfig = userConfig;
+
+                oConfig = {};
+
+                for (sKey in userConfig) {
+                
+                    if (Lang.hasOwnProperty(userConfig, sKey)) {
+
+                        oConfig[sKey.toLowerCase()] = userConfig[sKey];
+
+                    }
+                
+                }
+
+                this.initialConfig = oConfig;
+
             }
-            for (prop in userConfig) {
-                this.queueProperty(prop, userConfig[prop]);
+
+            for (sKey in userConfig) {
+            
+                if (Lang.hasOwnProperty(userConfig, sKey)) {
+            
+                    this.queueProperty(sKey, userConfig[sKey]);
+                
+                }
+
             }
+
         },
         
         /**
@@ -617,6 +635,41 @@ with the 2.3.0 release as soon as it is available.
                 }
             }
             return output;
+        },
+
+        /**
+        * Sets all properties to null, unsubscribes all listeners from each 
+        * property's change event and all listeners from the configChangedEvent.
+        * @method destroy
+        */
+        destroy: function () {
+
+            var oConfig = this.config,
+                sProperty,
+                oProperty;
+
+
+            for (sProperty in oConfig) {
+            
+                if (Lang.hasOwnProperty(oConfig, sProperty)) {
+
+                    oProperty = oConfig[sProperty];
+
+                    oProperty.event.unsubscribeAll();
+                    oProperty.event = null;
+
+                }
+            
+            }
+            
+            this.configChangedEvent.unsubscribeAll();
+            
+            this.configChangedEvent = null;
+            this.owner = null;
+            this.config = null;
+            this.initialConfig = null;
+            this.eventQueue = null;
+        
         }
 
     };
@@ -782,7 +835,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant representing the prefix path to use for non-secure images
-    * @property Module.IMG_ROOT
+    * @property YAHOO.widget.Module.IMG_ROOT
     * @static
     * @final
     * @type String
@@ -791,7 +844,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant representing the prefix path to use for securely served images
-    * @property Module.IMG_ROOT_SSL
+    * @property YAHOO.widget.Module.IMG_ROOT_SSL
     * @static
     * @final
     * @type String
@@ -800,7 +853,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant for the default CSS class name that represents a Module
-    * @property Module.CSS_MODULE
+    * @property YAHOO.widget.Module.CSS_MODULE
     * @static
     * @final
     * @type String
@@ -809,7 +862,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant representing the module header
-    * @property Module.CSS_HEADER
+    * @property YAHOO.widget.Module.CSS_HEADER
     * @static
     * @final
     * @type String
@@ -818,7 +871,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant representing the module body
-    * @property Module.CSS_BODY
+    * @property YAHOO.widget.Module.CSS_BODY
     * @static
     * @final
     * @type String
@@ -827,7 +880,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant representing the module footer
-    * @property Module.CSS_FOOTER
+    * @property YAHOO.widget.Module.CSS_FOOTER
     * @static
     * @final
     * @type String
@@ -837,7 +890,7 @@ with the 2.3.0 release as soon as it is available.
     /**
     * Constant representing the url for the "src" attribute of the iframe 
     * used to monitor changes to the browser's base font size
-    * @property Module.RESIZE_MONITOR_SECURE_URL
+    * @property YAHOO.widget.Module.RESIZE_MONITOR_SECURE_URL
     * @static
     * @final
     * @type String
@@ -848,7 +901,7 @@ with the 2.3.0 release as soon as it is available.
     * Singleton CustomEvent fired when the font size is changed in the browser.
     * Opera's "zoom" functionality currently does not support text 
     * size detection.
-    * @event Module.textResizeEvent
+    * @event YAHOO.widget.Module.textResizeEvent
     */
     Module.textResizeEvent = new CustomEvent("textResize");
 
@@ -959,7 +1012,10 @@ with the 2.3.0 release as soon as it is available.
         id: null,
         
         /**
-        * The String representing the image root
+        * A string representing the root path for all images created by
+        * a Module instance.
+        * @deprecated It is recommend that any images for a Module be applied
+        * via CSS using the "background-image" property.
         * @property imageRoot
         * @type String
         */
@@ -1248,7 +1304,7 @@ with the 2.3.0 release as soon as it is available.
             * The Module's Config object used for monitoring 
             * configuration properties.
             * @property cfg
-            * @type Config
+            * @type YAHOO.util.Config
             */
             this.cfg = new Config(this);
         
@@ -1744,6 +1800,7 @@ with the 2.3.0 release as soon as it is available.
                 Event.purgeElement(this.element, true);
                 parent = this.element.parentNode;
             }
+
             if (parent) {
                 parent.removeChild(this.element);
             }
@@ -1752,17 +1809,20 @@ with the 2.3.0 release as soon as it is available.
             this.header = null;
             this.body = null;
             this.footer = null;
+
+            Module.textResizeEvent.unsubscribe(this.onDomResize, this);
+
+            this.cfg.destroy();
+            this.cfg = null;
+
+            this.destroyEvent.fire();
         
             for (e in this) {
                 if (e instanceof CustomEvent) {
                     e.unsubscribeAll();
                 }
             }
-        
-            Module.textResizeEvent.unsubscribe(
-                this.onDomResize, this);
-        
-            this.destroyEvent.fire();
+
         },
         
         /**
@@ -1886,6 +1946,8 @@ with the 2.3.0 release as soon as it is available.
         Dom = YAHOO.util.Dom,
         Config = YAHOO.util.Config,
         Overlay = YAHOO.widget.Overlay,
+        
+        m_oIFrameTemplate,
 
         /**
         * Constant representing the name of the Overlay's events
@@ -1979,17 +2041,28 @@ with the 2.3.0 release as soon as it is available.
 
     /**
     * The URL that will be placed in the iframe
-    * @property Overlay.IFRAME_SRC
+    * @property YAHOO.widget.Overlay.IFRAME_SRC
     * @static
     * @final
     * @type String
     */
     Overlay.IFRAME_SRC = "javascript:false;";
+
+    /**
+    * Number representing how much the iframe shim should be offset from each 
+    * side of an Overlay instance.
+    * @property YAHOO.widget.Overlay.IFRAME_SRC
+    * @default 3
+    * @static
+    * @final
+    * @type Number
+    */
+    Overlay.IFRAME_OFFSET = 3;
     
     /**
     * Constant representing the top left corner of an element, used for 
     * configuring the context element alignment
-    * @property Overlay.TOP_LEFT
+    * @property YAHOO.widget.Overlay.TOP_LEFT
     * @static
     * @final
     * @type String
@@ -1999,7 +2072,7 @@ with the 2.3.0 release as soon as it is available.
     /**
     * Constant representing the top right corner of an element, used for 
     * configuring the context element alignment
-    * @property Overlay.TOP_RIGHT
+    * @property YAHOO.widget.Overlay.TOP_RIGHT
     * @static
     * @final
     * @type String
@@ -2009,7 +2082,7 @@ with the 2.3.0 release as soon as it is available.
     /**
     * Constant representing the top bottom left corner of an element, used for 
     * configuring the context element alignment
-    * @property Overlay.BOTTOM_LEFT
+    * @property YAHOO.widget.Overlay.BOTTOM_LEFT
     * @static
     * @final
     * @type String
@@ -2019,7 +2092,7 @@ with the 2.3.0 release as soon as it is available.
     /**
     * Constant representing the bottom right corner of an element, used for 
     * configuring the context element alignment
-    * @property Overlay.BOTTOM_RIGHT
+    * @property YAHOO.widget.Overlay.BOTTOM_RIGHT
     * @static
     * @final
     * @type String
@@ -2028,7 +2101,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant representing the default CSS class used for an Overlay
-    * @property Overlay.CSS_OVERLAY
+    * @property YAHOO.widget.Overlay.CSS_OVERLAY
     * @static
     * @final
     * @type String
@@ -2039,20 +2112,20 @@ with the 2.3.0 release as soon as it is available.
     /**
     * A singleton CustomEvent used for reacting to the DOM event for 
     * window scroll
-    * @event Overlay.windowScrollEvent
+    * @event YAHOO.widget.Overlay.windowScrollEvent
     */
     Overlay.windowScrollEvent = new CustomEvent("windowScroll");
     
     /**
     * A singleton CustomEvent used for reacting to the DOM event for
     * window resize
-    * @event Overlay.windowResizeEvent
+    * @event YAHOO.widget.Overlay.windowResizeEvent
     */
     Overlay.windowResizeEvent = new CustomEvent("windowResize");
     
     /**
     * The DOM event handler used to fire the CustomEvent for window scroll
-    * @method Overlay.windowScrollHandler
+    * @method YAHOO.widget.Overlay.windowScrollHandler
     * @static
     * @param {DOMEvent} e The DOM scroll event
     */
@@ -2084,7 +2157,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * The DOM event handler used to fire the CustomEvent for window resize
-    * @method Overlay.windowResizeHandler
+    * @method YAHOO.widget.Overlay.windowResizeHandler
     * @static
     * @param {DOMEvent} e The DOM resize event
     */
@@ -2115,7 +2188,7 @@ with the 2.3.0 release as soon as it is available.
     /**
     * A boolean that indicated whether the window resize and scroll events have 
     * already been subscribed to.
-    * @property Overlay._initialized
+    * @property YAHOO.widget.Overlay._initialized
     * @private
     * @type Boolean
     */
@@ -2123,11 +2196,8 @@ with the 2.3.0 release as soon as it is available.
     
     if (Overlay._initialized === null) {
     
-        Event.on(window, "scroll", 
-            Overlay.windowScrollHandler);
-    
-        Event.on(window, "resize", 
-            Overlay.windowResizeHandler);
+        Event.on(window, "scroll", Overlay.windowScrollHandler);
+        Event.on(window, "resize", Overlay.windowResizeHandler);
     
         Overlay._initialized = true;
     
@@ -2374,11 +2444,14 @@ with the 2.3.0 release as soon as it is available.
             });
             
             /**
-            * True if the Overlay should have an IFRAME shim (for correcting  
-            * the select z-index bug in IE6 and below).
             * @config iframe
+            * @description Boolean indicating whether or not the Overlay should 
+            * have an IFRAME shim; used to prevent <SELECT> elements from 
+            * poking through an Overlay instance in IE6.  When set to "true", 
+            * the iframe shim is created when the Overlay instance is intially
+            * made visible.
             * @type Boolean
-            * @default true for IE6 and below, false for all others
+            * @default true for IE6 and below, false for all other browsers.
             */
             this.cfg.addProperty(DEFAULT_CONFIG.IFRAME.key, {
             
@@ -2621,8 +2694,7 @@ with the 2.3.0 release as soon as it is available.
                         this.beforeHideEvent.fire();
     
                         Dom.setStyle(this.element, "visibility", "hidden");
-    
-                        this.cfg.refireEvent("iframe");
+
                         this.hideEvent.fire();
     
                     }
@@ -2876,21 +2948,32 @@ with the 2.3.0 release as soon as it is available.
         },
         
         /**
-        * Shows the iframe shim, if it has been enabled
+        * Shows the iframe shim, if it has been enabled.
         * @method showIframe
         */
         showIframe: function () {
+
+            var oIFrame = this.iframe,
+                oParentNode;
+
+            if (oIFrame) {
     
-            if (this.iframe) {
-    
-                this.iframe.style.display = "block";
+                oParentNode = this.element.parentNode;
+
+                if (oParentNode != oIFrame.parentNode) {
+
+                    oParentNode.appendChild(oIFrame);
+                
+                }
+
+                oIFrame.style.display = "block";
     
             }
     
         },
         
         /**
-        * Hides the iframe shim, if it has been enabled
+        * Hides the iframe shim, if it has been enabled.
         * @method hideIframe
         */
         hideIframe: function () {
@@ -2902,6 +2985,50 @@ with the 2.3.0 release as soon as it is available.
             }
     
         },
+
+        /**
+        * Syncronizes the size and position of iframe shim to that of its 
+        * corresponding Overlay instance.
+        * @method syncIframe
+        */
+        syncIframe: function () {
+
+            var oIFrame = this.iframe,
+                oElement = this.element,
+                nOffset = Overlay.IFRAME_OFFSET,
+                nDimensionOffset = (nOffset * 2),
+                aXY;
+
+
+            if (oIFrame) {
+
+                // Size <iframe>
+
+                oIFrame.style.width = 
+                    (oElement.offsetWidth + nDimensionOffset + "px");
+
+                oIFrame.style.height = 
+                    (oElement.offsetHeight + nDimensionOffset + "px");
+
+
+                // Position <iframe>
+
+                aXY = this.cfg.getProperty("xy");
+
+                if (!Lang.isArray(aXY) || (isNaN(aXY[0]) || isNaN(aXY[1]))) {
+
+                    this.syncPosition();
+
+                    aXY = this.cfg.getProperty("xy");
+
+                }
+
+                Dom.setXY(oIFrame, [(aXY[0] - nOffset), (aXY[1] - nOffset)]);
+
+            }
+        
+        },
+
         
         /**
         * The default event handler fired when the "iframe" property is changed.
@@ -2913,114 +3040,158 @@ with the 2.3.0 release as soon as it is available.
         * this will usually equal the owner.
         */
         configIframe: function (type, args, obj) {
-        
-            var val = args[0],
-                alreadySubscribed = Config.alreadySubscribed,
-                x, y, parent, iframeDisplay, width, height;
-            
-            if (val) { // IFRAME shim is enabled
-            
-                if (!alreadySubscribed(this.showEvent, this.showIframe, this)) {
+
+            var bIFrame = args[0];
+
+            function createIFrame() {
+
+                var oIFrame = this.iframe,
+                    oElement = this.element,
+                    oParent,
+                    aXY;
+
+
+                if (!oIFrame) {
+
+                    if (!m_oIFrameTemplate) {
     
-                    this.showEvent.subscribe(this.showIframe, this, true);
-    
-                }
-    
-                if (!alreadySubscribed(this.hideEvent, this.hideIframe, this)) {
-    
-                    this.hideEvent.subscribe(this.hideIframe, this, true);
-    
-                }
-            
-                x = this.cfg.getProperty("x");
-                y = this.cfg.getProperty("y");
-            
-                if (! x || ! y) {
-    
-                    this.syncPosition();
-                    x = this.cfg.getProperty("x");
-                    y = this.cfg.getProperty("y");
-    
-                }
-            
-                YAHOO.log(("iframe positioning to: " + [x, y]), "iframe");
-            
-                if (! isNaN(x) && ! isNaN(y)) {
-    
-                    if (! this.iframe) {
-    
-                        this.iframe = document.createElement("iframe");
-    
+                        m_oIFrameTemplate = document.createElement("iframe");
+
                         if (this.isSecure) {
         
-                            this.iframe.src = Overlay.IFRAME_SRC;
+                            m_oIFrameTemplate.src = Overlay.IFRAME_SRC;
         
                         }
-    
-                        parent = this.element.parentNode;
-    
-                        if (parent) {
-    
-                            parent.appendChild(this.iframe);
-    
-                        } else {
-    
-                            document.body.appendChild(this.iframe);
-    
+
+                        /*
+                            Set the opacity of the <iframe> to 0 so that it 
+                            doesn't modify the opacity of any transparent 
+                            elements that may be on top of it (like a shadow).
+                        */
+        
+                        if (YAHOO.env.ua.ie) {
+        
+                            m_oIFrameTemplate.style.filter = "alpha(opacity=0)";
+        
+                            /*
+                                 Need to set the "frameBorder" property to 0 
+                                 supress the default <iframe> border in IE.  
+                                 Setting the CSS "border" property alone 
+                                 doesn't supress it.
+                            */
+        
+                            m_oIFrameTemplate.frameBorder = 0;
+        
                         }
-            
-                        Dom.setStyle(this.iframe, "position", "absolute");
-                        Dom.setStyle(this.iframe, "border", "none");
-                        Dom.setStyle(this.iframe, "margin", "0");
-                        Dom.setStyle(this.iframe, "padding", "0");
-                        Dom.setStyle(this.iframe, "opacity", "0");
-    
-                        if (this.cfg.getProperty("visible")) {
-    
-                            this.showIframe();
-                        
-                        } else {
-            
-                            this.hideIframe();
+                        else {
+        
+                            m_oIFrameTemplate.style.opacity = "0";
                         
                         }
-                    }
-            
-                    iframeDisplay = Dom.getStyle(this.iframe, "display");
-            
-                    if (iframeDisplay == "none") {
+
+                        m_oIFrameTemplate.style.position = "absolute";
+                        m_oIFrameTemplate.style.border = "none";
+                        m_oIFrameTemplate.style.margin = "0";
+                        m_oIFrameTemplate.style.padding = "0";
+                        m_oIFrameTemplate.style.display = "none";
     
-                        this.iframe.style.display = "block";
-    
                     }
-            
-                    Dom.setXY(this.iframe, [x, y]);
-            
-                    width = this.element.clientWidth;
-                    height = this.element.clientHeight;
+
+                    oIFrame = m_oIFrameTemplate.cloneNode(false);
+
+                    oParent = oElement.parentNode;
+
+                    if (oParent) {
+
+                        oParent.appendChild(oIFrame);
+
+                    } else {
+
+                        document.body.appendChild(oIFrame);
+
+                    }
                     
-                    Dom.setStyle(this.iframe, "width", ((width + 2) + "px"));
-                    Dom.setStyle(this.iframe, "height", ((height + 2) + "px"));
+                    this.iframe = oIFrame;
+
+                }
+
+
+                /*
+                     Show the <iframe> before positioning it since the "setXY" 
+                     method of DOM requires the element be in the document 
+                     and visible.
+                */
+
+                this.showIframe();
+
+
+                /*
+                     Syncronize the size and position of the <iframe> to that 
+                     of the Overlay.
+                */
+                
+                this.syncIframe();
+
+
+                // Add event listeners to update the <iframe> when necessary
+
+                if (!this._hasIframeEventListeners) {
+
+                    this.showEvent.subscribe(this.showIframe);
+                    this.hideEvent.subscribe(this.hideIframe);
+                    this.changeContentEvent.subscribe(this.syncIframe);
+
+                    this._hasIframeEventListeners = true;
+                    
+                }
+                
+            }
+
+
+            function onBeforeShow() {
             
-                    if (iframeDisplay == "none") {
-    
-                        this.iframe.style.display = "none";
-    
+                createIFrame.call(this);
+        
+                this.beforeShowEvent.unsubscribe(onBeforeShow);
+                
+                this._iframeDeferred = false;
+            
+            }
+            
+
+            if (bIFrame) { // <iframe> shim is enabled
+                
+                if (this.cfg.getProperty("visible")) {
+
+                    createIFrame.call(this);
+                
+                }
+                else {
+
+                    if (!this._iframeDeferred) {
+
+                        this.beforeShowEvent.subscribe(onBeforeShow);
+
+                        this._iframeDeferred = true;
+                    
                     }
-    
+                
                 }
     
-            } else {
+            } else {    // <iframe> shim is disabled
     
-                if (this.iframe) {
-    
-                    this.iframe.style.display = "none";
-    
+                this.hideIframe();
+
+                if (this._hasIframeEventListeners) {
+
+                    this.showEvent.unsubscribe(this.showIframe);
+                    this.hideEvent.unsubscribe(this.hideIframe);
+                    this.changeContentEvent.unsubscribe(this.syncIframe);
+
+                    this._hasIframeEventListeners = false;
+
                 }
-    
-                this.showEvent.unsubscribe(this.showIframe, this);
-                this.hideEvent.unsubscribe(this.hideIframe, this);
-    
+                
             }
     
         },
@@ -4058,7 +4229,7 @@ with the 2.3.0 release as soon as it is available.
         Dom = YAHOO.util.Dom,
         Tooltip = YAHOO.widget.Tooltip,
     
-        m_oShadowTemplate;
+        m_oShadowTemplate,
         
         /**
         * Constant representing the Tooltip's configuration properties
@@ -4108,7 +4279,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant representing the Tooltip CSS class
-    * @property Tooltip.CSS_TOOLTIP
+    * @property YAHOO.widget.Tooltip.CSS_TOOLTIP
     * @static
     * @final
     * @type String
@@ -4787,15 +4958,6 @@ with the 2.3.0 release as soon as it is available.
         
                     this.subscribe("beforeShow", addShadowVisibleClass);
                     this.subscribe("beforeHide", removeShadowVisibleClass);
-        
-                    this.subscribe("destroy", function () {
-                    
-                        this.unsubscribe("beforeShow",addShadowVisibleClass);
-                        this.unsubscribe("beforeHide", 
-                                            removeShadowVisibleClass);
-                    
-                    });
-
 
                     if (nIE == 6 || 
                         (nIE == 7 && document.compatMode == "BackCompat")) {
@@ -4808,6 +4970,7 @@ with the 2.3.0 release as soon as it is available.
     
                         this.cfg.subscribeToConfigEvent("width", sizeShadow);
                         this.cfg.subscribeToConfigEvent("height", sizeShadow);
+                        this.subscribe("changeContent", sizeShadow);
     
                         Module.textResizeEvent.subscribe(sizeShadow, 
                                                             this, true);
@@ -4971,7 +5134,7 @@ with the 2.3.0 release as soon as it is available.
 
     /**
     * Constant representing the default CSS class used for a Panel
-    * @property Panel.CSS_PANEL
+    * @property YAHOO.widget.Panel.CSS_PANEL
     * @static
     * @final
     * @type String
@@ -4981,7 +5144,7 @@ with the 2.3.0 release as soon as it is available.
     /**
     * Constant representing the default CSS class used for a Panel's 
     * wrapping container
-    * @property Panel.CSS_PANEL_CONTAINER
+    * @property YAHOO.widget.Panel.CSS_PANEL_CONTAINER
     * @static
     * @final
     * @type String
@@ -5027,7 +5190,7 @@ with the 2.3.0 release as soon as it is available.
         
         }
 
-        this.unsubscribe("hide", this._onHide, p_oObject);
+        this.unsubscribe("hide", restoreOriginalWidth, p_oObject);
     
     }
 
@@ -5276,7 +5439,12 @@ with the 2.3.0 release as soon as it is available.
         
             /**
             * Sets the type of underlay to display for the Panel. Valid values 
-            * are "shadow", "matte", and "none".
+            * are "shadow," "matte," and "none".  <strong>PLEASE NOTE:</strong> 
+            * The creation of the underlay element is deferred until the Panel 
+            * is initially made visible.  For Gecko-based browsers on Mac
+            * OS X the underlay elment is always created as it is used as a 
+            * shim to prevent Aqua scrollbars below a Panel instance from poking 
+            * through it (See SourceForge bug #836476).
             * @config underlay
             * @type String
             * @default shadow
@@ -5439,7 +5607,8 @@ with the 2.3.0 release as soon as it is available.
             }
 
         },
-        
+      
+
         /**
         * The default event handler fired when the "underlay" property 
         * is changed.
@@ -5452,14 +5621,16 @@ with the 2.3.0 release as soon as it is available.
         */
         configUnderlay: function (type, args, obj) {
     
-            var sUnderlay = args[0].toLowerCase(),
-                oUnderlay = this.underlay;
+            var UA = YAHOO.env.ua,
+                bMacGecko = (this.platform == "mac" && UA.gecko),
+                sUnderlay = args[0].toLowerCase(),
+                oUnderlay = this.underlay,
                 oElement = this.element;
+
 
             function createUnderlay() {
 
-                var oUnderlay = this.underlay,
-                    nIE;
+                var nIE;
 
                 if (!oUnderlay) { // create if not already in DOM
 
@@ -5475,18 +5646,23 @@ with the 2.3.0 release as soon as it is available.
                     
                     this.underlay = oUnderlay;
 
-                    nIE = YAHOO.env.ua.ie;
+                    nIE = UA.ie;
 
                     if (nIE == 6 || 
                         (nIE == 7 && document.compatMode == "BackCompat")) {
+                            
+                        this.sizeUnderlay();
 
-                        this.cfg.subscribeToConfigEvent("width", this.sizeUnderlay);
-                        this.cfg.subscribeToConfigEvent("height", this.sizeUnderlay);
+                        this.cfg.subscribeToConfigEvent("width", 
+                            this.sizeUnderlay);
+
+                        this.cfg.subscribeToConfigEvent("height", 
+                            this.sizeUnderlay);
+
+                        this.changeContentEvent.subscribe(this.sizeUnderlay);
 
                         YAHOO.widget.Module.textResizeEvent.subscribe(
                             this.sizeUnderlay, this, true);
-
-                        this.sizeUnderlay();
                     
                     }
 
@@ -5494,12 +5670,47 @@ with the 2.3.0 release as soon as it is available.
 
             }
 
+
             function onBeforeShow() {
             
                 createUnderlay.call(this);
     
+                this._underlayDeferred = false;
+    
                 this.beforeShowEvent.unsubscribe(onBeforeShow);
             
+            }
+
+            
+            function destroyUnderlay() {
+
+                if (this._underlayDeferred) {
+
+                    this.beforeShowEvent.unsubscribe(onBeforeShow);
+                
+                    this._underlayDeferred = false;
+
+                }
+            
+                if (oUnderlay) {
+            
+                    this.cfg.unsubscribeFromConfigEvent("width", 
+                        this.sizeUnderlay);
+    
+                    this.cfg.unsubscribeFromConfigEvent("height", 
+                        this.sizeUnderlay);
+    
+                    this.changeContentEvent.unsubscribe(this.sizeUnderlay);
+    
+                    YAHOO.widget.Module.textResizeEvent.unsubscribe(
+                        this.sizeUnderlay, this, true);
+    
+                    this.element.removeChild(oUnderlay);
+                    
+                    this.underlay = null;
+
+                }
+                    
             }
         
 
@@ -5514,6 +5725,12 @@ with the 2.3.0 release as soon as it is available.
 
             case "matte":
 
+                if (!bMacGecko) {
+
+                    destroyUnderlay.call(this);
+
+                }
+            
                 Dom.removeClass(oElement, "shadow");
                 Dom.addClass(oElement, "matte");
 
@@ -5521,6 +5738,12 @@ with the 2.3.0 release as soon as it is available.
 
             default:
 
+                if (!bMacGecko) {
+
+                    destroyUnderlay.call(this);
+
+                }
+            
                 Dom.removeClass(oElement, "shadow");
                 Dom.removeClass(oElement, "matte");
 
@@ -5529,18 +5752,22 @@ with the 2.3.0 release as soon as it is available.
             }
 
 
-            if (sUnderlay == "shadow" || 
-                ((this.platform == "mac" && YAHOO.env.ua.gecko) && 
-                !oUnderlay)) {
+            if ((sUnderlay == "shadow") || (bMacGecko && !oUnderlay)) {
                 
                 if (this.cfg.getProperty("visible")) {
                 
-                    createUnderlay.call(this);                    
+                    createUnderlay.call(this);
                 
                 }
                 else {
 
-                    this.beforeShowEvent.subscribe(onBeforeShow);                
+                    if (!this._underlayDeferred) {
+
+                        this.beforeShowEvent.subscribe(onBeforeShow);
+                    
+                        this._underlayDeferred = true;
+
+                    }
                 
                 }
 
@@ -5825,7 +6052,7 @@ with the 2.3.0 release as soon as it is available.
 
             if (oUnderlay) {
 
-                oElement = this.innerElement;
+                oElement = this.element;
 
                 oUnderlay.style.width = oElement.offsetWidth + "px";
                 oUnderlay.style.height = oElement.offsetHeight + "px";
@@ -6101,7 +6328,6 @@ with the 2.3.0 release as soon as it is available.
         Dom = YAHOO.util.Dom,
         KeyListener = YAHOO.util.KeyListener,
         Connect = YAHOO.util.Connect,
-        Button = YAHOO.widget.Button,
         Dialog = YAHOO.widget.Dialog,
         Lang = YAHOO.lang,
 
@@ -6147,7 +6373,7 @@ with the 2.3.0 release as soon as it is available.
 
     /**
     * Constant representing the default CSS class used for a Dialog
-    * @property Dialog.CSS_DIALOG
+    * @property YAHOO.widget.Dialog.CSS_DIALOG
     * @static
     * @final
     * @type String
@@ -6174,7 +6400,7 @@ with the 2.3.0 release as soon as it is available.
 
                     oButton = aButtons[i];
                     
-                    if (oButton instanceof Button) {
+                    if (oButton instanceof YAHOO.widget.Button) {
                         
                         oButton.destroy();
                         
@@ -6680,7 +6906,8 @@ with the 2.3.0 release as soon as it is available.
         */
         configButtons: function (type, args, obj) {
     
-            var aButtons = args[0],
+            var Button = YAHOO.widget.Button,
+                aButtons = args[0],
                 oInnerElement = this.innerElement,
                 oButton,
                 oButtonEl,
@@ -6797,9 +7024,6 @@ with the 2.3.0 release as soon as it is available.
                     oInnerElement.appendChild(oFooter);
                 
                 }
-        
-                this.cfg.refireEvent("iframe");
-                this.cfg.refireEvent("underlay");
 
                 this.buttonSpan = oSpan;
 
@@ -6820,6 +7044,9 @@ with the 2.3.0 release as soon as it is available.
                 }
 
             }
+
+            this.cfg.refireEvent("iframe");
+            this.cfg.refireEvent("underlay");
 
         },
 
@@ -7482,7 +7709,7 @@ with the 2.3.0 release as soon as it is available.
 
     /**
     * Constant for the standard network icon for a blocking action
-    * @property SimpleDialog.ICON_BLOCK
+    * @property YAHOO.widget.SimpleDialog.ICON_BLOCK
     * @static
     * @final
     * @type String
@@ -7491,7 +7718,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant for the standard network icon for alarm
-    * @property SimpleDialog.ICON_ALARM
+    * @property YAHOO.widget.SimpleDialog.ICON_ALARM
     * @static
     * @final
     * @type String
@@ -7500,7 +7727,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant for the standard network icon for help
-    * @property SimpleDialog.ICON_HELP
+    * @property YAHOO.widget.SimpleDialog.ICON_HELP
     * @static
     * @final
     * @type String
@@ -7509,7 +7736,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant for the standard network icon for info
-    * @property SimpleDialog.ICON_INFO
+    * @property YAHOO.widget.SimpleDialog.ICON_INFO
     * @static
     * @final
     * @type String
@@ -7518,7 +7745,7 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant for the standard network icon for warn
-    * @property SimpleDialog.ICON_WARN
+    * @property YAHOO.widget.SimpleDialog.ICON_WARN
     * @static
     * @final
     * @type String
@@ -7527,18 +7754,26 @@ with the 2.3.0 release as soon as it is available.
     
     /**
     * Constant for the standard network icon for a tip
-    * @property SimpleDialog.ICON_TIP
+    * @property YAHOO.widget.SimpleDialog.ICON_TIP
     * @static
     * @final
     * @type String
     */
     SimpleDialog.ICON_TIP   = "tipicon";
-    
+
+    /**
+    * Constant representing the name of the CSS class applied to the element 
+    * created by the "icon" configuration property.
+    * @property YAHOO.widget.SimpleDialog.ICON_CSS_CLASSNAME
+    * @static
+    * @final
+    * @type String
+    */
     SimpleDialog.ICON_CSS_CLASSNAME = "yui-icon";
     
     /**
     * Constant representing the default CSS class used for a SimpleDialog
-    * @property SimpleDialog.CSS_SIMPLEDIALOG
+    * @property YAHOO.widget.SimpleDialog.CSS_SIMPLEDIALOG
     * @static
     * @final
     * @type String
@@ -7818,9 +8053,9 @@ with the 2.3.0 release as soon as it is available.
     * an overlay in and out.
     * @method FADE
     * @static
-    * @param {Overlay} overlay The Overlay object to animate
+    * @param {YAHOO.widget.Overlay} overlay The Overlay object to animate
     * @param {Number} dur The duration of the animation
-    * @return {ContainerEffect} The configured ContainerEffect object
+    * @return {YAHOO.widget.ContainerEffect} The configured ContainerEffect object
     */
     ContainerEffect.FADE = function (overlay, dur) {
     
@@ -7907,9 +8142,9 @@ with the 2.3.0 release as soon as it is available.
     * overlay in and out.
     * @method SLIDE
     * @static
-    * @param {Overlay} overlay The Overlay object to animate
+    * @param {YAHOO.widget.Overlay} overlay The Overlay object to animate
     * @param {Number} dur The duration of the animation
-    * @return {ContainerEffect} The configured ContainerEffect object
+    * @return {YAHOO.widget.ContainerEffect} The configured ContainerEffect object
     */
     ContainerEffect.SLIDE = function (overlay, dur) {
     
@@ -8128,4 +8363,4 @@ with the 2.3.0 release as soon as it is available.
     YAHOO.lang.augmentProto(ContainerEffect, YAHOO.util.EventProvider);
 
 })();
-YAHOO.register("container", YAHOO.widget.Module, {version: "2.3.0", build: "357"});
+YAHOO.register("container", YAHOO.widget.Module, {version: "2.3.0", build: "442"});

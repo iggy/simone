@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 
 YAHOO.util.DataSource=function(oLiveData,oConfigs){if(oConfigs&&(oConfigs.constructor==Object)){for(var sConfig in oConfigs){if(sConfig){this[sConfig]=oConfigs[sConfig];}}}
@@ -98,11 +92,11 @@ if(data===undefined){data=null;}
 oResult[key]=data;}
 oParsedResponse.results.unshift(oResult);}}
 else{oParsedResponse.error=true;}
-return oParsedResponse;};YAHOO.util.DataSource.prototype.parseHTMLTableData=function(oRequest,oRawResponse){var bError=false;var elTable=oRawResponse;var fields=this.responseSchema.fields;var oParsedResponse={};oParsedResponse.results=[];for(var i=0;i<elTable.tBodies.length;i++){var elTbody=elTable.tBodies[i];for(var j=0;j<elTbody.rows.length;j++){var elRow=elTbody.rows[j];var oResult={};for(var k=fields.length-1;k>-1;k--){var field=fields[k];var key=(YAHOO.lang.isValue(field.key))?field.key:field;var data=elRow.cells[k].innerHTML;if(!field.parser&&field.converter){field.parser=field.converter;}
+return oParsedResponse;};YAHOO.util.DataSource.prototype.parseHTMLTableData=function(oRequest,oRawResponse){var bError=false;var elTable=oRawResponse;var fields=this.responseSchema.fields;var oParsedResponse={};oParsedResponse.results=[];for(var i=0;i<elTable.tBodies.length;i++){var elTbody=elTable.tBodies[i];for(var j=elTbody.rows.length-1;j>-1;j--){var elRow=elTbody.rows[j];var oResult={};for(var k=fields.length-1;k>-1;k--){var field=fields[k];var key=(YAHOO.lang.isValue(field.key))?field.key:field;var data=elRow.cells[k].innerHTML;if(!field.parser&&field.converter){field.parser=field.converter;}
 if(field.parser){data=field.parser.call(this,data);}
 if(data===undefined){data=null;}
 oResult[key]=data;}
 oParsedResponse.results.unshift(oResult);}}
 if(bError){oParsedResponse.error=true;}
 else{}
-return oParsedResponse;};YAHOO.register("datasource",YAHOO.util.DataSource,{version:"2.3.0",build:"357"});
+return oParsedResponse;};YAHOO.register("datasource",YAHOO.util.DataSource,{version:"2.3.0",build:"442"});

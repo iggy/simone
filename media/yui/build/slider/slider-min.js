@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 
 YAHOO.widget.Slider=function(sElementId,sGroup,oThumb,sType){if(sElementId){this.init(sElementId,sGroup,true);this.initSlider(sType);this.initThumb(oThumb);}};YAHOO.widget.Slider.getHorizSlider=function(sBGElId,sHandleElId,iLeft,iRight,iTickSize){return new YAHOO.widget.Slider(sBGElId,sBGElId,new YAHOO.widget.SliderThumb(sHandleElId,sBGElId,iLeft,iRight,0,0,iTickSize),"horiz");};YAHOO.widget.Slider.getVertSlider=function(sBGElId,sHandleElId,iUp,iDown,iTickSize){return new YAHOO.widget.Slider(sBGElId,sBGElId,new YAHOO.widget.SliderThumb(sHandleElId,sBGElId,0,0,iUp,iDown,iTickSize),"vert");};YAHOO.widget.Slider.getSliderRegion=function(sBGElId,sHandleElId,iLeft,iRight,iUp,iDown,iTickSize){return new YAHOO.widget.Slider(sBGElId,sBGElId,new YAHOO.widget.SliderThumb(sHandleElId,sBGElId,iLeft,iRight,iUp,iDown,iTickSize),"region");};YAHOO.widget.Slider.ANIM_AVAIL=true;YAHOO.extend(YAHOO.widget.Slider,YAHOO.util.DragDrop,{initSlider:function(sType){this.type=sType;this.createEvent("change",this);this.createEvent("slideStart",this);this.createEvent("slideEnd",this);this.isTarget=false;this.animate=YAHOO.widget.Slider.ANIM_AVAIL;this.backgroundEnabled=true;this.tickPause=40;this.enableKeys=true;this.keyIncrement=20;this.moveComplete=true;this.animationDuration=0.2;this.SOURCE_UI_EVENT=1;this.SOURCE_SET_VALUE=2;this.valueChangeSource=0;},initThumb:function(t){var self=this;this.thumb=t;t.cacheBetweenDrags=true;t.onChange=function(){self.handleThumbChange();};if(t._isHoriz&&t.xTicks&&t.xTicks.length){this.tickPause=Math.round(360/t.xTicks.length);}else if(t.yTicks&&t.yTicks.length){this.tickPause=Math.round(360/t.yTicks.length);}
@@ -39,4 +33,4 @@ this._isHoriz=(iLeft||iRight);this._isVert=(iUp||iDown);this._isRegion=(this._is
 var val=(this._isHoriz)?this.getXValue():this.getYValue();return val;},getXValue:function(){if(!this.available){return 0;}
 var newOffset=this.getOffsetFromParent();return(newOffset[0]-this.startOffset[0]);},getYValue:function(){if(!this.available){return 0;}
 var newOffset=this.getOffsetFromParent();return(newOffset[1]-this.startOffset[1]);},toString:function(){return"SliderThumb "+this.id;},onChange:function(x,y){}});if("undefined"==typeof YAHOO.util.Anim){YAHOO.widget.Slider.ANIM_AVAIL=false;}
-YAHOO.register("slider",YAHOO.widget.Slider,{version:"2.3.0",build:"357"});
+YAHOO.register("slider",YAHOO.widget.Slider,{version:"2.3.0",build:"442"});

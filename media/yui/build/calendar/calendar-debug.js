@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 (function () {
 
@@ -617,6 +611,41 @@ with the 2.3.0 release as soon as it is available.
                 }
             }
             return output;
+        },
+
+        /**
+        * Sets all properties to null, unsubscribes all listeners from each 
+        * property's change event and all listeners from the configChangedEvent.
+        * @method destroy
+        */
+        destroy: function () {
+
+            var oConfig = this.config,
+                sProperty,
+                oProperty;
+
+
+            for (sProperty in oConfig) {
+            
+                if (Lang.hasOwnProperty(oConfig, sProperty)) {
+
+                    oProperty = oConfig[sProperty];
+
+                    oProperty.event.unsubscribeAll();
+                    oProperty.event = null;
+
+                }
+            
+            }
+            
+            this.configChangedEvent.unsubscribeAll();
+            
+            this.configChangedEvent = null;
+            this.owner = null;
+            this.config = null;
+            this.initialConfig = null;
+            this.eventQueue = null;
+        
         }
 
     };
@@ -861,7 +890,6 @@ YAHOO.widget.DateMath = {
 	* @param {Date}	date	The JavaScript date for which to find the week number
 	* @param {Number} calendarYear	OPTIONAL - The calendar year to use for determining the week number. Default is
 	*											the calendar year of parameter "date".
-	* @param {Number} weekStartsOn	OPTIONAL - The integer (0-6) representing which day a week begins on. Default is 0 (for Sunday).
 	* @return {Number}	The week number of the given date.
 	*/
 	getWeekNumber : function(date, calendarYear) {
@@ -942,7 +970,7 @@ YAHOO.widget.DateMath = {
 };
 
 /**
-* The Calendar component is a UI control that enables users to choose one or more dates from a graphical calendar presented in a one-month ("one-up") or two-month ("two-up") interface. Calendars are generated entirely via script and can be navigated without any page refreshes.
+* The Calendar component is a UI control that enables users to choose one or more dates from a graphical calendar presented in a one-month  or multi-month interface. Calendars are generated entirely via script and can be navigated without any page refreshes.
 * @module    calendar
 * @title     Calendar
 * @namespace YAHOO.widget
@@ -959,7 +987,6 @@ YAHOO.widget.DateMath = {
 *	<xmp>
 *		<div id="cal1Container"></div>
 *	</xmp>
-* Note that the table can be replaced with any kind of element.
 * </p>
 * @namespace YAHOO.widget
 * @class Calendar
@@ -4739,7 +4766,7 @@ YAHOO.widget.CalendarGroup.prototype.addMonthRenderer = function(month, fnRender
 * Adds a weekday to the render stack. The function reference passed to this method will be executed
 * when a date cell matches the weekday passed to this method.
 * @method addWeekdayRenderer
-* @param	{Number}	weekday		The weekday (0-6) to associate with this renderer
+* @param	{Number}	weekday		The weekday (1-7) to associate with this renderer. 1=Sunday, 2=Monday etc.
 * @param	{Function}	fnRender	The function executed to render cells that match the render rules for this renderer.
 */
 YAHOO.widget.CalendarGroup.prototype.addWeekdayRenderer = function(weekday, fnRender) {
@@ -4949,4 +4976,4 @@ YAHOO.extend(YAHOO.widget.Calendar2up, YAHOO.widget.CalendarGroup);
 */
 YAHOO.widget.Cal2up = YAHOO.widget.Calendar2up;
 
-YAHOO.register("calendar", YAHOO.widget.Calendar, {version: "2.3.0", build: "357"});
+YAHOO.register("calendar", YAHOO.widget.Calendar, {version: "2.3.0", build: "442"});

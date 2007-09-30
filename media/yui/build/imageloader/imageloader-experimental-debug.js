@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /**
  * The image loader is a framework to dynamically load images
@@ -445,4 +439,4 @@ YAHOO.util.ImageLoader.pngBgImgObj.prototype._applyUrl = function(el) {
 		el.style.backgroundImage = "url('" + this.url + "')";
 	}
 };
-YAHOO.register("imageloader", YAHOO.util.ImageLoader, {version: "2.3.0", build: "357"});
+YAHOO.register("imageloader", YAHOO.util.ImageLoader, {version: "2.3.0", build: "442"});

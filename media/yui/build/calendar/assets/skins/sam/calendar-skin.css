@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /**
  * SAM
@@ -172,7 +166,9 @@ with the 2.3.0 release as soon as it is available.
 	background:#fff;
 	padding:1px;
 	height:1.6em;
+	line-height:1.6em; /* set line height equal to cell height to center vertically */
 	text-align:center;
+	white-space:nowrap;
 }
 
 /* LINK INSIDE NORMAL CELLS */
@@ -180,9 +176,7 @@ with the 2.3.0 release as soon as it is available.
 	color:#0066cc;
 	display:block;
 	height:100%;
-	line-height:1.6em; /* set line height equal to cell height to center vertically */
 	text-decoration:none;
-	white-space:nowrap;
 }
 
 /* TODAY'S DATE */

@@ -19,8 +19,9 @@
 	<div id="leftbar_toolbar">
 		<a href="#"><img src="/site_media/images/mail-get.png" alt="Check For New Mail" title="Check For New Mail" /></a>
 		<a href="#" id="newmaillink"><img src="/site_media/images/mail-new.png" alt="New Mail" title="Compose New Mail" /></a>
-		<a href="#"><img src="/site_media/images/system-log-out.png" alt="Logout" title="Logout" /></a>
-        <a href="#" id="prefslink"><img src="/site_media/images/prefs.png" alt="Prefs" title="Preferences" /></a>
+<!-- FIXME don't use the admin site's logout -->
+		<a href="/admin/logout/"><img src="/site_media/images/system-log-out.png" alt="Logout" title="Logout" /></a>
+        <a href="#" id="prefslink"><img src="/site_media/images/configure.png" alt="Prefs" title="Preferences" /></a>
 		<a href="#" onclick="showSpinner(); return false;">Show</a>
 		<a href="#" onclick="hideSpinner(); return false;">Hide</a>
 	</div>
@@ -34,48 +35,6 @@
         <p>{{ list_time }}</p>
     </div>
 </div>
-
-<!-- FIXME: move this out to a js file -->
-<script type="text/javascript">
-var tree;
-var nodes = {};
-
-function initFolderTree() {
-
-	tree = new YAHOO.widget.TreeView('foldertree');
-
-	function onLabelClick(node) {
-		// we need to rebuild the folder name from the (sub)dir names
-		realfoldername = node.label;
-		while(node.parent.depth != -1) {
-			realfoldername = node.parent.label+'.'+realfoldername;
-			node = node.parent;
-		}
-
-		YAHOO.dw.load('contentpane', 'msglist/'+realfoldername+'/');
-	}
-
-{% for f in maildir %}
-	f = '{{ f }}'.split('.');
-	for(var i=0 ; i < f.length ; i++) {
-		// f[i] should equal an actual (sub)dir name (i.e. the part between .'s)
-		if(i == 0)
-			root = tree.getRoot();
-		else
-			root = nodes[f[i-1]];
-		nodename = f[i].replace(' ', '_'); // clean spaces out
-		if(!nodes[nodename]) {
-			nodes[nodename] = new YAHOO.widget.TextNode(f[i], root, false);
-			nodes[nodename].onLabelClick = onLabelClick;
-		}
-	}
-{% endfor %}
-
-	tree.draw();
-}
-YAHOO.util.Event.addListener(window, 'load', initFolderTree, true);
-
-</script>
 
 <noscript><h1>This site requires javascript to be enabled</h1></noscript>
 

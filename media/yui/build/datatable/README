@@ -2,6 +2,11 @@ DataTable Release Notes
 
 *** version 2.3.0 ***
 
+* DataSource requests over XHR no longer automatically insert a "?" in the URIs
+between the host and the query. Implementers should explicitly include the
+question mark if it is required by your server. Please refer to the XHR
+examples for implementation details.
+
 * Applied new skinning model.
 
 * The MVC model has been stabilized and many APIs have been renamed or changed
@@ -29,14 +34,20 @@ should now use the myDataTable.set("propertyName", newValue) syntax instead of d
 dot notation of any properties.
 
 * The underlying pagination architecture and API have been revised. Specifically,
-the property paginator has been deprecated in favor of paginated and
-paginatorOptions has been deprecated in favor of paginator. Please see the
-pagination examples for implementation details. Please refer to the API reference
-for full details on property and method names and argument signatures.
+the property paginator has been deprecated in favor of paginated,
+paginatorOptions has been deprecated in favor of paginator, and related events
+and method names have been changed. Please see the pagination examples for
+implementation details. Please refer to the API reference for full details on
+new property and method names and argument signatures.
 
 * There is a known pagination bug where changing the rows-per-page dropdown while
 on a page number that is out of bounds of the new range, the current page value
 fails to get reset to an appropriate default value.
+
+* There is a known pagination bug where custom containers are ignored.
+
+* There is a known bug where row and cell selections are not tracked correctly in
+paginated DataTables.
 
 * The underlying editing architecture and API have been revised. Specifically, the
 ColumnEditor class is no longer used, the method editCell() has been deprecated
@@ -44,6 +55,11 @@ in favor of showCellEditor(), and the Custom Event "cellEditEvent" is now
 "editorSaveEvent". Please see the inline editing example for
 implementation details. Please refer to the API reference for full details on
 property and method names and argument signatures.
+
+* There is a known issue where the built-in date editor throws a JavaScript
+exception when encountering a null or non-Date value. Implementers using the built-in
+date editor should validate for type Date and avoid null values in these data
+fields.
 
 * The underlying sort architecture, including YAHOO.util.Sort, has been modified
 to accept a single sort function rather than separate functions for ascending
@@ -108,6 +124,17 @@ the DataTable method showCellEditor().
 - All static formatter functions have been moved from the Column class to the
 DataTable class.
 
+* The DataTable method getColumn() has a known issue where instead of accepting
+a Column's key index value, the method accepts a Column's ID value. Until this
+issue is fixed, implementers can use the following workaround:
+
+    // Instead of this:
+    // var oColumn = myDataTable.getColumn(0);
+
+    // Use this:
+    var oColumn = myDataTable.getColumn(myDataTable.getFirstTrEl().cells[0].yuiColumnId);
+
+
 
 
 
@@ -162,10 +189,10 @@ CONTROL and/or SHIFT keys to multi-select).
 * Refactored pagination code to be easier to implement, configure, and extend.
 * Accept an error boolean from DataSource in case of data error and show error
 message.
-* The CustomEvent rowDeleteEvent now sends argument rowIndexes as an Array of
-row index values.
-* Added selectRow(), rowSelectEvent, unselectRow(), rowUnselectEvent, and
-rowUpdateEvent.
+* The CustomEvent rowDeleteEvent is now only fired once per deleted row and
+its argument signature has been modified.
+* Added selectRow(), rowSelectEvent, unselectRow(), rowUnselectEvent, rowAddEvent,
+and rowUpdateEvent.
 * Added constants CLASS_TABLE, CLASS_EDITOR, CLASS_FIRST, and CLASS_LAST.
 * Added ColumnEditor class moveContainerTo().
 * Add IDs and class hooks to TABLE element and ColumnEditor's container DIV.

@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
  /**
  * The AutoComplete control provides the front-end logic for text-entry suggestion and
@@ -494,9 +488,13 @@ YAHOO.widget.AutoComplete.prototype.formatResult = function(oResultItem, sQuery)
  * and DOM elements.
  *
  * @method doBeforeExpandContainer
+ * @param oTextbox {HTMLElement} The text input box.
+ * @param oContainer {HTMLElement} The container element.
+ * @param sQuery {String} The query string.
+ * @param aResults {Object[]}  An array of query results.
  * @return {Boolean} Return true to continue expanding container, false to cancel the expand.
  */
-YAHOO.widget.AutoComplete.prototype.doBeforeExpandContainer = function(oResultItem, sQuery) {
+YAHOO.widget.AutoComplete.prototype.doBeforeExpandContainer = function(oTextbox, oContainer, sQuery, aResults) {
     return true;
 };
 
@@ -3189,4 +3187,4 @@ YAHOO.widget.DS_JSArray.prototype.doQuery = function(oCallbackFn, sQuery, oParen
     oCallbackFn(sQuery, aResults, oParent);
 };
 
-YAHOO.register("autocomplete", YAHOO.widget.AutoComplete, {version: "2.3.0", build: "357"});
+YAHOO.register("autocomplete", YAHOO.widget.AutoComplete, {version: "2.3.0", build: "442"});

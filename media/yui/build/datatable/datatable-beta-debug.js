@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 /**
  * The DataTable widget provides a progressively enhanced DHTML control for
@@ -117,13 +111,6 @@ if(YAHOO.util.Element) {
 }
 else {
     YAHOO.log("Missing dependency: YAHOO.util.Element","error",this.toString());
-}
-
-if(YAHOO.util.EventProvider) {
-    //YAHOO.lang.augment(YAHOO.widget.DataTable, YAHOO.util.EventProvider);
-}
-else {
-    YAHOO.log("Missing dependency: YAHOO.util.EventProvider","error",this.toString());
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -871,6 +858,15 @@ YAHOO.widget.DataTable._nCount = 0;
 YAHOO.widget.DataTable.prototype._nIndex = null;
 
 /**
+ * Counter for IDs assigned to TR elements.
+ *
+ * @property _nTrCount
+ * @type Number
+ * @private
+ */
+YAHOO.widget.DataTable.prototype._nTrCount = 0;
+
+/**
  * Unique name assigned to instance.
  *
  * @property _sName
@@ -1538,7 +1534,8 @@ YAHOO.widget.DataTable.prototype._addTrEl = function(oRecord, index) {
     var elRow = (append) ? this._elTbody.appendChild(document.createElement("tr")) :
         this._elTbody.insertBefore(document.createElement("tr"),this._elTbody.rows[index]);
 
-    elRow.id = this.id+"-bdrow"+(this._elTbody.rows.length-1);
+    elRow.id = this.id+"-bdrow"+this._nTrCount;
+    this._nTrCount++;
     elRow.yuiRecordId = oRecord.getId();
 
     // Create TD cells
@@ -1878,7 +1875,7 @@ YAHOO.widget.DataTable.prototype._onDocumentClick = function(e, oSelf) {
         // For cases when click is within the TABLE, due to timing issues,
         // the editorBlurEvent needs to get fired by the lower-level DOM click
         // handlers below rather than by the TABLE click handler directly.
-        if(oSelf._oCellEditor.isActive) {
+        if(oSelf._oCellEditor && oSelf._oCellEditor.isActive) {
             // Only if the click was not within the Cell Editor container
             if(!YAHOO.util.Dom.isAncestor(oSelf._oCellEditor.container, elTarget) &&
                     (oSelf._oCellEditor.container.id !== elTarget.id)) {
@@ -1900,9 +1897,9 @@ YAHOO.widget.DataTable.prototype._onDocumentKeydown = function(e, oSelf) {
     var elTarget = YAHOO.util.Event.getTarget(e);
     var elTag = elTarget.tagName.toLowerCase();
 
-    if(oSelf._oCellEditor.isActive &&
+    if(oSelf._oCellEditor && oSelf._oCellEditor.isActive &&
             YAHOO.util.Dom.isAncestor(oSelf._oCellEditor.container, elTarget)) {
-        oSelf.fireEvent("editorKeydownEvent", {event:e});
+        oSelf.fireEvent("editorKeydownEvent", {editor:oSelf._oCellEditor, event:e});
     }
 };
 
@@ -2734,7 +2731,7 @@ YAHOO.widget.DataTable.prototype._onTheadClick = function(e, oSelf) {
     var elTarget = YAHOO.util.Event.getTarget(e);
     var elTag = elTarget.tagName.toLowerCase();
 
-    if(oSelf._oCellEditor.isActive) {
+    if(oSelf._oCellEditor && oSelf._oCellEditor.isActive) {
         oSelf.fireEvent("editorBlurEvent", {editor:oSelf._oCellEditor});
     }
 
@@ -2776,7 +2773,7 @@ YAHOO.widget.DataTable.prototype._onTbodyClick = function(e, oSelf) {
     var elTarget = YAHOO.util.Event.getTarget(e);
     var elTag = elTarget.tagName.toLowerCase();
 
-    if(oSelf._oCellEditor.isActive) {
+    if(oSelf._oCellEditor && oSelf._oCellEditor.isActive) {
         oSelf.fireEvent("editorBlurEvent", {editor:oSelf._oCellEditor});
     }
 
@@ -2843,7 +2840,7 @@ YAHOO.widget.DataTable.prototype._onPaginatorLinkClick = function(e, oSelf) {
     var elTarget = YAHOO.util.Event.getTarget(e);
     var elTag = elTarget.tagName.toLowerCase();
 
-    if(oSelf._oCellEditor.isActive) {
+    if(oSelf._oCellEditor && oSelf._oCellEditor.isActive) {
         oSelf.fireEvent("editorBlurEvent", {editor:oSelf._oCellEditor});
     }
 
@@ -3834,7 +3831,7 @@ YAHOO.widget.DataTable.prototype.getRecord = function(row) {
  * For the given identifier, returns the associated Column instance.
  *
  * @method getColumn
- * @param row {HTMLElement | String | Number} ColumnSet.keys position index, DOM
+ * @param column {HTMLElement | String | Number} ColumnSet.keys position index, DOM
  * reference or ID string to an element within the DataTable page.
  * @return {YAHOO.widget.Column} Column instance.
  */
@@ -3857,7 +3854,7 @@ YAHOO.widget.DataTable.prototype.getRecord = function(row) {
         }
     }
     
-    // By Record index
+    // By Column index
     if(YAHOO.lang.isNumber(nColumnIndex)) {
         return this._oColumnSet.getColumn(nColumnIndex);
     }
@@ -4038,7 +4035,7 @@ YAHOO.widget.DataTable.prototype.addRow = function(oData, index) {
             }
 
             // TODO: what args to pass?
-            this.fireEvent("rowAddEvent", {newData:oData, trElId:newTrId});
+            this.fireEvent("rowAddEvent", {record:oRecord});
 
             // For log message
             nTrIndex = (YAHOO.lang.isValue(nTrIndex))? nTrIndex : "n/a";
@@ -4131,8 +4128,7 @@ YAHOO.widget.DataTable.prototype.updateRow = function(row, oData) {
         this._updateTrEl(elRow, updatedRecord);
     }
 
-    //TODO: Event passes TR ID old data, new data.
-    this.fireEvent("rowUpdateEvent", {newData:oData, oldData:oldData, trElId:elRow.id});
+    this.fireEvent("rowUpdateEvent", {record:updatedRecord, oldData:oldData});
     YAHOO.log("DataTable row updated: Record ID = " + updatedRecord.getId() +
             ", Record index = " + this.getRecordIndex(updatedRecord) +
             ", page row index = " + this.getTrIndex(updatedRecord), "info", this.toString());
@@ -4780,6 +4776,9 @@ YAHOO.widget.DataTable.prototype.updatePaginator = function(oNewValues) {
     oValidPaginator.totalRecords = this._oRecordSet.getLength();
     oValidPaginator.rowsThisPage = Math.min(oValidPaginator.rowsPerPage, oValidPaginator.totalRecords);
     oValidPaginator.totalPages = Math.ceil(oValidPaginator.totalRecords / oValidPaginator.rowsThisPage);
+    if(isNaN(oValidPaginator.totalPages)) {
+        oValidPaginator.totalPages = 0;
+    }
 
     this.set("paginator", oValidPaginator);
     return this.get("paginator");
@@ -5351,9 +5350,8 @@ YAHOO.widget.DataTable.prototype.unselectAllCells= function() {
     // Update UI
     this._unselectAllTdEls();
     
-    //TODO: send an array of [{el:el,record:record}]
-    //TODO: or convert this to an unselectRows method
-    //TODO: that takes an array of rows or unselects all if none given
+    //TODO: send data
+    //TODO: or fire individual cellUnselectEvent
     this.fireEvent("unselectAllCellsEvent");
     YAHOO.log("Unselected all cells", "info", this.toString());
 };
@@ -5720,10 +5718,11 @@ YAHOO.widget.DataTable.prototype.resetCellEditor = function() {
 YAHOO.widget.DataTable.prototype.saveCellEditor = function() {
     //TODO: Copy the editor's values to pass to the event
     if(this._oCellEditor.isActive) {
+        var newData = this._oCellEditor.value;
+        var oldData = this._oCellEditor.record.getData(this._oCellEditor.column.key);
+
         // Validate input data
         if(this._oCellEditor.validator) {
-            var newData = this._oCellEditor.value;
-            var oldData = this._oCellEditor.record.getData(this._oCellEditor.column.key);
             this._oCellEditor.value = this._oCellEditor.validator.call(this, newData, oldData);
             if(this._oCellEditor.value === null ) {
                 this.resetCellEditor();
@@ -7320,21 +7319,19 @@ YAHOO.widget.DataTable.prototype.onDataReturnInsertRows = function(sRequest, oRe
      * Fired when a row is added.
      *
      * @event rowAddEvent
-     * @param oArgs.newData {Object} Object literal of the added data.
-     * @param oArgs.trElId {String} The ID of the added TR element, if in view.
+     * @param oArgs.record {YAHOO.widget.Record} The added Record.
      */
 
     /**
      * Fired when a row is updated.
      *
      * @event rowUpdateEvent
-     * @param oArgs.newData {Object} Object literal of the new data.
+     * @param oArgs.record {YAHOO.widget.Record} The updated Record.
      * @param oArgs.oldData {Object} Object literal of the old data.
-     * @param oArgs.trElId {String} The ID of the updated TR element, if in view.
      */
 
     /**
-     * Fired when one or more TR elements are deleted.
+     * Fired when a row is deleted.
      *
      * @event rowDeleteEvent
      * @param oArgs.oldData {Object} Object literal of the deleted data.
@@ -7465,13 +7462,13 @@ YAHOO.widget.DataTable.prototype.onDataReturnInsertRows = function(sRequest, oRe
      * @param oArgs.key {String} The key of the unhighlighted cell.
      */
 
-    /*TODO: delete and use cellUnselectEvent?
+    /*TODO: hide from doc and use cellUnselectEvent
      * Fired when all cell selections are cleared.
      *
      * @event unselectAllCellsEvent
      */
 
-    /**
+    /*TODO: implement
      * Fired when DataTable paginator is updated.
      *
      * @event paginatorUpdateEvent
@@ -7498,8 +7495,8 @@ YAHOO.widget.DataTable.prototype.onDataReturnInsertRows = function(sRequest, oRe
      *
      * @event editorRevertEvent
      * @param oArgs.editor {Object} The Editor object literal.
-     * @param oArgs.newData {Object} New data value. //TODO
-     * @param oArgs.oldData {Object} Old data value. //TODO
+     * @param oArgs.newData {Object} New data value.
+     * @param oArgs.oldData {Object} Old data value.
      */
 
     /**
@@ -7516,8 +7513,6 @@ YAHOO.widget.DataTable.prototype.onDataReturnInsertRows = function(sRequest, oRe
      *
      * @event editorCancelEvent
      * @param oArgs.editor {Object} The Editor object literal.
-     * @param oArgs.newData {Object} New data value. //TODO
-     * @param oArgs.oldData {Object} Old data value. //TODO
      */
 
     /**
@@ -7958,6 +7953,7 @@ YAHOO.widget.Column = function(oConfigs) {
  *
  * @property Column._nCount
  * @type Number
+ * @private
  * @static
  * @default 0
  */
@@ -8519,6 +8515,7 @@ YAHOO.widget.RecordSet = function(data) {
     this._sName = "RecordSet instance" + YAHOO.widget.RecordSet._nCount;
     YAHOO.widget.RecordSet._nCount++;
     this._records = [];
+    this._length = 0;
     
     if(data) {
         if(YAHOO.lang.isArray(data)) {
@@ -9117,4 +9114,4 @@ YAHOO.widget.Record.prototype.getData = function(sKey) {
 };
 
 
-YAHOO.register("datatable", YAHOO.widget.DataTable, {version: "2.3.0", build: "357"});
+YAHOO.register("datatable", YAHOO.widget.DataTable, {version: "2.3.0", build: "442"});

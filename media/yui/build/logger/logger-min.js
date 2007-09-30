@@ -3,12 +3,6 @@ Copyright (c) 2007, Yahoo! Inc. All rights reserved.
 Code licensed under the BSD License:
 http://developer.yahoo.net/yui/license.txt
 version: 2.3.0
-
-NOTE: This file contains a preview release of the YUI library made
-available for testing purposes.  It is not recommended that this code
-be used in production environments.  You should replace this version
-with the 2.3.0 release as soon as it is available.
-
 */
 
 YAHOO.widget.LogMsg=function(oConfigs){if(oConfigs&&(oConfigs.constructor==Object)){for(var param in oConfigs){this[param]=oConfigs[param];}}};YAHOO.widget.LogMsg.prototype.msg=null;YAHOO.widget.LogMsg.prototype.time=null;YAHOO.widget.LogMsg.prototype.category=null;YAHOO.widget.LogMsg.prototype.source=null;YAHOO.widget.LogMsg.prototype.sourceDetail=null;YAHOO.widget.LogWriter=function(sSource){if(!sSource){YAHOO.log("Could not instantiate LogWriter due to invalid source.","error","LogWriter");return;}
@@ -67,4 +61,4 @@ oEntry.source+": "+
 oEntry.msg;console.log(output);}};YAHOO.widget.Logger._onWindowError=function(sMsg,sUrl,sLine){try{YAHOO.widget.Logger.log(sMsg+' ('+sUrl+', line '+sLine+')',"window");if(YAHOO.widget.Logger._origOnWindowError){YAHOO.widget.Logger._origOnWindowError();}}
 catch(e){return false;}};if(window.onerror){YAHOO.widget.Logger._origOnWindowError=window.onerror;}
 window.onerror=YAHOO.widget.Logger._onWindowError;YAHOO.widget.Logger.log("Logger initialized");}
-YAHOO.register("logger",YAHOO.widget.Logger,{version:"2.3.0",build:"357"});
+YAHOO.register("logger",YAHOO.widget.Logger,{version:"2.3.0",build:"442"});
