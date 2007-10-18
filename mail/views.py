@@ -255,13 +255,64 @@ def json(request, action):
 		server.login(my_imap_server.username, my_imap_server.passwd)
 		dirs = server.list_folders()
 		return HttpResponse(simplejson.dumps(dirs))
+
 	elif action == "serverlist":
 		srvlist = []
-		for server in request.user.get_profile().imap_servers.all():
-			srvlist.append(server.address)
-		return HttpResponse(simplejson.dumps(srvlist))
+		i = 0
+		for i, server in enumerate(request.user.get_profile().imap_servers.all()):
+			srvlist.append([i, server.address])
+		return HttpResponse(simplejson.dumps({'servers':srvlist}))
+
 	elif action == "msglist":
+		from dateutil.relativedelta import *
+		from dateutil.easter import *
+		from dateutil.rrule import *
+		from dateutil.parser import *
 		msgs = []
-		return HttpResponse(simplejson.dumps(msgs))
+		
+		# get the server
+		try:
+			which = int(request.GET.get('server'))
+			my_imap_server = request.user.get_profile().imap_servers.all()[which]
+		except (IndexError, TypeError):
+			return HttpResponse(simplejson.dumps({'error':'Invalid server'}))
+		
+		# get the folder
+		folder = request.GET.get('folder')
+		
+		server = IMAPClient(my_imap_server.address, use_uid=True)
+		server.login(my_imap_server.username, my_imap_server.passwd)
+		nummsgs = server.select_folder(folder)
+		
+		#server.use_uid = False
+		#alluids = server.search('ALL')
+		fmsgs = server.fetch("1:20", ["UID", "RFC822.SIZE", "FLAGS", "BODY[HEADER.FIELDS (SUBJECT DATE FROM)]"])
+		#msgs = server._imap.imaplist(folder)
+		#msgs = server.search()
+		
+		for msg in fmsgs:
+			# need to parse out the parts, can't just send them straight to the browser
+			#uid = fmsgs[msg]['UID']
+			size = fmsgs[msg]['RFC822.SIZE']
+			header = fmsgs[msg]['BODY[HEADER.FIELDS (SUBJECT DATE FROM)]']
+			#subject = re.search('subject:', header, re.I)
+			subject = re.search(r'subject:(.*?)\r\n', header, re.I).group(1).strip().strip('"')
+			mfrom = re.search(r'from:(.*?)\r\n', header, re.I)
+			try:
+				fromemail = mfrom.group(1).split('<')[1].strip().strip('"').strip('>')
+				fromtext = mfrom.group(1).split('<')[0].strip().strip('"').replace('\\', '')
+			except:
+				fromemail = mfrom.group(1).strip().strip('"').replace('\\', '')
+				fromtext = mfrom.group(1).strip().strip('"').replace('\\', '')+' '
+			fromemail = re.search(r'from: (<([^\]]+)|(.*))\r\n', header, re.I).group(1)
+			mdate = re.search(r'date:(.*?)\r\n', header, re.I)
+			#dateutilo = dateutil
+			dateo = parse(mdate.group(1), ignoretz=True)
+			datetext = dateo.isoformat()
+			flags = fmsgs[msg]['FLAGS']
+			
+			msgs.append({'uid':msg, 'size': size, 'subject': subject, 'fromtext':fromtext, 'fromemail':fromemail, 'date':datetext, 'flags':flags, 'folder':folder})
+		
+		return HttpResponse(simplejson.dumps({'name': folder, 'count': nummsgs, 'msgs': msgs}))
 	
 	

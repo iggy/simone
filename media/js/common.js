@@ -167,9 +167,31 @@ YAHOO.dw.load = function(what, source) {
 }
 YAHOO.dw.load('contentpane', 'some text');
 
-YAHOO.dw.showFolders = function() {
+
+YAHOO.dw.showServers = function(server) {
 	var callback = {
 		success: function(o) {
+			resp = eval('('+o.responseText+')');
+			console.log(resp, resp.servers.length);
+			for(var i = 0 ; i < resp.servers.length ; i++) {
+				console.log('showing folders for server: '+i);
+				YAHOO.dw.showFolders(resp.servers[i]);
+			}
+		},
+		failure: function(o) {
+			console.log(o);
+		}
+	}
+	$U.Connect.asyncRequest('GET', 'json/serverlist/', callback);
+}
+YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.showServers);
+
+
+YAHOO.dw.showFolders = function(serverObj) {
+	var callback = {
+		success: function(o) {
+			serverObj = o.argument[0];
+		
 			function onLabelClick(node) {
 				// we need to rebuild the folder name from the (sub)dir names
 				realfoldername = node.label;
@@ -178,20 +200,31 @@ YAHOO.dw.showFolders = function() {
 					node = node.parent;
 				}
 		
-				YAHOO.dw.load('contentpane', 'msglist/'+realfoldername+'/');
+				//YAHOO.dw.load('contentpane', 'msglist/'+realfoldername+'/');
+				YAHOO.dw.msglist.init({}, {server:0, folder:realfoldername});
 			}
 		
 			resp = eval('('+o.responseText+')');
-			console.log(resp);
-			var tree = new YAHOO.widget.TreeView('foldertree');
+			console.log('showFolders success callback', o, resp);
+			
+			// put a label with the server name/address at the top of the tree
+			var label = document.createElement('h3');
+			label.innerHTML = serverObj[1];
+			$D.get('foldertree').appendChild(label);
+			
+			// make a new div in the foldertree container div to attach this to
+			var el = document.createElement('div');
+			$D.get('foldertree').appendChild(el);
+			
+			var tree = new YAHOO.widget.TreeView(el);
 			var tvNodes = [];
 			var root = tree.getRoot();
 			//var tmpNode = new YAHOO.widget.TextNode("mylabel", root, false); 
 			for(var i = 0 ; i < resp.length ; i++) {
 				f = resp[i].split('.');
-				console.log(resp[i], f);
+				//console.log(resp[i], f);
 				for(var j=0 ; j < f.length ; j++) {
-					console.log(f[j]);
+					//console.log(f[j]);
 					// f[i] should equal an actual (sub)dir name (i.e. the part between .'s)
 					if(j == 0)
 						root = tree.getRoot();
@@ -210,9 +243,44 @@ YAHOO.dw.showFolders = function() {
 		},
 		failure: function(o) {
 			;
-		}
+		},
+		argument: [serverObj]
 	}
-	$U.Connect.asyncRequest('GET', 'json/folderlist/?server=0', callback);
+	$U.Connect.asyncRequest('GET', 'json/folderlist/?server='+serverObj[0], callback);
 
 }
-YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.showFolders);
+
+YAHOO.namespace('dw.msglist');
+YAHOO.dw.msglist.init = function(e, o) {
+	server = o.server;
+	folder = o.folder;
+	console.log(e, o);
+	YAHOO.dw.msglist.ds = new $U.DataSource('json/msglist/?server='+server+'&folder='+folder);
+	YAHOO.dw.msglist.ds.responseType = $U.DataSource.TYPE_JSON;
+	YAHOO.dw.msglist.ds.responseSchema = {
+		resultsList: 'msgs',
+		fields: ['uid', 'size','fromtext','fromemail','flags','date','subject','folder']
+	};
+	YAHOO.dw.msglist.coldefs = [
+		{key:'subject', label:'Subject', sortable:true},
+		{key:'fromtext', label:'From', sortable:true},
+		{key:'date', label:'Date', sortable:true, formatter:"date"},
+		{key:'size', label:'Size', sortable:true}
+	];
+	YAHOO.dw.msglist.opts = {
+		sortedBy: {key:'date', dir:'asc'},
+		initialRequest: ""
+	}
+	YAHOO.dw.msglist.dt = new YAHOO.widget.DataTable('contentpane', YAHOO.dw.msglist.coldefs,YAHOO.dw.msglist.ds, YAHOO.dw.msglist.opts);
+	
+	YAHOO.dw.msglist.dt.subscribe('cellClickEvent', YAHOO.dw.msglist.cellClick);
+}
+YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.msglist.init, {server:0, folder:'INBOX'});
+
+YAHOO.dw.msglist.cellClick = function(o) {
+	var record = YAHOO.dw.msglist.dt.getRecord(o.target).getData();
+	console.log(o, record);
+	YAHOO.dw.load('contentpane', 'viewmsg/'+record.folder+'/'+record.uid+'/');
+}
+
+
