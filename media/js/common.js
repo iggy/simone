@@ -165,7 +165,7 @@ YAHOO.dw.load = function(what, source) {
 		$(what).innerHTML = source;
 	}
 }
-YAHOO.dw.load('contentpane', 'some text');
+//YAHOO.dw.load('contentpane', 'some text');
 
 
 YAHOO.dw.showServers = function(server) {
@@ -184,7 +184,7 @@ YAHOO.dw.showServers = function(server) {
 	}
 	$U.Connect.asyncRequest('GET', 'json/serverlist/', callback);
 }
-YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.showServers);
+//YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.showServers);
 
 
 YAHOO.dw.showFolders = function(serverObj) {
@@ -275,7 +275,7 @@ YAHOO.dw.msglist.init = function(e, o) {
 	
 	YAHOO.dw.msglist.dt.subscribe('cellClickEvent', YAHOO.dw.msglist.cellClick);
 }
-YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.msglist.init, {server:0, folder:'INBOX'});
+//YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.msglist.init, {server:0, folder:'INBOX'});
 
 YAHOO.dw.msglist.cellClick = function(o) {
 	var record = YAHOO.dw.msglist.dt.getRecord(o.target).getData();

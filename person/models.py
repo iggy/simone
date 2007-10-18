@@ -24,7 +24,7 @@ class SmtpServer(models.Model):
     address = models.CharField(maxlength=255,null=True)
     port = models.CharField(maxlength=5,default="143",null=True)
     username = models.CharField(maxlength=255,null=True)
-    passwd = models.CharField(maxlength=255,null=True)
+    passwd = models.CharField("Password", maxlength=255,null=True)
     def __str__(self):
         if not self.address and not self.port and not self.username and not self.passwd:
             return 'None'

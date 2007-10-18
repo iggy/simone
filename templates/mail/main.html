@@ -48,4 +48,9 @@
 
 </div><!-- end page -->
 
+<script type="text/javascript">
+YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.msglist.init, {server:0, folder:'INBOX'});
+YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.showServers);
+</script>
+
 {% endblock %}

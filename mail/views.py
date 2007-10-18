@@ -81,8 +81,8 @@ def imaplist(imap, folder="INBOX", number=20, start=None):
 @login_required
 def index(request):
     # if they haven't filled in their options, we won't have much luck connecting to their mail server
-    #if request.user.get_profile().imap_servers.all()[0].username == None:
-        #return HttpResponseRedirect('config/newconfig/')
+    if request.user.get_profile().imap_servers.all()[0].username == None:
+        return HttpResponseRedirect('config/newconfig/')
     # FIXME need to get the above working
     
     import time
