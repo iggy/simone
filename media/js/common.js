@@ -36,19 +36,33 @@ function hideSpinner() {
 YAHOO.util.Event.on(window, 'load', hideSpinner);
 
 function initLinks() {
-    // setup  the new mail link
-    $U.Event.on('newmaillink', 'click', function(el,e) {
-        //Ext.get('contentpane').load('newmail/');
-	YAHOO.dw.load('contentpane', 'newmail/');
-        if(e)
-		YAHOO.util.Event.stopEvent(e);
-    });
-    $U.Event.on('prefslink', 'click', function(el, e) {
-        //Ext.get('contentpane').load('config/view/');
-	YAHOO.dw.load('contentpane', 'config/view/');
-        if(e)
-		YAHOO.util.Event.stopEvent(e);
-    });
+	// setup  the new mail link
+	$U.Event.on('newmaillink', 'click', function(el,e) {
+		//Ext.get('contentpane').load('newmail/');
+		//YAHOO.dw.load('contentpane', 'newmail/');
+		YAHOO.dw.msglist.viewpanel = new YAHOO.widget.Panel('newmsgpanel', {
+			width:'800px',
+			height:'600px',
+			fixedcenter: true,
+			constraintoviewport: true,
+			close:true,
+			visible:true
+		});
+		YAHOO.dw.msglist.viewpanel.setHeader('Compose');
+		YAHOO.dw.msglist.viewpanel.setBody('<div id="newmsgdiv"></div>');
+		YAHOO.dw.msglist.viewpanel.setFooter('&nbsp;');
+		YAHOO.dw.msglist.viewpanel.render(document.body);
+		YAHOO.dw.msglist.viewpanel.show();
+		YAHOO.dw.load('newmsgdiv', 'newmail/');
+		if(e)
+			YAHOO.util.Event.stopEvent(e);
+	});
+	$U.Event.on('prefslink', 'click', function(el, e) {
+		//Ext.get('contentpane').load('config/view/');
+		YAHOO.dw.load('contentpane', 'config/view/');
+		if(e)
+			YAHOO.util.Event.stopEvent(e);
+	});
 }
 YAHOO.util.Event.addListener(window, 'load', initLinks, true);
 

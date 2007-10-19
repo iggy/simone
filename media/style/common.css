@@ -138,7 +138,8 @@ img {
 /* 	text-align:right; */
 }
 
-#viewmsgdiv {
+/* These are the panel body contents for all the little panel's we open */
+#viewmsgdiv, #newmsgdiv {
 	height:534px;
 /* 	overflow:scroll; */
 }
