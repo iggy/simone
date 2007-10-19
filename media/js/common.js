@@ -271,7 +271,7 @@ YAHOO.dw.msglist.init = function(e, o) {
 		sortedBy: {key:'date', dir:'asc'},
 		initialRequest: ""
 	}
-	YAHOO.dw.msglist.dt = new YAHOO.widget.DataTable('contentpane', YAHOO.dw.msglist.coldefs,YAHOO.dw.msglist.ds, YAHOO.dw.msglist.opts);
+	YAHOO.dw.msglist.dt = new YAHOO.widget.DataTable('msglist', YAHOO.dw.msglist.coldefs,YAHOO.dw.msglist.ds, YAHOO.dw.msglist.opts);
 	
 	YAHOO.dw.msglist.dt.subscribe('cellClickEvent', YAHOO.dw.msglist.cellClick);
 }
@@ -280,7 +280,20 @@ YAHOO.dw.msglist.init = function(e, o) {
 YAHOO.dw.msglist.cellClick = function(o) {
 	var record = YAHOO.dw.msglist.dt.getRecord(o.target).getData();
 	console.log(o, record);
-	YAHOO.dw.load('contentpane', 'viewmsg/'+record.folder+'/'+record.uid+'/');
+	YAHOO.dw.msglist.viewpanel = new YAHOO.widget.Panel('msgpanel', {
+		width:'800px',
+		height:'600px',
+		fixedcenter: true,
+		constraintoviewport: true,
+		close:true,
+		visible:true
+	});
+	YAHOO.dw.msglist.viewpanel.setHeader('View Mail');
+	YAHOO.dw.msglist.viewpanel.setBody('<div id="viewmsgdiv"></div>');
+	YAHOO.dw.msglist.viewpanel.setFooter('&nbsp;');
+	YAHOO.dw.msglist.viewpanel.render(document.body);
+	YAHOO.dw.msglist.viewpanel.show();
+	YAHOO.dw.load('viewmsgdiv', 'viewmsg/'+record.folder+'/'+record.uid+'/');
 }
 
 

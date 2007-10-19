@@ -5,6 +5,7 @@ colors:
 
 
 
+
 */
 body {
 	font-size:12px;
@@ -60,6 +61,9 @@ img {
 #contentpane {
 	margin-left:17em; /* needs to match width of folderlist + some */
 	border: solid 1px black;
+}
+#msglist {
+	margin-left:17em;
 }
 .even {
 	background:#4A9EFF;
@@ -132,4 +136,9 @@ img {
 }
 .floatForm input {
 /* 	text-align:right; */
+}
+
+#viewmsgdiv {
+	height:534px;
+/* 	overflow:scroll; */
 }
