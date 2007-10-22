@@ -62,7 +62,7 @@ img {
 	margin-left:17em; /* needs to match width of folderlist + some */
 	border: solid 1px black;
 }
-#msglist {
+#msglist, #dt-pag-nav {
 	margin-left:17em;
 }
 .even {

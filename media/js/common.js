@@ -309,6 +309,8 @@ YAHOO.dw.msglist.init = function(e, o) {
 		console.log(YAHOO.dw.msglist.msgseen);
 		if(YAHOO.dw.msglist.msgseen == false)
 			$D.addClass(elCell.parentNode, 'unread-msg');
+		else
+			$D.removeClass(elCell.parentNode, 'unread-msg');
 		elCell.innerHTML = oData;
 	}
 	var flagsFormatter = function(elCell, oRecord, oColumn, oData) {
@@ -336,7 +338,7 @@ YAHOO.dw.msglist.init = function(e, o) {
 	server = o.server;
 	folder = o.folder;
 	console.log(e, o);
-	YAHOO.dw.msglist.ds = new $U.DataSource('json/msglist/?server='+server+'&folder='+folder);
+	YAHOO.dw.msglist.ds = new $U.DataSource('json/msglist/');
 	YAHOO.dw.msglist.ds.responseType = $U.DataSource.TYPE_JSON;
 	YAHOO.dw.msglist.ds.responseSchema = {
 		resultsList: 'msgs',
@@ -344,18 +346,97 @@ YAHOO.dw.msglist.init = function(e, o) {
 	};
 	YAHOO.dw.msglist.coldefs = [
 		{key:'flags', label:'Flags', formatter:flagsFormatter},
-		{key:'subject', label:'Subject', sortable:true, formatter:subjectFormatter},
-		{key:'fromtext', label:'From', sortable:true},
-		{key:'date', label:'Date', sortable:true, formatter:"date"},
-		{key:'size', label:'Size', sortable:true}
+		{key:'subject', label:'Subject', /*sortable:true,*/ formatter:subjectFormatter},
+		{key:'fromtext', label:'From', /*sortable:true*/},
+		{key:'date', label:'Date', /*sortable:true,*/ formatter:"date"},
+		{key:'size', label:'Size', /*sortable:true*/}
 
 	];
 	YAHOO.dw.msglist.opts = {
-		sortedBy: {key:'date', dir:'asc'},
-		initialRequest: ""
+		//paginated:true,
+		//paginator: {containers:null,dropdownOptions:[20,50,100],rowsPerPage:20,pageLinks: 5},
+		//sortedBy: {key:'date', dir:'asc'},
+		initialRequest: '?server='+server+'&folder='+folder+'&start=1&end=20'
 	}
 	YAHOO.dw.msglist.dt = new YAHOO.widget.DataTable('msglist', YAHOO.dw.msglist.coldefs,YAHOO.dw.msglist.ds, YAHOO.dw.msglist.opts);
 	
+	// Custom code to parse the raw server data for Paginator values and page links
+	YAHOO.dw.msglist.ds.doBeforeCallback = function(oRequest, oRawResponse, oParsedResponse) {
+		// clear the Bold
+		//var oSelf = YAHOO.example.ServerPagination;
+		//var oDataTable = oSelf.myDataTable;
+	
+		// Get Paginator values
+		var oRawResponse = eval('('+oRawResponse+')'); //JSON.parse(oRawResponse); // Parse the JSON data
+		var recordsReturned = oRawResponse.records; // How many records this page
+		var startIndex = oRawResponse.start; // Start record index this page
+		var endIndex = oRawResponse.end; // End record index this page
+		var totalRecords = oRawResponse.count; // Total records all pages
+	
+		// Update the DataTable Paginator with new values
+		var newPag = {
+			rowsPerPage: recordsReturned,
+			recordsReturned: recordsReturned,
+			startRecordIndex: parseFloat(startIndex),
+			endIndex: endIndex,
+			totalResults: totalRecords,
+			totalRecords: totalRecords
+		}
+		YAHOO.dw.msglist.dt.updatePaginator(newPag);
+	
+		// Update the links UI
+		YAHOO.util.Dom.get("prevLink").innerHTML = (startIndex == 1) ? "<" :
+				"<a href=\"#previous\" alt=\"Show previous items\"><</a>" ;
+		YAHOO.util.Dom.get("nextLink").innerHTML =
+				(endIndex >= totalRecords) ? ">" :
+				"<a href=\"#next\" alt=\"Show next items\">></a>";
+		YAHOO.util.Dom.get("startIndex").innerHTML = startIndex;
+		YAHOO.util.Dom.get("endIndex").innerHTML = endIndex;
+		YAHOO.util.Dom.get("ofTotal").innerHTML = " of " + totalRecords;
+	
+		// Let the DataSource parse the rest of the response
+		return oParsedResponse;
+	};
+	// Hook up custom pagination
+	YAHOO.dw.msglist.getPage = function(start, end) {
+		// If a new value is not passed in
+		// use the old value
+		if(!YAHOO.lang.isValue(end)) {
+			nResults = YAHOO.dw.msglist.dt.get("paginator").count;
+		}
+		// Invalid value
+		if(!YAHOO.lang.isValue(start)) {
+			return;
+		}
+		console.log('getPage: ', start, end);
+		var newRequest = '?server='+server+'&folder='+folder+'&start=' + start + '&end=' + end;
+		YAHOO.dw.msglist.ds.sendRequest(newRequest, YAHOO.dw.msglist.dt.onDataReturnInitializeTable, YAHOO.dw.msglist.dt);
+	};
+	YAHOO.dw.msglist.getPreviousPage = function(e) {
+		YAHOO.util.Event.stopEvent(e);
+		// Already at first page
+		var p = YAHOO.dw.msglist.dt.get("paginator");
+		console.log('getPrevPage: ', p);
+		if(YAHOO.dw.msglist.dt.get("paginator").startRecordIndex == 1) {
+			return;
+		}
+		var newStartRecordIndex = p.startRecordIndex - p.rowsThisPage;
+		YAHOO.dw.msglist.getPage(newStartRecordIndex, newStartRecordIndex + p.rowsThisPage);
+	};
+	YAHOO.dw.msglist.getNextPage = function(e) {
+		YAHOO.util.Event.stopEvent(e);
+		// Already at last page
+		var p = YAHOO.dw.msglist.dt.get("paginator");
+		console.log('getNextPage: ', p);
+		if(p.startRecordIndex + p.rowsThisPage >= p.totalRecords) {
+			//return;
+		}
+		var newStartRecordIndex = (parseFloat(p.startRecordIndex) + parseFloat(p.rowsThisPage));
+		YAHOO.dw.msglist.getPage(newStartRecordIndex, newStartRecordIndex+p.rowsThisPage);
+	};
+	YAHOO.util.Event.addListener(YAHOO.util.Dom.get("prevLink"), "click", YAHOO.dw.msglist.getPreviousPage, this, true);
+	YAHOO.util.Event.addListener(YAHOO.util.Dom.get("nextLink"), "click", YAHOO.dw.msglist.getNextPage, this, true);
+
 	YAHOO.dw.msglist.dt.subscribe('cellClickEvent', YAHOO.dw.msglist.cellClick);
 }
 //YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.msglist.init, {server:0, folder:'INBOX'});

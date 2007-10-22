@@ -276,6 +276,13 @@ def json(request, action):
 		from dateutil.easter import *
 		from dateutil.rrule import *
 		from dateutil.parser import *
+		
+		try:
+			start = request.GET['start']
+			end = request.GET['end']
+		except:
+			start = repr(1)
+			end = repr(20)
 		msgs = []
 		
 		# get the server
@@ -292,10 +299,13 @@ def json(request, action):
 		server.login(my_imap_server.username, my_imap_server.passwd)
 		nummsgs = server.select_folder(folder)
 		
+		if int(end) > nummsgs:
+			end = repr(nummsgs)
+		
 		#server.use_uid = False
 		#alluids = server.search('ALL')
-		fmsgs = server.fetch("1:20", ["UID", "RFC822.SIZE", "FLAGS"])
-		fmsgs2 = server.fetch("1:20", ["BODY[HEADER.FIELDS (SUBJECT DATE FROM)]"])
+		fmsgs = server.fetch(start+":"+end, ["UID", "RFC822.SIZE", "FLAGS"])
+		fmsgs2 = server.fetch(start+":"+end, ["BODY[HEADER.FIELDS (SUBJECT DATE FROM)]"])
 		#msgs = server._imap.imaplist(folder)
 		#msgs = server.search()
 		
@@ -325,7 +335,7 @@ def json(request, action):
 			
 			msgs.append({'uid':msg, 'size': size, 'subject': subject, 'fromtext':fromtext, 'fromemail':fromemail, 'date':datetext, 'flags':flags, 'folder':folder})
 		
-		return HttpResponse(simplejson.dumps({'name': folder, 'count': nummsgs, 'msgs': msgs}))
+		return HttpResponse(simplejson.dumps({'name': folder, 'count': nummsgs, 'start':start, 'end':end, 'msgs': msgs, 'records':int(end)-int(start)}))
 
 
 
