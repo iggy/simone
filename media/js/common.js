@@ -40,25 +40,28 @@ function initLinks() {
 	$U.Event.on('newmaillink', 'click', function(el,e) {
 		//Ext.get('contentpane').load('newmail/');
 		//YAHOO.dw.load('contentpane', 'newmail/');
-		YAHOO.dw.msglist.viewpanel = new YAHOO.widget.Panel('newmsgpanel', {
+		YAHOO.dw.msglist.newpanel = new YAHOO.widget.Panel('newmsgpanel', {
 			width:'800px',
 			height:'600px',
 			fixedcenter: true,
+			draggable:false,
 			constraintoviewport: true,
 			close:true,
 			visible:true
 		});
-		YAHOO.dw.msglist.viewpanel.setHeader('Compose');
-		YAHOO.dw.msglist.viewpanel.setBody('<div id="newmsgdiv"></div>');
-		YAHOO.dw.msglist.viewpanel.setFooter('&nbsp;');
-		YAHOO.dw.msglist.viewpanel.render(document.body);
-		YAHOO.dw.msglist.viewpanel.show();
+		YAHOO.dw.msglist.newpanel.setHeader('Compose');
+		YAHOO.dw.msglist.newpanel.setBody('<div id="newmsgdiv"></div>');
+		YAHOO.dw.msglist.newpanel.setFooter('&nbsp;');
+		YAHOO.dw.msglist.newpanel.render(document.body);
+		YAHOO.dw.msglist.newpanel.show();
 		YAHOO.dw.load('newmsgdiv', 'newmail/');
 		if(e)
 			YAHOO.util.Event.stopEvent(e);
 	});
 	$U.Event.on('prefslink', 'click', function(el, e) {
 		//Ext.get('contentpane').load('config/view/');
+		// hide the msglist datatable
+		$D.addClass('msglist', 'hidden');
 		YAHOO.dw.load('contentpane', 'config/view/');
 		if(e)
 			YAHOO.util.Event.stopEvent(e);
@@ -66,6 +69,25 @@ function initLinks() {
 }
 YAHOO.util.Event.addListener(window, 'load', initLinks, true);
 
+YAHOO.namespace('YAHOO.dw.newmail');
+YAHOO.dw.newmail.initRTE = function() {
+	//Setup some private variables
+	var Dom = YAHOO.util.Dom,
+		Event = YAHOO.util.Event;
+	
+	//The Editor config
+	var myConfig = {
+		height: '300px',
+		width: '730px',
+		animate: true,
+		dompath: true,
+		focusAtStart: true
+	};
+	
+	//Now let's load the Editor..
+	YAHOO.dw.newmail.Editor = new YAHOO.widget.Editor('editor', myConfig);
+	YAHOO.dw.newmail.Editor.render();
+}
 
 //////////////////////////// some config page functions
 function initSrvLinks() {
@@ -134,7 +156,16 @@ function sendMail(formel) {
 	var callback = {
 		success:	function(o) {
 			console.log(o);
-			$U.Dom.get('contentpane').innerHTML = o.responseText;
+			resp = eval('('+o.responseText+')');
+			if(resp.status == 'ERROR') {
+				$U.Dom.addClass('sendMailMsg', 'alert');
+				$U.Dom.get('sendMailMsg').innerHTML = resp.message;
+			} else if(resp.status == 'SUCCESS') {
+				$U.Dom.addClass('newmailEditorWrapper', 'hidden');
+				window.setTimeout(3000, function() {
+					YAHOO.dw.msglist.newpanel.destroy();
+				});
+			}
 		},
 		failure:	function(o) {
 			console.log(o);
@@ -266,6 +297,42 @@ YAHOO.dw.showFolders = function(serverObj) {
 
 YAHOO.namespace('dw.msglist');
 YAHOO.dw.msglist.init = function(e, o) {
+	var subjectFormatter = function(elCell, oRecord, oColumn, oData) {
+		YAHOO.dw.msglist.msgseen = false;
+		record = oRecord.getData();
+		console.log('subjectFormatter: ', elCell, oRecord, oColumn, oData, YAHOO.dw.msglist.msgseen);
+		for(var i = 0 ; i < record.flags.length ; i++) {
+			console.log(record.flags[i], record,record.flags[i].indexOf('\Seen') );
+			if(record.flags[i].indexOf('\Seen') != -1)
+				YAHOO.dw.msglist.msgseen = true;
+		}
+		console.log(YAHOO.dw.msglist.msgseen);
+		if(YAHOO.dw.msglist.msgseen == false)
+			$D.addClass(elCell.parentNode, 'unread-msg');
+		elCell.innerHTML = oData;
+	}
+	var flagsFormatter = function(elCell, oRecord, oColumn, oData) {
+		YAHOO.dw.msglist.msgreplied = false;
+		YAHOO.dw.msglist.msgflagged = false;
+		
+		record = oRecord.getData();
+		console.log('flagsFormatter: ', elCell, oRecord, oColumn, oData);
+		for(var i = 0 ; i < record.flags.length ; i++) {
+			console.log(record.flags[i], record);
+			if(record.flags[i].indexOf('\Answered') != -1)
+				YAHOO.dw.msglist.msgreplied = true;
+			if(record.flags[i].indexOf('\Flagged') != -1)
+				YAHOO.dw.msglist.msgflagged = true;
+		}
+		var html = '';
+		if(YAHOO.dw.msglist.msgreplied == true)
+			html += 'R';
+		if(YAHOO.dw.msglist.msgflagged == true)
+			html += 'F';
+		
+		elCell.innerHTML = html;
+	}
+
 	server = o.server;
 	folder = o.folder;
 	console.log(e, o);
@@ -276,10 +343,12 @@ YAHOO.dw.msglist.init = function(e, o) {
 		fields: ['uid', 'size','fromtext','fromemail','flags','date','subject','folder']
 	};
 	YAHOO.dw.msglist.coldefs = [
-		{key:'subject', label:'Subject', sortable:true},
+		{key:'flags', label:'Flags', formatter:flagsFormatter},
+		{key:'subject', label:'Subject', sortable:true, formatter:subjectFormatter},
 		{key:'fromtext', label:'From', sortable:true},
 		{key:'date', label:'Date', sortable:true, formatter:"date"},
 		{key:'size', label:'Size', sortable:true}
+
 	];
 	YAHOO.dw.msglist.opts = {
 		sortedBy: {key:'date', dir:'asc'},
@@ -310,4 +379,31 @@ YAHOO.dw.msglist.cellClick = function(o) {
 	YAHOO.dw.load('viewmsgdiv', 'viewmsg/'+record.folder+'/'+record.uid+'/');
 }
 
+YAHOO.dw.newServer = function(srvtype) {
+	YAHOO.dw.newSRVpanel = new YAHOO.widget.Panel('panel', {
+		width:'800px',
+		height:'600px',
+		fixedcenter: true,
+		constraintoviewport: true,
+		close:true,
+		visible:true
+	});
+	YAHOO.dw.newSRVpanel.setHeader('Enter New '+srvtype+' Server Settings');
+	YAHOO.dw.newSRVpanel.setBody('<div id="newserver"></div>');
+	YAHOO.dw.newSRVpanel.setFooter('&nbsp;');
+	YAHOO.dw.newSRVpanel.render(document.body);
+	YAHOO.dw.newSRVpanel.show();
+	YAHOO.dw.load('newserver', 'config/new'+srvtype+'form/');
+}
+
+YAHOO.dw.submitNewServer = function(formel) {
+	var callback = {
+		success: function(o) {
+		},
+		failure: function(o) {
+		}
+	}
+	$U.Connect.setForm(formel);
+	$U.Connect.asyncRequest('GET', 'config/addnew/', callback);
+}
 

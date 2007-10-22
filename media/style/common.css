@@ -139,7 +139,10 @@ img {
 }
 
 /* These are the panel body contents for all the little panel's we open */
-#viewmsgdiv, #newmsgdiv {
+#viewmsgdiv, #newmsgdiv, #newserver {
 	height:534px;
-/* 	overflow:scroll; */
+	overflow:auto;
+}
+.unread-msg {
+	font-weight:bold;
 }

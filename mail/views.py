@@ -188,6 +188,8 @@ def newmail(request):
 def send(request):
     from django.core.mail import send_mail, BadHeaderError
     from smtplib import SMTPAuthenticationError
+    import simplejson
+
     # attempt to send the mail
     subject = request.POST.get('newmailsubject', '')
     message = request.POST.get('editor', '')
@@ -197,23 +199,29 @@ def send(request):
         try:
             send_mail(subject, message, mailfrom, [mailto], auth_user=request.user, auth_password=request.user.get_profile().imap_servers.all()[0].passwd)
         except BadHeaderError:
-            return HttpResponse('Invalid Header Found')
+            return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid Header Found'}))
         except SMTPAuthenticationError:
-            return HttpResponse('Invalid SMTP server settings')
-        return HttpResponse('Mail sent succesfully') # we can use short responses since we will only be submitting via ajax
+            return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid SMTP server settings'}))
+        return HttpResponse(simplejson.dumps({'status':'SUCCESS', 'message': 'Mail sent succesfully'})) # we can use short responses since we will only be submitting via ajax
     else:
-        return HttpResponse('Fill in all fields'+subject+message+mailfrom+mailto) # if they get this, they've already lost their mail since we are submitting the mail via ajax
+        return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Fill in all fields'+subject+message+mailfrom+mailto}))
 
 @login_required
 def config(request, action):
     from person.models import UserProfile, ImapServer, SmtpServer
-    if action == "newconfig":
+    if action == "newconfig" or action == "newIMAPform":
         # we already know they don't have anything in the database, just show them a blank form
         #UserForm = forms.form_for_model(UserProfile)
         ImapForm = forms.form_for_model(ImapServer)
         #uform = UserForm()
         iform = ImapForm(initial={'address':'localhost','port':'143'})
+        srvtype = "IMAP"
         
+    elif action == "newSMTPform":
+        SmtpForm = forms.form_for_model(SmtpServer)
+        sform = SmtpForm(initial={'address':'localhost','port':'25'})
+        srvtype = "SMTP"
+
     elif action == "addnew":
         # we are adding some new configuration
         ImapForm = forms.form_for_model(ImapServer)
@@ -286,7 +294,8 @@ def json(request, action):
 		
 		#server.use_uid = False
 		#alluids = server.search('ALL')
-		fmsgs = server.fetch("1:20", ["UID", "RFC822.SIZE", "FLAGS", "BODY[HEADER.FIELDS (SUBJECT DATE FROM)]"])
+		fmsgs = server.fetch("1:20", ["UID", "RFC822.SIZE", "FLAGS"])
+		fmsgs2 = server.fetch("1:20", ["BODY[HEADER.FIELDS (SUBJECT DATE FROM)]"])
 		#msgs = server._imap.imaplist(folder)
 		#msgs = server.search()
 		
@@ -294,7 +303,7 @@ def json(request, action):
 			# need to parse out the parts, can't just send them straight to the browser
 			#uid = fmsgs[msg]['UID']
 			size = fmsgs[msg]['RFC822.SIZE']
-			header = fmsgs[msg]['BODY[HEADER.FIELDS (SUBJECT DATE FROM)]']
+			header = fmsgs2[msg]['BODY[HEADER.FIELDS (SUBJECT DATE FROM)]']
 			#subject = re.search('subject:', header, re.I)
 			subject = re.search(r'subject:(.*?)\r\n', header, re.I).group(1).strip().strip('"')
 			mfrom = re.search(r'from:(.*?)\r\n', header, re.I)
@@ -311,8 +320,43 @@ def json(request, action):
 			datetext = dateo.isoformat()
 			flags = fmsgs[msg]['FLAGS']
 			
+			# reset the msgs flags to what they were before we fetch'ed the headers
+			server.set_flags(msg, flags)
+			
 			msgs.append({'uid':msg, 'size': size, 'subject': subject, 'fromtext':fromtext, 'fromemail':fromemail, 'date':datetext, 'flags':flags, 'folder':folder})
 		
 		return HttpResponse(simplejson.dumps({'name': folder, 'count': nummsgs, 'msgs': msgs}))
+
+
+
+@login_required
+def action(request, action):
+	import simplejson
+	import imapclient as imapclient
+	
+	# a few vars that get used in (almost) every action
+	server = int(request.GET.get('server'))
+	folder = request.GET.get('folder')
+	
+	# get the server
+	try:
+		my_imap_server = request.user.get_profile().imap_servers.all()[server]
+	except (IndexError, TypeError):
+		return HttpResponse(simplejson.dumps({'error':'Invalid server'}))
+	
+	server = imapclient.IMAPClient(my_imap_server.address, use_uid=True)
+	server.login(my_imap_server.username, my_imap_server.passwd)
+	nummsgs = server.select_folder(folder)
+	
+	if action == 'markread':
+		pass
+	elif action == 'markunread':
+		try:
+			uid = request.GET.get('uid')
+			server.remove_flags([uid], [imapclient.SEEN])
+			returnstatus = 'SUCCESS'
+		except:
+			returnstatus = 'FAILURE'
 	
 	
+	return HttpResponse(simplejson.dumps({'status':returnstatus}))

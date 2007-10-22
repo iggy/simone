@@ -9,5 +9,6 @@ urlpatterns = patterns('mail.views',
     (r'send/$', 'send'),
     (r'config/(?P<action>.*?)/$', 'config'),
     (r'json/(?P<action>.*?)/$', 'json'),
+    (r'action/(?P<action>.*?)/$', 'action'),
 
 )

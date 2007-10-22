@@ -12,8 +12,11 @@
 
 <h2>This page currently doesn't do shit.</h2>
 
+<button onclick="YAHOO.dw.newServer('SMTP');">Create New SMTP Server</button>
+<button onclick="YAHOO.dw.newServer('IMAP');">Create New IMAP Server</button>
+
 <table>
-{% for srv in srvs %}
+{% for srv in imapsrvs %}
 <tr>
 <td>{{ srv }}</td>
 <td><a href="#" id="{{srv.id}}_edit_link" class="srv_edit_link">Edit</a></td>
