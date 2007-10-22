@@ -417,10 +417,10 @@ YAHOO.dw.msglist.init = function(e, o) {
 		// Already at first page
 		var p = YAHOO.dw.msglist.dt.get("paginator");
 		console.log('getPrevPage: ', p);
-		if(YAHOO.dw.msglist.dt.get("paginator").startRecordIndex == 1) {
+		if(p.startRecordIndex == 1) {
 			return;
 		}
-		var newStartRecordIndex = p.startRecordIndex - p.rowsThisPage;
+		var newStartRecordIndex = p.startRecordIndex - 20;
 		YAHOO.dw.msglist.getPage(newStartRecordIndex, newStartRecordIndex + p.rowsThisPage);
 	};
 	YAHOO.dw.msglist.getNextPage = function(e) {
@@ -431,7 +431,8 @@ YAHOO.dw.msglist.init = function(e, o) {
 		if(p.startRecordIndex + p.rowsThisPage >= p.totalRecords) {
 			//return;
 		}
-		var newStartRecordIndex = (parseFloat(p.startRecordIndex) + parseFloat(p.rowsThisPage));
+		//var newStartRecordIndex = (parseFloat(p.startRecordIndex) + parseFloat(p.rowsThisPage));
+		var newStartRecordIndex = (p.startRecordIndex + 20);
 		YAHOO.dw.msglist.getPage(newStartRecordIndex, newStartRecordIndex+p.rowsThisPage);
 	};
 	YAHOO.util.Event.addListener(YAHOO.util.Dom.get("prevLink"), "click", YAHOO.dw.msglist.getPreviousPage, this, true);
