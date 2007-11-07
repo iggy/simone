@@ -305,10 +305,7 @@ def json(request, action):
 		return HttpResponse(simplejson.dumps({'servers':srvlist}))
 
 	elif action == "msglist":
-		from dateutil.relativedelta import *
-		from dateutil.easter import *
-		from dateutil.rrule import *
-		from dateutil.parser import *
+		import dateutil.parser as parser
 		
 		try:
 			start = request.GET['start']
@@ -359,7 +356,7 @@ def json(request, action):
 			fromemail = re.search(r'from: (<([^\]]+)|(.*))\r\n', header, re.I).group(1)
 			mdate = re.search(r'date:(.*?)\r\n', header, re.I)
 			#dateutilo = dateutil
-			dateo = parse(mdate.group(1), ignoretz=True)
+			dateo = parser.parse(mdate.group(1), ignoretz=True)
 			datetext = dateo.isoformat()
 			flags = fmsgs[msg]['FLAGS']
 			
