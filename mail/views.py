@@ -158,25 +158,36 @@ def msglist(request, folder_name):
     return render_to_response('mail/msglist.html', locals())
 
 @login_required
-def viewmsg(request, folder, uid):
-    imap = imaplib.IMAP4_SSL(request.user.get_profile().imap_servers.all()[0].address)
-    imap.login(request.user.get_profile().imap_servers.all()[0].username, request.user.get_profile().imap_servers.all()[0].passwd)
+def viewmsg(request, server, folder, uid):
+	# TODO convert to imapclient.py
+	server = int(server)
+	imap = imaplib.IMAP4_SSL(request.user.get_profile().imap_servers.all()[server].address)
+	imap.login(request.user.get_profile().imap_servers.all()[server].username, request.user.get_profile().imap_servers.all()[server].passwd)
+	
+	countup = imap.select(folder, True)
+	
+	mailbody = imap.uid("FETCH", uid, "(BODY[])")
+	mailmsg = email.message_from_string(mailbody[1][0][1])
+	mail = re.search(r'(.*)^$(.*)', mailbody[1][0][1], re.M)
+	
+	header = mail.group(1)
+	if not mailmsg.is_multipart():
+		body = mailmsg.get_payload()
+	else:
+		for part in mailmsg.walk():
+			if(part.get_content_type() == mailmsg.get_default_type()):
+				body = part.get_payload().decode('quopri_codec')
+	imap.logout()
+	
+	#my_imap_server = request.user.get_profile().imap_servers.all()[server]
+	
+	#server = IMAPClient(my_imap_server.address, use_uid=True)
+	#server.login(my_imap_server.username, my_imap_server.passwd)
+	#nummsgs = server.select_folder(folder)
 
-    countup = imap.select(folder, True)
+	#server.fetch
 
-    mailbody = imap.uid("FETCH", uid, "(BODY[])")
-    mailmsg = email.message_from_string(mailbody[1][0][1])
-    mail = re.search(r'(.*)^$(.*)', mailbody[1][0][1], re.M)
-
-    header = mail.group(1)
-    if not mailmsg.is_multipart():
-        body = mailmsg.get_payload()
-    else:
-        for part in mailmsg.walk():
-            if(part.get_content_type() == mailmsg.get_default_type()):
-                body = part.get_payload().decode('quopri_codec')
-    imap.logout()
-    return render_to_response('mail/viewmsg.html', locals())
+	return render_to_response('mail/viewmsg.html', locals())
 
 @login_required
 def newmail(request):
@@ -208,6 +219,7 @@ def send(request):
 
 @login_required
 def config(request, action):
+    import simplejson
     from person.models import UserProfile, ImapServer, SmtpServer
     if action == "newconfig" or action == "newIMAPform":
         # we already know they don't have anything in the database, just show them a blank form
@@ -231,22 +243,43 @@ def config(request, action):
                         username = request.POST.get('username'),
                         passwd = request.POST.get('passwd'))
         i.save()
-        o = request.user.get_profile().imap_servers.remove(request.user.get_profile().imap_servers.all()[0])
+        if request.user.get_profile().imap_servers.all()[0].username == None:
+            o = request.user.get_profile().imap_servers.remove(request.user.get_profile().imap_servers.all()[0])
         return HttpResponseRedirect('/mail/')
         
     elif action == "edit":
+        saction = request.GET.get('saction')
+        srvtype = request.GET.get('srvtype')
+        whichsrv = int(request.GET.get('which'))
+
+        if saction == "REMOVE":
+            srv = request.user.get_profile().imap_servers.remove(request.user.get_profile().imap_servers.all()[whichsrv])
         
         #s = request.user.get_profile().imap_servers.get() FIXME: not finished here, but I need to go out and drink
-        pass
-        
+        return HttpResponse(simplejson.dumps({'status':'OK'}))
     else:
         # default action / index
         imapsrvs = request.user.get_profile().imap_servers.all()
+        # the code below uses newforms, but these forms are so short it turned out working better to just hand code them
         #iforms = []
-        #for srv in srvs:
-            #iforms.append(forms.form_for_instance(srv))
+        #for i in imapsrvs:
+            #IForm = forms.form_for_instance(i, formfield_callback=form_callback)
+            ##IForm.base_fields['passwd'].widget = forms.PasswordInput()
+            #f = IForm()
+            #iforms.append(f)
+
+
     return render_to_response('mail/config/'+action+'.html', locals())
 
+#def form_callback(f, **args):
+    #if f.name == "passwd":
+        #return forms.PasswordInput()
+    #return f.formfield(**args)
+#def form_callback(f, **args):
+    #formfield = f.formfield(**args)
+    #if f.name == "passwd":
+        #formfield.widget = forms.PasswordInput()
+    #return formfield
 
 @login_required
 def json(request, action):
@@ -333,7 +366,7 @@ def json(request, action):
 			# reset the msgs flags to what they were before we fetch'ed the headers
 			server.set_flags(msg, flags)
 			
-			msgs.append({'uid':msg, 'size': size, 'subject': subject, 'fromtext':fromtext, 'fromemail':fromemail, 'date':datetext, 'flags':flags, 'folder':folder})
+			msgs.append({'uid':msg, 'size': size, 'subject': subject, 'fromtext':fromtext, 'fromemail':fromemail, 'date':datetext, 'flags':flags, 'folder':folder, 'server':which})
 		
 		return HttpResponse(simplejson.dumps({'name': folder, 'count': nummsgs, 'start':start, 'end':end, 'msgs': msgs, 'records':int(end)-int(start)}))
 

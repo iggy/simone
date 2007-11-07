@@ -118,6 +118,36 @@ function initSrvLinks() {
 }
 
 
+
+YAHOO.dw.editServer = function(srvtype, formel, saction) {
+	var callback = {
+		success: function(o) {
+			resp = eval('('+o.responseText+')');
+			console.log('editServer callback', o, resp);
+			if(resp.status == "OK") {
+				// tell them it was successful
+				// refresh the folder lists
+				$D.get('foldertree').innerHTML = '';
+				YAHOO.dw.showServers();
+				// refresh the config panel
+				YAHOO.dw.load('contentpane', 'config/view/');
+				console.log(resp);
+			} else {
+				// tell them editing the server failed and hopefully why
+				console.log(resp);
+			}
+		},
+		failure: function(o) {
+		}
+	}
+	formel = $D.get(formel);
+	$U.Connect.setForm(formel);
+	$U.Connect.asyncRequest('GET', 'config/edit/?saction='+saction+'&srvtype='+srvtype, callback);
+	//YAHOO.util.Event.stopEvent();
+}
+
+
+
 //////////////////////////// some general use functions
 
 // zebra stripe a table
@@ -342,7 +372,7 @@ YAHOO.dw.msglist.init = function(e, o) {
 	YAHOO.dw.msglist.ds.responseType = $U.DataSource.TYPE_JSON;
 	YAHOO.dw.msglist.ds.responseSchema = {
 		resultsList: 'msgs',
-		fields: ['uid', 'size','fromtext','fromemail','flags','date','subject','folder']
+		fields: ['uid', 'size','fromtext','fromemail','flags','date','subject','folder','server']
 	};
 	YAHOO.dw.msglist.coldefs = [
 		{key:'flags', label:'Flags', formatter:flagsFormatter},
@@ -458,7 +488,7 @@ YAHOO.dw.msglist.cellClick = function(o) {
 	YAHOO.dw.msglist.viewpanel.setFooter('&nbsp;');
 	YAHOO.dw.msglist.viewpanel.render(document.body);
 	YAHOO.dw.msglist.viewpanel.show();
-	YAHOO.dw.load('viewmsgdiv', 'viewmsg/'+record.folder+'/'+record.uid+'/');
+	YAHOO.dw.load('viewmsgdiv', 'viewmsg/'+record.server+'/'+record.folder+'/'+record.uid+'/');
 }
 
 YAHOO.dw.newServer = function(srvtype) {
@@ -481,6 +511,7 @@ YAHOO.dw.newServer = function(srvtype) {
 YAHOO.dw.submitNewServer = function(formel) {
 	var callback = {
 		success: function(o) {
+			alert(o);
 		},
 		failure: function(o) {
 		}

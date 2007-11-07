@@ -33,6 +33,22 @@ img {
 	border:none;
 }
 
+form fieldset {
+	clear:both;
+}
+form label {
+	float:left;
+	width:120px;
+}
+form input {
+	width:180px;
+/* 	float:left; */
+/* 	clear:left; */
+}
+br {
+	clear:left;
+}
+
 #spinner {
 	position:fixed;
 	left:50%;
