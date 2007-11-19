@@ -4,7 +4,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
   <title>{% block title %}Iggy's Site Of Wonder{% endblock %}</title>
+
   {% block extra_cssstyle %}{% endblock %}
+
   <link href="/site_media/style/common.css" rel="stylesheet" type="text/css" />
   <link href="/site_media/yui/build/assets/skins/sam/skin.css" rel="stylesheet" type="text/css" />
 
@@ -18,7 +20,9 @@
   <script type="text/javascript" src="/site_media/yui/build/datatable/datatable-beta-min.js"></script>
 
   <script type="text/javascript" src="/site_media/js/common.js"></script>
+
   {% block extra_javascript %}{% endblock %}
+
 </head>
 <body class="yui-skin-sam">
      {% block content %}{% endblock %}

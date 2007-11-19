@@ -40,7 +40,7 @@ function initLinks() {
 	$U.Event.on('newmaillink', 'click', function(el,e) {
 		//Ext.get('contentpane').load('newmail/');
 		//YAHOO.dw.load('contentpane', 'newmail/');
-		YAHOO.dw.msglist.newpanel = new YAHOO.widget.Panel('newmsgpanel', {
+		YAHOO.dw.newmail.newpanel = new YAHOO.widget.Panel('newmsgpanel', {
 			width:'800px',
 			height:'600px',
 			fixedcenter: true,
@@ -49,12 +49,17 @@ function initLinks() {
 			close:true,
 			visible:true
 		});
-		YAHOO.dw.msglist.newpanel.setHeader('Compose');
-		YAHOO.dw.msglist.newpanel.setBody('<div id="newmsgdiv"></div>');
-		YAHOO.dw.msglist.newpanel.setFooter('&nbsp;');
-		YAHOO.dw.msglist.newpanel.render(document.body);
-		YAHOO.dw.msglist.newpanel.show();
+		YAHOO.dw.newmail.newpanel.setHeader('Compose');
+		YAHOO.dw.newmail.newpanel.setBody('<div id="newmsgdiv"></div>');
+		YAHOO.dw.newmail.newpanel.setFooter('&nbsp;');
+		YAHOO.dw.newmail.newpanel.render(document.body);
+		YAHOO.dw.newmail.newpanel.show();
 		YAHOO.dw.load('newmsgdiv', 'newmail/');
+
+		// if they like the rich editor as their default, make it so
+		if(YAHOO.dw.config.defaultEditor == '2')
+			YAHOO.dw.newmail.initRTE();
+
 		if(e)
 			YAHOO.util.Event.stopEvent(e);
 	});
@@ -62,19 +67,16 @@ function initLinks() {
 		//Ext.get('contentpane').load('config/view/');
 		// hide the msglist datatable
 		$D.addClass('msglist', 'hidden');
+		$D.removeClass('contentpane', 'hidden');
 		YAHOO.dw.load('contentpane', 'config/view/');
 		if(e)
-			YAHOO.util.Event.stopEvent(e);
+			$U.Event.stopEvent(e);
 	});
 }
 YAHOO.util.Event.addListener(window, 'load', initLinks, true);
 
-YAHOO.namespace('YAHOO.dw.newmail');
+YAHOO.namespace('dw.newmail');
 YAHOO.dw.newmail.initRTE = function() {
-	//Setup some private variables
-	var Dom = YAHOO.util.Dom,
-		Event = YAHOO.util.Event;
-	
 	//The Editor config
 	var myConfig = {
 		height: '300px',
@@ -83,7 +85,7 @@ YAHOO.dw.newmail.initRTE = function() {
 		dompath: true,
 		focusAtStart: true
 	};
-	
+
 	//Now let's load the Editor..
 	YAHOO.dw.newmail.Editor = new YAHOO.widget.Editor('editor', myConfig);
 	YAHOO.dw.newmail.Editor.render();
@@ -154,7 +156,7 @@ YAHOO.dw.editServer = function(srvtype, formel, saction) {
 // requires css classes even and odd
 function stripe(id) {
 
-	// the flag we will use to keep track of 
+	// the flag we will use to keep track of
 	// whether the current row is odd or even
 	var even = false;
 
@@ -162,15 +164,15 @@ function stripe(id) {
 	// if no such table exists, abort
 	var table = document.getElementById(id);
 	if (! table) { alert("no table selected"); return; }
-	
+
 	// by definition, tables can have more than one tbody
 	// element, so we will have to get the list of child
-	// tbodys 
+	// tbodys
 	var tbodies = table.getElementsByTagName("tbody");
 
 	// and iterate through them...
-	for (var h = 0; h < tbodies.length; h++) {	
-		// find all the tr elements... 
+	for (var h = 0; h < tbodies.length; h++) {
+		// find all the tr elements...
 		var trs = tbodies[h].getElementsByTagName("tr");
 		// ... and iterate through them
 		for (var i = 0; i < trs.length; i++) {
@@ -213,9 +215,9 @@ function sendMail(formel) {
 /*
  * load an element with content from source
  * what = element to fill
- * source = url|var to put into 
+ * source = url|var to put into
  */
-// FIXME if we think the source is a url and try to load it and it fails, maybe 
+// FIXME if we think the source is a url and try to load it and it fails, maybe
 // it wasn't really a url and we need to load it like it was a string
 YAHOO.dw.load = function(what, source) {
 	if(!$(what))
@@ -266,7 +268,7 @@ YAHOO.dw.showFolders = function(serverObj) {
 	var callback = {
 		success: function(o) {
 			serverObj = o.argument[0];
-		
+
 			function onLabelClick(node) {
 				// we need to rebuild the folder name from the (sub)dir names
 				realfoldername = node.label;
@@ -274,27 +276,29 @@ YAHOO.dw.showFolders = function(serverObj) {
 					realfoldername = node.parent.label+'.'+realfoldername;
 					node = node.parent;
 				}
-		
+
 				//YAHOO.dw.load('contentpane', 'msglist/'+realfoldername+'/');
+				$D.addClass('contentpane', 'hidden');
+				$D.removeClass('msglist', 'hidden');
 				YAHOO.dw.msglist.init({}, {server:0, folder:realfoldername});
 			}
-		
+
 			resp = eval('('+o.responseText+')');
 			console.log('showFolders success callback', o, resp);
-			
+
 			// put a label with the server name/address at the top of the tree
 			var label = document.createElement('h3');
 			label.innerHTML = serverObj[1];
 			$D.get('foldertree').appendChild(label);
-			
+
 			// make a new div in the foldertree container div to attach this to
 			var el = document.createElement('div');
 			$D.get('foldertree').appendChild(el);
-			
+
 			var tree = new YAHOO.widget.TreeView(el);
 			var tvNodes = [];
 			var root = tree.getRoot();
-			//var tmpNode = new YAHOO.widget.TextNode("mylabel", root, false); 
+			//var tmpNode = new YAHOO.widget.TextNode("mylabel", root, false);
 			for(var i = 0 ; i < resp.length ; i++) {
 				f = resp[i].split('.');
 				//console.log(resp[i], f);
@@ -326,6 +330,8 @@ YAHOO.dw.showFolders = function(serverObj) {
 }
 
 YAHOO.namespace('dw.msglist');
+
+// initialize the msg list... gets called when users login or when they click on a folder name in the tree of folders
 YAHOO.dw.msglist.init = function(e, o) {
 	var subjectFormatter = function(elCell, oRecord, oColumn, oData) {
 		YAHOO.dw.msglist.msgseen = false;
@@ -346,7 +352,7 @@ YAHOO.dw.msglist.init = function(e, o) {
 	var flagsFormatter = function(elCell, oRecord, oColumn, oData) {
 		YAHOO.dw.msglist.msgreplied = false;
 		YAHOO.dw.msglist.msgflagged = false;
-		
+
 		record = oRecord.getData();
 		console.log('flagsFormatter: ', elCell, oRecord, oColumn, oData);
 		for(var i = 0 ; i < record.flags.length ; i++) {
@@ -361,7 +367,7 @@ YAHOO.dw.msglist.init = function(e, o) {
 			html += 'R';
 		if(YAHOO.dw.msglist.msgflagged == true)
 			html += 'F';
-		
+
 		elCell.innerHTML = html;
 	}
 
@@ -389,20 +395,20 @@ YAHOO.dw.msglist.init = function(e, o) {
 		initialRequest: '?server='+server+'&folder='+folder+'&start=1&end=20'
 	}
 	YAHOO.dw.msglist.dt = new YAHOO.widget.DataTable('msglist', YAHOO.dw.msglist.coldefs,YAHOO.dw.msglist.ds, YAHOO.dw.msglist.opts);
-	
+
 	// Custom code to parse the raw server data for Paginator values and page links
 	YAHOO.dw.msglist.ds.doBeforeCallback = function(oRequest, oRawResponse, oParsedResponse) {
 		// clear the Bold
 		//var oSelf = YAHOO.example.ServerPagination;
 		//var oDataTable = oSelf.myDataTable;
-	
+
 		// Get Paginator values
 		var oRawResponse = eval('('+oRawResponse+')'); //JSON.parse(oRawResponse); // Parse the JSON data
 		var recordsReturned = oRawResponse.records; // How many records this page
 		var startIndex = oRawResponse.start; // Start record index this page
 		var endIndex = oRawResponse.end; // End record index this page
 		var totalRecords = oRawResponse.count; // Total records all pages
-	
+
 		// Update the DataTable Paginator with new values
 		var newPag = {
 			rowsPerPage: recordsReturned,
@@ -413,7 +419,7 @@ YAHOO.dw.msglist.init = function(e, o) {
 			totalRecords: totalRecords
 		}
 		YAHOO.dw.msglist.dt.updatePaginator(newPag);
-	
+
 		// Update the links UI
 		YAHOO.util.Dom.get("prevLink").innerHTML = (startIndex == 1) ? "<" :
 				"<a href=\"#previous\" alt=\"Show previous items\"><</a>" ;
@@ -423,7 +429,7 @@ YAHOO.dw.msglist.init = function(e, o) {
 		YAHOO.util.Dom.get("startIndex").innerHTML = startIndex;
 		YAHOO.util.Dom.get("endIndex").innerHTML = endIndex;
 		YAHOO.util.Dom.get("ofTotal").innerHTML = " of " + totalRecords;
-	
+
 		// Let the DataSource parse the rest of the response
 		return oParsedResponse;
 	};
@@ -472,6 +478,7 @@ YAHOO.dw.msglist.init = function(e, o) {
 }
 //YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.msglist.init, {server:0, folder:'INBOX'});
 
+// the function that gets called when you click on an email in the message list
 YAHOO.dw.msglist.cellClick = function(o) {
 	var record = YAHOO.dw.msglist.dt.getRecord(o.target).getData();
 	console.log(o, record);
