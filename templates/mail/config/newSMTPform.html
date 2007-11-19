@@ -1,0 +1,8 @@
+<h2>Please enter your SMTP server settings.</h2>
+<form method="post" action="/mail/config/addnewsmtp/" onsubmit="YAHOO.dw.submitNewServer(this);">
+<table>
+{{ sform }}
+</table>
+<input type="hidden" name="srvtype" value="{{ srvtype }}" />
+<input type="submit" value="Submit" />
+</form>

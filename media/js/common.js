@@ -7,13 +7,6 @@ var $ = YAHOO.util.Dom.get;
 // setup a namespace for django-webmail
 YAHOO.namespace('dw');
 
-
-// make update manager parse any scripts it gets back from the server
-//YAHOO.util.Event.on(window, 'load', function() {
-//        Ext.UpdateManager.defaults.loadScripts=true;
-//    }
-//);
-
 //////////////////////////// some functions used on the main page
 function updateMsgList(url) {
 	//Ext.get('msglistwrap').load(url);
@@ -76,6 +69,7 @@ function initLinks() {
 YAHOO.util.Event.addListener(window, 'load', initLinks, true);
 
 YAHOO.namespace('dw.newmail');
+YAHOO.dw.newmail.usingRTE = false;
 YAHOO.dw.newmail.initRTE = function() {
 	//The Editor config
 	var myConfig = {
@@ -83,12 +77,17 @@ YAHOO.dw.newmail.initRTE = function() {
 		width: '730px',
 		animate: true,
 		dompath: true,
-		focusAtStart: true
+		focusAtStart: true,
+		handleSubmit: true
 	};
 
 	//Now let's load the Editor..
 	YAHOO.dw.newmail.Editor = new YAHOO.widget.Editor('editor', myConfig);
 	YAHOO.dw.newmail.Editor.render();
+
+	// set a flag that says we are using the RTE so we can check it in the actual send msg function
+	$('usingRTE').value = true;
+	YAHOO.dw.newmail.usingRTE = true;
 }
 
 //////////////////////////// some config page functions

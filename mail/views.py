@@ -199,7 +199,7 @@ def newmail(request):
 
 @login_required
 def send(request):
-    from django.core.mail import send_mail, BadHeaderError
+    from django.core.mail import send_mail, BadHeaderError#, EmailMultiAlternatives
     from smtplib import SMTPAuthenticationError
     import simplejson
 
@@ -208,9 +208,18 @@ def send(request):
     message = request.POST.get('editor', '')
     mailfrom = request.POST.get('newmailfrom', '') # TODO should actually get their default from
     mailto = request.POST.get('newmailto', '')
+
+    if request.POST.get('usingRTE') == "true":
+        message = '<html><head></head>' + message + '</html>'
+
     if subject and message and mailfrom and mailto:
         try:
-            send_mail(subject, message, mailfrom, [mailto], auth_user=request.user, auth_password=request.user.get_profile().imap_servers.all()[0].passwd)
+            send_mail(subject, message, mailfrom, [mailto], auth_user=request.user, auth_password=request.user.get_profile().smtp_servers.all()[0].passwd)
+            # FIXME send plain text part as well as html part
+            #msg = EmailMultiAlternatives(subject, message, mailfrom, [mailto])
+            #if request.POST.get('usingRTE') == "true":
+                #msg.content_subtype = "html"
+            #msg.send(auth_user=request.user, auth_password=request.user.get_profile().smtp_servers.all()[0].passwd)
         except BadHeaderError:
             return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid Header Found'}))
         except SMTPAuthenticationError:
@@ -223,6 +232,7 @@ def send(request):
 def config(request, action):
     import simplejson
     from person.models import UserProfile, ImapServer, SmtpServer
+
     if action == "newconfig" or action == "newIMAPform":
         # we already know they don't have anything in the database, just show them a blank form
         #UserForm = forms.form_for_model(UserProfile)
@@ -255,6 +265,16 @@ def config(request, action):
             #o = request.user.get_profile().imap_servers.remove(0)
             #o = request.user.get_profile().imap_servers.remove(request.user.get_profile().imap_servers.all()[0])
         return HttpResponseRedirect('/mail/')
+
+    elif action == "addnewsmtp":
+        SmtpForm = forms.form_for_model(SmtpServer)
+        sform = SmtpForm(request.POST)
+        s = request.user.get_profile().smtp_servers.create(address = request.POST.get('address'),
+                        port = request.POST.get('port'),
+                        username = request.POST.get('username'),
+                        passwd = request.POST.get('passwd'))
+        s.save()
+        return HttpResponse(simplejson.dumps({'status':'OK'}))
 
     elif action == "edit":
         saction = request.GET.get('saction')
