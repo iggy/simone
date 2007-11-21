@@ -133,6 +133,7 @@ br {
 	font-size: .8em;
 }
 .msgtoolbar {
+	padding: 2px;
 	background:#D2D2D2
 }
 .hidden {

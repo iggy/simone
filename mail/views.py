@@ -18,22 +18,22 @@ def imaplist(imap, folder="INBOX", number=20, start=None):
         start = count-number
         if(start < 0):
             start = 1
-        messageset = repr(start)+":*"
+        messageset = str(start)+":*"
     else:
         if(count < number):
             # if there's not at least "number" messages in the folder just list them all
             count = "*"
             start = "1"
-        messageset = repr(start+":"+count)
+        messageset = str(start+":"+count)
     #return messageset
     status, data = imap.fetch(messageset, "(UID RFC822.SIZE FLAGS BODY[HEADER.FIELDS (SUBJECT DATE FROM)])")
     msglist = []
     for msg in data:
-        #msglist.append(repr(msg))
+        #msglist.append(str(msg))
         if(isinstance(msg, tuple)):
             stat, hdr = msg
             #r = re.compile('subject:', re.IGNORECASE)
-            msgtext = repr(msg)
+            msgtext = str(msg)
             m = email.message_from_string(msgtext)
 
             # round up all the info we need
@@ -162,6 +162,9 @@ def msglist(request, folder_name):
 @login_required
 def viewmsg(request, server, folder, uid):
 	# TODO convert to imapclient.py
+	# so they get passed through to the template
+	folder = folder
+	uid = uid
 	server = int(server)
 	imap = imaplib.IMAP4_SSL(request.user.get_profile().imap_servers.all()[server].address)
 	imap.login(request.user.get_profile().imap_servers.all()[server].username, request.user.get_profile().imap_servers.all()[server].passwd)
@@ -173,6 +176,7 @@ def viewmsg(request, server, folder, uid):
 	mail = re.search(r'(.*)^$(.*)', mailbody[1][0][1], re.M)
 
 	header = mail.group(1)
+	
 	if not mailmsg.is_multipart():
 		body = mailmsg.get_payload()
 	else:
@@ -340,8 +344,8 @@ def json(request, action):
 			start = request.GET['start']
 			end = request.GET['end']
 		except:
-			start = repr(1)
-			end = repr(20)
+			start = str(1)
+			end = str(20)
 		msgs = []
 
 		# get the server
@@ -358,8 +362,10 @@ def json(request, action):
 		server.login(my_imap_server.username, my_imap_server.passwd)
 		nummsgs = server.select_folder(folder)
 
+		print 'end: %s nummsgs: %s' % (end, nummsgs)
 		if int(end) > nummsgs:
-			end = repr(nummsgs)
+			end = str(nummsgs)
+		print 'end: %s nummsgs: %s' % (end, nummsgs)
 
 		#server.use_uid = False
 		#alluids = server.search('ALL')
@@ -417,12 +423,25 @@ def action(request, action):
 	server.login(my_imap_server.username, my_imap_server.passwd)
 	nummsgs = server.select_folder(folder)
 
+	returnstatus = "SUCCESS"
 	if action == 'markread':
-		pass
+		try:
+			uid = request.GET.get('uid')
+			server.add_flags([uid], [imapclient.SEEN])
+			returnstatus = 'SUCCESS'
+		except:
+			returnstatus = 'FAILURE'
 	elif action == 'markunread':
 		try:
 			uid = request.GET.get('uid')
 			server.remove_flags([uid], [imapclient.SEEN])
+			returnstatus = 'SUCCESS'
+		except:
+			returnstatus = 'FAILURE'
+	elif action == 'markimportant':
+		try:
+			uid = request.GET.get('uid')
+			server.add_flags([uid], [imapclient.FLAGGED])
 			returnstatus = 'SUCCESS'
 		except:
 			returnstatus = 'FAILURE'

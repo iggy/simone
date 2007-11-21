@@ -28,6 +28,9 @@ function hideSpinner() {
 }
 YAHOO.util.Event.on(window, 'load', hideSpinner);
 
+YAHOO.namespace('dw.newmail');
+
+// initialize the links above the folder list that handle some common functionality
 function initLinks() {
 	// setup  the new mail link
 	$U.Event.on('newmaillink', 'click', function(el,e) {
@@ -68,7 +71,6 @@ function initLinks() {
 }
 YAHOO.util.Event.addListener(window, 'load', initLinks, true);
 
-YAHOO.namespace('dw.newmail');
 YAHOO.dw.newmail.usingRTE = false;
 YAHOO.dw.newmail.initRTE = function() {
 	//The Editor config
@@ -90,36 +92,9 @@ YAHOO.dw.newmail.initRTE = function() {
 	YAHOO.dw.newmail.usingRTE = true;
 }
 
-//////////////////////////// some config page functions
-function initSrvLinks() {
-    function srvEditLinkOnClick(ev, el) {
-        // get the id of the server we want to replace
-        var sid = el.id.replace('_edit_link');
-
-        // show the editor in a new tr below the current line
-    }
-	function srvRemLinkOnClick(ev, el) {
-		// verify they really want to do this
-		// get the id of the server we are removing
-
-		// call back to handle the remove server ajax request
-		function RSCSuccess(o) {
-				// we get back a json response
-				// hide the tr that had the srv we just removed
-		}
-
-		// send an ajax request to remove the server
-	}
 
 
-    eln = YAHOO.util.Dom.getElementsByClassName('srv_edit_link');
-    rln = YAHOO.util.Dom.getElementsByClassName('srv_rm_link');
-    YAHOO.util.Event.addListener(eln, srvEditLinkOnClick);
-	YAHOO.util.Event.addListener(rln, srvRemLinkOnClick);
-}
-
-
-
+// change server settings
 YAHOO.dw.editServer = function(srvtype, formel, saction) {
 	var callback = {
 		success: function(o) {
@@ -149,40 +124,7 @@ YAHOO.dw.editServer = function(srvtype, formel, saction) {
 
 
 
-//////////////////////////// some general use functions
-
-// zebra stripe a table
-// requires css classes even and odd
-function stripe(id) {
-
-	// the flag we will use to keep track of
-	// whether the current row is odd or even
-	var even = false;
-
-	// obtain a reference to the desired table
-	// if no such table exists, abort
-	var table = document.getElementById(id);
-	if (! table) { alert("no table selected"); return; }
-
-	// by definition, tables can have more than one tbody
-	// element, so we will have to get the list of child
-	// tbodys
-	var tbodies = table.getElementsByTagName("tbody");
-
-	// and iterate through them...
-	for (var h = 0; h < tbodies.length; h++) {
-		// find all the tr elements...
-		var trs = tbodies[h].getElementsByTagName("tr");
-		// ... and iterate through them
-		for (var i = 0; i < trs.length; i++) {
-				trs[i].className=even ? "even" : "odd";
-				// flip from odd to even, or vice-versa
-				even =  ! even;
-		}
-	}
-}
-
-
+// send mail to the backend from the new mail panel
 function sendMail(formel) {
 	var callback = {
 		success:	function(o) {
@@ -218,7 +160,7 @@ function sendMail(formel) {
  */
 // FIXME if we think the source is a url and try to load it and it fails, maybe
 // it wasn't really a url and we need to load it like it was a string
-YAHOO.dw.load = function(what, source) {
+YAHOO.dw.load = function(what, source, xcallback) {
 	if(!$(what))
 		return false;
 	if(source[0] == '/' || source[source.length-1] == '/') { // FIXME need to do MUCH more exhaustive checking
@@ -228,9 +170,12 @@ YAHOO.dw.load = function(what, source) {
 			success: function(o) {
 				what = o.argument[0];
 				$U.Dom.get(what).innerHTML = o.responseText;
+				if(xcallback)
+					xcallback.success(o);
 			},
 			failure: function(o) {
-				;
+				if(xcallback)
+					xcallback.failure(o);
 			},
 			argument: [what]
 		}
@@ -283,7 +228,7 @@ YAHOO.dw.showFolders = function(serverObj) {
 			}
 
 			resp = eval('('+o.responseText+')');
-			console.log('showFolders success callback', o, resp);
+			//console.log('showFolders success callback', o, resp);
 
 			// put a label with the server name/address at the top of the tree
 			var label = document.createElement('h3');
@@ -335,13 +280,13 @@ YAHOO.dw.msglist.init = function(e, o) {
 	var subjectFormatter = function(elCell, oRecord, oColumn, oData) {
 		YAHOO.dw.msglist.msgseen = false;
 		record = oRecord.getData();
-		console.log('subjectFormatter: ', elCell, oRecord, oColumn, oData, YAHOO.dw.msglist.msgseen);
+		//console.log('subjectFormatter: ', elCell, oRecord, oColumn, oData, YAHOO.dw.msglist.msgseen);
 		for(var i = 0 ; i < record.flags.length ; i++) {
-			console.log(record.flags[i], record,record.flags[i].indexOf('\Seen') );
+			//console.log(record.flags[i], record,record.flags[i].indexOf('\Seen') );
 			if(record.flags[i].indexOf('\Seen') != -1)
 				YAHOO.dw.msglist.msgseen = true;
 		}
-		console.log(YAHOO.dw.msglist.msgseen);
+		//console.log(YAHOO.dw.msglist.msgseen);
 		if(YAHOO.dw.msglist.msgseen == false)
 			$D.addClass(elCell.parentNode, 'unread-msg');
 		else
@@ -353,9 +298,9 @@ YAHOO.dw.msglist.init = function(e, o) {
 		YAHOO.dw.msglist.msgflagged = false;
 
 		record = oRecord.getData();
-		console.log('flagsFormatter: ', elCell, oRecord, oColumn, oData);
+		//console.log('flagsFormatter: ', elCell, oRecord, oColumn, oData);
 		for(var i = 0 ; i < record.flags.length ; i++) {
-			console.log(record.flags[i], record);
+			//console.log(record.flags[i], record);
 			if(record.flags[i].indexOf('\Answered') != -1)
 				YAHOO.dw.msglist.msgreplied = true;
 			if(record.flags[i].indexOf('\Flagged') != -1)
@@ -479,6 +424,19 @@ YAHOO.dw.msglist.init = function(e, o) {
 
 // the function that gets called when you click on an email in the message list
 YAHOO.dw.msglist.cellClick = function(o) {
+	YAHOO.dw.msglist.loadcallback = {
+		success: function(o) {
+			console.log('msg load success callback', o);
+			
+			// initialize the mark as button
+			//YAHOO.dw.msglist.markasbtn = new YAHOO.widget.Button('markasbtn', {type:"menu",menu:"markasbtnmenu"});
+		},
+		failure: function(o) {
+			console.log('msg load failure callback', o);
+		}
+	}
+
+
 	var record = YAHOO.dw.msglist.dt.getRecord(o.target).getData();
 	console.log(o, record);
 	YAHOO.dw.msglist.viewpanel = new YAHOO.widget.Panel('msgpanel', {
@@ -494,7 +452,7 @@ YAHOO.dw.msglist.cellClick = function(o) {
 	YAHOO.dw.msglist.viewpanel.setFooter('&nbsp;');
 	YAHOO.dw.msglist.viewpanel.render(document.body);
 	YAHOO.dw.msglist.viewpanel.show();
-	YAHOO.dw.load('viewmsgdiv', 'viewmsg/'+record.server+'/'+record.folder+'/'+record.uid+'/');
+	YAHOO.dw.load('viewmsgdiv', 'viewmsg/'+record.server+'/'+record.folder+'/'+record.uid+'/', YAHOO.dw.msglist.loadcallback);
 }
 
 YAHOO.dw.newServer = function(srvtype) {
@@ -526,3 +484,16 @@ YAHOO.dw.submitNewServer = function(formel) {
 	$U.Connect.asyncRequest('GET', 'config/addnew/', callback);
 }
 
+
+YAHOO.dw.markMsg = function(howtomark, server, folder, uid) {
+	var callback = {
+		success: function(o) {
+			console.log(o);
+		},
+		failure: function(o) {
+			console.log(o);
+		}
+	}
+	//$U.Connect.setForm(formel);
+	$U.Connect.asyncRequest('GET', 'action/mark'+howtomark+'/?server='+server+'&folder='+folder+'&uid='+uid, callback);
+}
