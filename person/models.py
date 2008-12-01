@@ -6,7 +6,7 @@ from django.dispatch import dispatcher
 
 class Signature(models.Model):
     text = models.TextField(blank=True)
-    def __str__(self):
+    def __unicode__(self):
         return self.text[0:30]
 
 # holds imap server connection info
@@ -14,36 +14,37 @@ class Signature(models.Model):
 # FIXME also need a "friendly name" field
 # FIXME also needs ssl checkbox/bool
 class ImapServer(models.Model):
-    address = models.CharField(maxlength=255,null=True)
-    port = models.CharField(maxlength=5,default="143",null=True)
-    username = models.CharField(maxlength=255,null=True)
-    passwd = models.CharField(maxlength=255,null=True)
-    def __str__(self):
+    address = models.CharField(max_length=255,null=True)
+    port = models.CharField(max_length=5,default="143",null=True)
+    username = models.CharField(max_length=255,null=True)
+    passwd = models.CharField(max_length=255,null=True)
+    def __unicode__(self):
         if not self.address and not self.port and not self.username and not self.passwd:
             return 'None'
         return '%s@imap://%s:%s' % (self.username, self.address, self.port)
 
 class SmtpServer(models.Model):
-    address = models.CharField(maxlength=255,null=True)
-    port = models.CharField(maxlength=5,default="143",null=True)
-    username = models.CharField(maxlength=255,null=True)
-    passwd = models.CharField("Password", maxlength=255,null=True)
-    def __str__(self):
+    address = models.CharField(max_length=255,null=True)
+    port = models.CharField(max_length=5,default="143",null=True)
+    username = models.CharField(max_length=255,null=True)
+    passwd = models.CharField("Password", max_length=255,null=True)
+    def __unicode__(self):
         if not self.address and not self.port and not self.username and not self.passwd:
             return 'None'
         return '%s@smtp://%s:%s' % (self.username, self.address, self.port)
 
-class UserProfile( models.Model ):
-    user = models.ForeignKey (User, unique=True, edit_inline=models.TABULAR,
-            num_in_admin=1, min_num_in_admin=1, max_num_in_admin=1,
-            num_extra_on_change=0)
+class UserProfile(models.Model):
+    user = models.ForeignKey(User, unique=True)
 
-    about = models.TextField(blank=True, core=True)
-    editor = models.CharField(maxlength=1, choices = (('1', 'Text'), ('2', 'Rich Text')), default='1')
+    about = models.TextField(blank=True)
+    editor = models.CharField(max_length=1, choices = (('1', 'Text'), ('2', 'Rich Text')), default='1')
 
     signatures = models.ManyToManyField(Signature)
     imap_servers = models.ManyToManyField(ImapServer)
     smtp_servers = models.ManyToManyField(SmtpServer)
+    
+    def __unicode__(self):
+        return '%s\'s UserProfile' % (self.user,)
 
 
 
@@ -71,4 +72,5 @@ def UserProfileExtraWork(sender, instance, signal, *args, **kwargs):
 	#user.save_profile()
 
 # we want this called after every user is inserted
-dispatcher.connect(UserProfileExtraWork, signal=signals.post_save, sender=User)
+# FIXME - port to 1.0
+#dispatcher.connect(UserProfileExtraWork, signal=signals.post_save, sender=User)

@@ -4,7 +4,7 @@ from django.shortcuts import render_to_response, HttpResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django import newforms as forms
+from django import forms
 from django.http import HttpResponseRedirect
 
 # list messages in an imap folder
@@ -87,7 +87,10 @@ def index(request):
 
     import time
     imap_conn_st = time.time()
-    imap = imaplib.IMAP4_SSL(request.user.get_profile().imap_servers.all()[0].address)
+    try:
+	    imap = imaplib.IMAP4_SSL(request.user.get_profile().imap_servers.all()[0].address)
+    except:
+        return HttpResponse("Failed to connect to imap server")
     con_time = time.time() - imap_conn_st
     imap.login(request.user.get_profile().imap_servers.all()[0].username, request.user.get_profile().imap_servers.all()[0].passwd)
     log_time = time.time() - imap_conn_st
@@ -162,7 +165,7 @@ def msglist(request, folder_name):
 @login_required
 def viewmsg(request, server, folder, uid):
 	# TODO convert to imapclient.py
-	# so they get passed through to the template
+	# these are here so they get passed through to the template
 	folder = folder
 	uid = uid
 	server = int(server)
@@ -205,7 +208,7 @@ def newmail(request):
 def send(request):
     from django.core.mail import send_mail, BadHeaderError#, EmailMultiAlternatives
     from smtplib import SMTPAuthenticationError
-    import simplejson
+    from django.utils import simplejson
 
     # attempt to send the mail
     subject = request.POST.get('newmailsubject', '')
@@ -234,7 +237,7 @@ def send(request):
 
 @login_required
 def config(request, action):
-    import simplejson
+    from django.utils import simplejson
     from person.models import UserProfile, ImapServer, SmtpServer
 
     if action == "newconfig" or action == "newIMAPform":
@@ -316,7 +319,7 @@ def config(request, action):
 
 @login_required
 def json(request, action):
-	import simplejson
+	from django.utils import simplejson
 	from imapclient import IMAPClient
 
 	if action == "folderlist":
@@ -344,8 +347,8 @@ def json(request, action):
 			start = request.GET['start']
 			end = request.GET['end']
 		except:
-			start = str(1)
-			end = str(20)
+			start = "1"
+			end = "20"
 		msgs = []
 
 		# get the server
@@ -367,20 +370,19 @@ def json(request, action):
 			end = str(nummsgs)
 		print 'end: %s nummsgs: %s' % (end, nummsgs)
 
-		#server.use_uid = False
-		#alluids = server.search('ALL')
-		fmsgs = server.fetch(start+":"+end, ["UID", "RFC822.SIZE", "FLAGS"])
-		fmsgs2 = server.fetch(start+":"+end, ["BODY[HEADER.FIELDS (SUBJECT DATE FROM)]"])
-		#msgs = server._imap.imaplist(folder)
-		#msgs = server.search()
+		mrange = start+":"+end
+		fmsgs = server.fetch(mrange.encode('ascii'), ["UID", "RFC822.SIZE", "FLAGS", "BODY[HEADER.FIELDS (SUBJECT DATE FROM)]"])
 
 		for msg in fmsgs:
 			# need to parse out the parts, can't just send them straight to the browser
 			#uid = fmsgs[msg]['UID']
 			size = fmsgs[msg]['RFC822.SIZE']
-			header = fmsgs2[msg]['BODY[HEADER.FIELDS (SUBJECT DATE FROM)]']
+			header = fmsgs[msg]['BODY[HEADER.FIELDS (SUBJECT DATE FROM)]']
 			#subject = re.search('subject:', header, re.I)
-			subject = re.search(r'subject:(.*?)\r\n', header, re.I).group(1).strip().strip('"')
+			try:
+				subject = re.search(r'subject:(.*?)\r\n', header, re.I).group(1).strip().strip('"')
+			except:
+				subject = ''
 			mfrom = re.search(r'from:(.*?)\r\n', header, re.I)
 			try:
 				fromemail = mfrom.group(1).split('<')[1].strip().strip('"').strip('>')
@@ -406,7 +408,7 @@ def json(request, action):
 
 @login_required
 def action(request, action):
-	import simplejson
+	from django.utils import simplejson
 	import imapclient as imapclient
 
 	# a few vars that get used in (almost) every action

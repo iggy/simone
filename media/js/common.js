@@ -1,3 +1,11 @@
+/*
+ * Copyright 2007 Brian Jackson (iggy@theiggy.com)
+ *
+ * Anything not explicitly licensed some other way is released under the new BSD license
+ * http://www.opensource.org/licenses/bsd-license.php
+ */
+
+
 /////////////////////////// globals, etc.
 
 // A few handy shortcuts
@@ -94,7 +102,12 @@ YAHOO.dw.newmail.initRTE = function() {
 
 
 
-// change server settings
+/**
+ * Change server settings
+ * @param {string} srvtype Whether the server is imap or smtp
+ * @param {object} formel The form element with the settings we want to set on the 
+ * @param {string} saction The action the server is supposed to take
+ */
 YAHOO.dw.editServer = function(srvtype, formel, saction) {
 	var callback = {
 		success: function(o) {
@@ -233,6 +246,14 @@ YAHOO.dw.showFolders = function(serverObj) {
 			// put a label with the server name/address at the top of the tree
 			var label = document.createElement('h3');
 			label.innerHTML = serverObj[1];
+
+			// setup the context menu for the imap server
+			var labelCMenuItems = ['New Folder'];
+			var labelCMenu = new YAHOO.widget.ContextMenu('labelcmenu',
+				{trigger: oClones.childNodes, itemdata: labelCMenuItems, lazyload: true}
+			);
+
+			//label.addListener('
 			$D.get('foldertree').appendChild(label);
 
 			// make a new div in the foldertree container div to attach this to
