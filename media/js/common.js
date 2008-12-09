@@ -248,10 +248,10 @@ YAHOO.dw.showFolders = function(serverObj) {
 			label.innerHTML = serverObj[1];
 
 			// setup the context menu for the imap server
-			var labelCMenuItems = ['New Folder'];
-			var labelCMenu = new YAHOO.widget.ContextMenu('labelcmenu',
-				{trigger: oClones.childNodes, itemdata: labelCMenuItems, lazyload: true}
-			);
+			//var labelCMenuItems = ['New Folder'];
+			//var labelCMenu = new YAHOO.widget.ContextMenu('labelcmenu',
+			//	{trigger: oClones.childNodes, itemdata: labelCMenuItems, lazyload: true}
+			//);
 
 			//label.addListener('
 			$D.get('foldertree').appendChild(label);
