@@ -18,10 +18,14 @@ class ImapServer(models.Model):
     port = models.CharField(max_length=5,default="143",null=True)
     username = models.CharField(max_length=255,null=True)
     passwd = models.CharField(max_length=255,null=True)
+    ssl = models.BooleanField(default=False)
     def __unicode__(self):
         if not self.address and not self.port and not self.username and not self.passwd:
             return 'None'
+        if self.ssl:
+            return '%s@imaps://%s:%s' % (self.username, self.address, self.port)
         return '%s@imap://%s:%s' % (self.username, self.address, self.port)
+
 
 class SmtpServer(models.Model):
     address = models.CharField(max_length=255,null=True)

@@ -328,7 +328,7 @@ def json(request, action):
 			my_imap_server = request.user.get_profile().imap_servers.all()[which]
 		except (IndexError, TypeError):
 			return HttpResponse(simplejson.dumps({'error':'Invalid server'}))
-		server = IMAPClient(my_imap_server.address, use_uid=True)
+		server = IMAPClient(my_imap_server.address, port=my_imap_server.port, use_uid=True, ssl=my_imap_server.ssl)
 		server.login(my_imap_server.username, my_imap_server.passwd)
 		dirs = server.list_folders()
 		return HttpResponse(simplejson.dumps(dirs))
@@ -361,7 +361,7 @@ def json(request, action):
 		# get the folder
 		folder = request.GET.get('folder')
 
-		server = IMAPClient(my_imap_server.address, use_uid=True)
+		server = IMAPClient(my_imap_server.address, port=my_imap_server.port, use_uid=True, ssl=my_imap_server.ssl)
 		server.login(my_imap_server.username, my_imap_server.passwd)
 		nummsgs = server.select_folder(folder)
 

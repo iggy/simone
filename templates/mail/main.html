@@ -54,7 +54,7 @@ YAHOO.dw.config.defaultEditor = '{{ defaultEditor }}';
 <div id="msglist"></div> {# This is separate from the contentpane so we don't have to refresh it every time #}
 
 <div id="contentpane">
-{#{% include "mail/msglist.html" %}#}
+    {#{% include "mail/msglist.html" %}#}
 </div>
 
 
@@ -66,6 +66,7 @@ YAHOO.dw.config.defaultEditor = '{{ defaultEditor }}';
 <script type="text/javascript">
 YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.msglist.init, {server:0, folder:'INBOX'});
 YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.showServers);
+YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.showFolders);
 </script>
 
 {% endblock %}
