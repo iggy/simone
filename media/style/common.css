@@ -11,44 +11,23 @@ body {
 	font-size:12px;
 	background-color:#E3E3E3;
 }
-li {
-
-}
 ul {
 	list-style:none inside none;
 	padding:0px;
 	margin:0px;
 }
-tr {
-	border:none;
-}
-td {
-	border:none;
-}
-a {
+tr, td, img {border:none;}
+a, a:visited, a:active {
 	border:none;
 	outline:none;
 }
-img {
-	border:none;
-}
-
-form fieldset {
-	clear:both;
-}
+form fieldset {clear:both;}
 form label {
 	float:left;
 	width:120px;
 }
-form input {
-	width:180px;
-/* 	float:left; */
-/* 	clear:left; */
-}
-br {
-	clear:left;
-}
-
+form input {width:180px;}
+br {clear:left;}
 #spinner {
 	position:fixed;
 	left:50%;
@@ -63,45 +42,31 @@ br {
 }
 #leftbar {
 	position:absolute;
-	left:0.8em;
-	width:15em; /* tied to margin-left of #contentpane */
+/*	left:0.8em; */
+	width:12em; /* tied to margin-left of #contentpane */
 	padding: 3px;
 	margin:0px;
 /* 	background:#6DD8FF; */
-	border:solid blue 1px;
+/*	border:solid blue 1px; */
 	overflow:hidden;
 }
-#leftbartools {
+/*#leftbartools {
 	border:solid 3px black;
-}
+}*/
 #contentpane {
-	margin-left:17em; /* needs to match width of folderlist + some */
-	border: solid 1px black;
-}
-#msglist, #dt-pag-nav {
-	margin-left:17em;
+	margin-left:13.5em; /* needs to match width of folderlist + some */
+/*	border: solid 1px black; */
 }
 .even {
-	background:#4A9EFF;
+	background:white;
 }
 .odd {
-	background:#6DD8FF;
+	background:#EDF5FF;
 }
 .tablehover {
 	background-color:#3060FF;
 	color: white;
 	cursor:pointer;
-}
-.message {
-/* 	margin:.5em; */
-}
-#leftside {
-	float:left;
-	background-color:red;
-}
-#rightside {
-	float:right;
-	background-color:red;
 }
 .clear {
 	clear:both;
@@ -116,50 +81,51 @@ br {
 .mailbody {
 	padding:3px;
 	background-color: #D2D2D2;
+/*	height: 80%;
+	overflow:scroll; */
 }
-.subject {
-	font-size:125%;
-}
-.msglist-subject {
-	font-size:1em;
-}
-.msglist-from {
-	font-size:1em;
-}
-.msglist-date {
-	font-size:.9em;
-}
-.msglist-size {
-	font-size: .8em;
-}
-.msgtoolbar {
-	padding: 2px;
-	background:#D2D2D2
-}
-.hidden {
-	display:none;
-}
-.tblOneBrdrFvPd table, table.tblOneBrdrFvPd {
-	border: solid 1px black;
-}
-.tblOneBrdrFvPd td {
-	border: solid 1px black;
-	padding: 5px;
-}
-/* FIXME lookup how to do these table less forms right */
-.floatForm label {
-/* 	float:left; */
-/* 	clear:right; */
-}
-.floatForm input {
-/* 	text-align:right; */
-}
+.subject {					font-size:125%;}
+.msglist-subject {	font-size:1em;}
+.msglist-from {			font-size:1em;}
+.msglist-date {			font-size:.9em;}
+.msglist-size {			font-size:.8em;}
+.msgtoolbar {				padding: 2px;			background:#D2D2D2}
+.hidden {						display:none;}
+.tblOneBrdrFvPd table, table.tblOneBrdrFvPd {border: solid 1px black;}
+.tblOneBrdrFvPd td{	border: solid 1px black;padding: 5px;}
+.unread-msg {				font-weight:bold;}
+.msghover {					cursor:pointer; }
+.msgunseen {				font-weight: bold; }
+.msgimport {				background: yellow; }
 
 /* These are the panel body contents for all the little panel's we open */
 #viewmsgdiv, #newmsgdiv, #newserver {
 	height:534px;
 	overflow:auto;
 }
-.unread-msg {
-	font-weight:bold;
+#msglist table {
+	width: 100%;
+	border: solid 1px #ababab;
+}
+#msglist table th {
+	background: silver;
+}
+#msglist form input {
+	width: auto;
+}
+#msglist td {
+	font-size: 90%;
+}
+#msglist td.subject {
+	font-size:100%;
+}
+#foldertree a, #foldertree a:visited, #foldertree a:active {
+	color: blue;
+	outline: none;
+	text-decoration: none;
+	font-size: 90%;
+}
+#foldertree li {
+	padding:5px;
+	border-bottom: 1px solid silver;
 }

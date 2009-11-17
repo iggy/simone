@@ -1,2 +1,4 @@
 *.pyc
 *.pyo
+iggy.db*
+*.bak

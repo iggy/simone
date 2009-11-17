@@ -4,12 +4,6 @@
 {% endblock %}
 
 {% block extra_javascript %}
-<script type="text/javascript">
-
-YAHOO.namespace('dw.config');
-YAHOO.dw.config.defaultEditor = '{{ defaultEditor }}';
-
-</script>
 {% endblock %}
 
 {% block title %}Email{% endblock %}
@@ -33,28 +27,22 @@ YAHOO.dw.config.defaultEditor = '{{ defaultEditor }}';
 	</div>
     <div id="folderlist">
 		<div id="foldertree"></div>
+		<div id="foldertree2"></div>
     </div>
     <div id="leftbar_bottom_info">
-        <p>imap times:</p>
-        <p>{{ con_time }}</p>
-        <p>{{ log_time }}</p>
-        <p>{{ list_time }}</p>
     </div>
 </div>
 
 <noscript><h1>This site requires javascript to be enabled</h1></noscript>
 
-<div id="dt-pag-nav">
-	<span id="prevLink">&lt;</span>
-	Showing items
-	<span id="startIndex">1</span> - <span id="endIndex">20</span>
-	<span id="ofTotal"></span>
-	<span id="nextLink">></span>
-</div>
-<div id="msglist"></div> {# This is separate from the contentpane so we don't have to refresh it every time #}
+
+
+
 
 <div id="contentpane">
-    {#{% include "mail/msglist.html" %}#}
+
+<div id="msglist"></div>
+
 </div>
 
 
@@ -63,10 +51,5 @@ YAHOO.dw.config.defaultEditor = '{{ defaultEditor }}';
 
 </div><!-- end page -->
 
-<script type="text/javascript">
-YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.msglist.init, {server:0, folder:'INBOX'});
-YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.showServers);
-YAHOO.util.Event.addListener(window, 'load', YAHOO.dw.showFolders);
-</script>
 
 {% endblock %}

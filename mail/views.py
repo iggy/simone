@@ -1,5 +1,7 @@
 # Create your views here.
 import imaplib, re, email
+from pprint import pprint
+
 from django.shortcuts import render_to_response, HttpResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -7,71 +9,13 @@ from django.contrib.auth.models import User
 from django import forms
 from django.http import HttpResponseRedirect
 
-# list messages in an imap folder
-# if start isn't set
-def imaplist(imap, folder="INBOX", number=20, start=None):
-    # get the list of messages in INBOX
-    countup = imap.select(folder, True)
-    count = int(countup[1][0])
-    if(start==None):
-        # default usage, fetch the last number messages from the folder
-        start = count-number
-        if(start < 0):
-            start = 1
-        messageset = str(start)+":*"
-    else:
-        if(count < number):
-            # if there's not at least "number" messages in the folder just list them all
-            count = "*"
-            start = "1"
-        messageset = str(start+":"+count)
-    #return messageset
-    status, data = imap.fetch(messageset, "(UID RFC822.SIZE FLAGS BODY[HEADER.FIELDS (SUBJECT DATE FROM)])")
-    msglist = []
-    for msg in data:
-        #msglist.append(str(msg))
-        if(isinstance(msg, tuple)):
-            stat, hdr = msg
-            #r = re.compile('subject:', re.IGNORECASE)
-            msgtext = str(msg)
-            m = email.message_from_string(msgtext)
+from mail import imaplib2
+from mail.dateutil import parser
 
-            # round up all the info we need
-            subj = re.search(r'subject:(.*?)\\r\\n', msgtext, re.I)
-            fromm = re.search(r'from:(.*?)\\r\\n', msgtext, re.I)
-            datee = re.search(r'date:(.*?)\\r\\n', msgtext, re.I)
-            uid = re.search(r'UID (.*?) ', msgtext, re.I)
-            size = re.search(r'RFC822.SIZE (.*?) ', msgtext, re.I)
-            flags = re.search(r'FLAGS \((.*?)\) ', msgtext, re.I)
-
-            subjtext = subj.group(1).strip().strip('"')
-            # sometimes names are name + email, sometimes just email
-            try:
-                fromemail = fromm.group(1).split('<')[1].strip().strip('"').strip('>')
-                fromtext = fromm.group(1).split('<')[0].strip().strip('"').replace('\\', '')
-            except:
-                fromemail = fromm.group(1).strip().strip('"').replace('\\', '')
-                fromtext = fromm.group(1).strip().strip('"').replace('\\', '')+' '
-            try:
-                datetext = datee.group(1).strip().strip('"')
-            except:
-                datetext = "blank"
-            uidtext = uid.group(1).strip().strip('"')
-            sizetext = size.group(1).strip().strip('"')
-            flagstext = flags.group(1).strip().strip('"')
-
-            #msglist.append([m['subject'],m['from'],m['from'],m['date'],uidtext,sizetext,flagstext,m])
-            msglist.append([
-                subjtext,
-                fromemail,
-                fromtext,
-                datetext,
-                uidtext,
-                sizetext,
-                flagstext
-            ])
-            #msglist.append(msg) # it's our second match
-    return msglist
+try:
+	import simplejson
+except:
+	from django.utils import simplejson
 
 # TODO leaving index as is for a little bit more development
 # index/login page
@@ -80,87 +24,44 @@ def imaplist(imap, folder="INBOX", number=20, start=None):
 
 @login_required
 def index(request):
-    # if they haven't filled in their options, we won't have much luck connecting to their mail server
-    if request.user.get_profile().imap_servers.all()[0].username == None:
-        return HttpResponseRedirect('config/newconfig/')
-    # FIXME need to get the above working
+	# if they haven't filled in their options, we won't have much luck connecting to their mail server
+	if request.user.get_profile().imap_servers.all()[0].username == None:
+		return HttpResponseRedirect('config/newconfig/')
 
-    import time
-    imap_conn_st = time.time()
-    try:
-	    imap = imaplib.IMAP4_SSL(request.user.get_profile().imap_servers.all()[0].address)
-    except:
-        return HttpResponse("Failed to connect to imap server")
-    con_time = time.time() - imap_conn_st
-    imap.login(request.user.get_profile().imap_servers.all()[0].username, request.user.get_profile().imap_servers.all()[0].passwd)
-    log_time = time.time() - imap_conn_st
-    status, list = imap.list()  # returns status of the command and the results of the command as a list
-                                # the values are oddly formatted, so we have to do a little bit of parsing
-    list_time = time.time() - imap_conn_st
-    # get the list of folders
-    # we want to break up all the subdirs into nested dicts
-    #fldlist = {}
-    fldlist = []
-    for fld in list:
-        folder = fld.split('" "')
-        nm = folder[1].strip('"')  # full folder name
-        # TODO the folder "parsing" shouldn't be in the template, it should be here
-        #nmcopy = nm
-        #splitnm = nmcopy.split('.')
-        #snm = splitnm[-1]
-        #nm = fld
-        fldlist.append(nm)
-        #if(nm.count(".")):
-            #fldlist.fromkeys(nm.split('.'))
-        #else:
-            #fldlist.fromkeys(nm)
-            ## folders in imap are seperated by .'s
-            #for sub in nm.split('.'):
-                #try:
-                    #thisfldlist.append(sub)
-                #except:
-                    #thisfldlist = fldlist[sub]
-                    #thisfldlist.append(sub)
-            ## folders in imap are seperated by .'s
-            #for sub in nm.split('.'):
+	folder = "INBOX"
 
-                ##if not fldlist[sub]:
-                #fldlist[sub] = {}
-                #fldlist[sub][sub] = ''
-            ## FIXME handle recursion
-            #pass
-        #else:
-            ## if it's a top level folder, just drop it in there empty
-            #fldlist[nm] = ''
-    maildir = fldlist
+	defaultEditor = request.user.get_profile().editor
 
-    folder = "INBOX"
-
-    msglist = imaplist(imap, folder)
-
-    #countup = imap.select()
-    #imap.store("1", '-FLAGS', '\\Seen')
-
-    defaultEditor = request.user.get_profile().editor
-
-    # clean up
-    imap.logout()
-
-    return render_to_response('mail/main.html', locals())
+	return render_to_response('mail/main.html', locals())
 
 @login_required
-def msglist(request, folder_name):
-    imap = imaplib.IMAP4_SSL(request.user.get_profile().imap_servers.all()[0].address)
-    imap.login(request.user.get_profile().imap_servers.all()[0].username, request.user.get_profile().imap_servers.all()[0].passwd)
+def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
+	server = int(server)
+	srvr = request.user.get_profile().imap_servers.all()[server]
+	pprint(srvr)
 
-    msglist = imaplist(imap, folder_name)
+	start = int(page) * int(perpage) - int(perpage) + 1
+	stop =  int(page) * int(perpage)
 
-    # also pass folder_name to the template
-    folder = folder_name
+	imap = imaplib2.IMAP4(srvr.address, srvr.username, srvr.passwd)
 
-    # clean up
-    imap.logout()
-    return render_to_response('mail/msglist.html', locals())
+	if stop > len(imap[folder]):
+		stop = len(imap[folder])
+
+	# we just need the headers for the msglist
+	msglst = []
+	for m in imap[folder][start:stop]:
+		e = m['email']
+		msglst.append({
+			'uid': m['uid'],
+			'flags': m['flags'],
+			'subject': escape(e.get('subject',  str(''))),
+			'from': escape(e.get('from'),  u''),
+			'date': parser.parse(m['date']).strftime('%b %d %Y - %H:%M'),
+			'size': m['size'],
+		})
+
+	return HttpResponse(simplejson.dumps({'totalmsgs':len(imap[folder]), 'start': start, 'stop': stop, 'msglist': msglst}))
 
 @login_required
 def viewmsg(request, server, folder, uid):
@@ -169,8 +70,9 @@ def viewmsg(request, server, folder, uid):
 	folder = folder
 	uid = uid
 	server = int(server)
-	imap = imaplib.IMAP4_SSL(request.user.get_profile().imap_servers.all()[server].address)
-	imap.login(request.user.get_profile().imap_servers.all()[server].username, request.user.get_profile().imap_servers.all()[server].passwd)
+	isrv = request.user.get_profile().imap_servers.all()[server]
+	imap = imaplib.IMAP4_SSL(isrv.address)
+	imap.login(isrv.username, isrv.passwd)
 
 	countup = imap.select(folder, True)
 
@@ -179,7 +81,7 @@ def viewmsg(request, server, folder, uid):
 	mail = re.search(r'(.*)^$(.*)', mailbody[1][0][1], re.M)
 
 	header = mail.group(1)
-	
+
 	if not mailmsg.is_multipart():
 		body = mailmsg.get_payload()
 	else:
@@ -188,13 +90,9 @@ def viewmsg(request, server, folder, uid):
 				body = part.get_payload().decode('quopri_codec')
 	imap.logout()
 
-	#my_imap_server = request.user.get_profile().imap_servers.all()[server]
-
-	#server = IMAPClient(my_imap_server.address, use_uid=True)
-	#server.login(my_imap_server.username, my_imap_server.passwd)
-	#nummsgs = server.select_folder(folder)
-
-	#server.fetch
+	if request.GET.get('json') == "true":
+		from django.utils import simplejson
+		return HttpResponse(simplejson.dumps({'headers':mailmsg.items(), 'body':body}))
 
 	return render_to_response('mail/viewmsg.html', locals())
 
@@ -206,38 +104,38 @@ def newmail(request):
 
 @login_required
 def send(request):
-    from django.core.mail import send_mail, BadHeaderError#, EmailMultiAlternatives
-    from smtplib import SMTPAuthenticationError
-    from django.utils import simplejson
+	from django.core.mail import send_mail, BadHeaderError#, EmailMultiAlternatives
+	from smtplib import SMTPAuthenticationError
+	#from django.utils import simplejson
 
-    # attempt to send the mail
-    subject = request.POST.get('newmailsubject', '')
-    message = request.POST.get('editor', '')
-    mailfrom = request.POST.get('newmailfrom', '') # TODO should actually get their default from
-    mailto = request.POST.get('newmailto', '')
+	# attempt to send the mail
+	subject = request.POST.get('newmailsubject', '')
+	message = request.POST.get('editor', '')
+	mailfrom = request.POST.get('newmailfrom', '') # TODO should actually get their default from
+	mailto = request.POST.get('newmailto', '')
 
-    if request.POST.get('usingRTE') == "true":
-        message = '<html><head></head>' + message + '</html>'
+	if request.POST.get('usingRTE') == "true":
+		message = '<html><head></head>' + message + '</html>'
 
-    if subject and message and mailfrom and mailto:
-        try:
-            send_mail(subject, message, mailfrom, [mailto], auth_user=request.user, auth_password=request.user.get_profile().smtp_servers.all()[0].passwd)
-            # FIXME send plain text part as well as html part
-            #msg = EmailMultiAlternatives(subject, message, mailfrom, [mailto])
-            #if request.POST.get('usingRTE') == "true":
-                #msg.content_subtype = "html"
-            #msg.send(auth_user=request.user, auth_password=request.user.get_profile().smtp_servers.all()[0].passwd)
-        except BadHeaderError:
-            return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid Header Found'}))
-        except SMTPAuthenticationError:
-            return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid SMTP server settings'}))
-        return HttpResponse(simplejson.dumps({'status':'SUCCESS', 'message': 'Mail sent succesfully'})) # we can use short responses since we will only be submitting via ajax
-    else:
-        return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Fill in all fields'+subject+message+mailfrom+mailto}))
+	if subject and message and mailfrom and mailto:
+		try:
+			send_mail(subject, message, mailfrom, [mailto], auth_user=request.user, auth_password=request.user.get_profile().smtp_servers.all()[0].passwd)
+			# FIXME send plain text part as well as html part
+			#msg = EmailMultiAlternatives(subject, message, mailfrom, [mailto])
+			#if request.POST.get('usingRTE') == "true":
+				#msg.content_subtype = "html"
+			#msg.send(auth_user=request.user, auth_password=request.user.get_profile().smtp_servers.all()[0].passwd)
+		except BadHeaderError:
+			return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid Header Found'}))
+		except SMTPAuthenticationError:
+			return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid SMTP server settings'}))
+		return HttpResponse(simplejson.dumps({'status':'SUCCESS', 'message': 'Mail sent succesfully'})) # we can use short responses since we will only be submitting via ajax
+	else:
+		return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Fill in all fields'+subject+message+mailfrom+mailto}))
 
 @login_required
 def config(request, action):
-    from django.utils import simplejson
+    #from django.utils import simplejson
     from person.models import UserProfile, ImapServer, SmtpServer
 
     if action == "newconfig" or action == "newIMAPform":
@@ -319,96 +217,25 @@ def config(request, action):
 
 @login_required
 def json(request, action):
-	from django.utils import simplejson
-	from imapclient import IMAPClient
+	uprof = request.user.get_profile()
 
 	if action == "folderlist":
-		try:
-			which = int(request.GET.get('server'))
-			my_imap_server = request.user.get_profile().imap_servers.all()[which]
-		except (IndexError, TypeError):
-			return HttpResponse(simplejson.dumps({'error':'Invalid server'}))
-		server = IMAPClient(my_imap_server.address, port=my_imap_server.port, use_uid=True, ssl=my_imap_server.ssl)
-		server.login(my_imap_server.username, my_imap_server.passwd)
-		dirs = server.list_folders()
-		return HttpResponse(simplejson.dumps(dirs))
+		server = int(request.GET['server'])
+		srvr = uprof.imap_servers.all()[server]
+		imap = imaplib2.IMAP4(srvr.address, srvr.username, srvr.passwd)
+		# FIXME delimiter shouldn't be fixed
+		return HttpResponse(simplejson.dumps({'delimiter':'.', 'folders':imap.list_folders()}))
 
 	elif action == "serverlist":
 		srvlist = []
 		i = 0
-		for i, server in enumerate(request.user.get_profile().imap_servers.all()):
+		for i, server in enumerate(uprof.imap_servers.all()):
 			srvlist.append([i, server.address])
 		return HttpResponse(simplejson.dumps({'servers':srvlist}))
 
-	elif action == "msglist":
-		import dateutil.parser as parser
-
-		try:
-			start = request.GET['start']
-			end = request.GET['end']
-		except:
-			start = "1"
-			end = "20"
-		msgs = []
-
-		# get the server
-		try:
-			which = int(request.GET.get('server'))
-			my_imap_server = request.user.get_profile().imap_servers.all()[which]
-		except (IndexError, TypeError):
-			return HttpResponse(simplejson.dumps({'error':'Invalid server'}))
-
-		# get the folder
-		folder = request.GET.get('folder')
-
-		server = IMAPClient(my_imap_server.address, port=my_imap_server.port, use_uid=True, ssl=my_imap_server.ssl)
-		server.login(my_imap_server.username, my_imap_server.passwd)
-		nummsgs = server.select_folder(folder)
-
-		print 'end: %s nummsgs: %s' % (end, nummsgs)
-		if int(end) > nummsgs:
-			end = str(nummsgs)
-		print 'end: %s nummsgs: %s' % (end, nummsgs)
-
-		mrange = start+":"+end
-		fmsgs = server.fetch(mrange.encode('ascii'), ["UID", "RFC822.SIZE", "FLAGS", "BODY[HEADER.FIELDS (SUBJECT DATE FROM)]"])
-
-		for msg in fmsgs:
-			# need to parse out the parts, can't just send them straight to the browser
-			#uid = fmsgs[msg]['UID']
-			size = fmsgs[msg]['RFC822.SIZE']
-			header = fmsgs[msg]['BODY[HEADER.FIELDS (SUBJECT DATE FROM)]']
-			#subject = re.search('subject:', header, re.I)
-			try:
-				subject = re.search(r'subject:(.*?)\r\n', header, re.I).group(1).strip().strip('"')
-			except:
-				subject = ''
-			mfrom = re.search(r'from:(.*?)\r\n', header, re.I)
-			try:
-				fromemail = mfrom.group(1).split('<')[1].strip().strip('"').strip('>')
-				fromtext = mfrom.group(1).split('<')[0].strip().strip('"').replace('\\', '')
-			except:
-				fromemail = mfrom.group(1).strip().strip('"').replace('\\', '')
-				fromtext = mfrom.group(1).strip().strip('"').replace('\\', '')+' '
-			fromemail = re.search(r'from: (<([^\]]+)|(.*))\r\n', header, re.I).group(1)
-			mdate = re.search(r'date:(.*?)\r\n', header, re.I)
-			#dateutilo = dateutil
-			dateo = parser.parse(mdate.group(1), ignoretz=True)
-			datetext = dateo.isoformat()
-			flags = fmsgs[msg]['FLAGS']
-
-			# reset the msgs flags to what they were before we fetch'ed the headers
-			server.set_flags(msg, flags)
-
-			msgs.append({'uid':msg, 'size': size, 'subject': subject, 'fromtext':fromtext, 'fromemail':fromemail, 'date':datetext, 'flags':flags, 'folder':folder, 'server':which})
-
-		return HttpResponse(simplejson.dumps({'name': folder, 'count': nummsgs, 'start':start, 'end':end, 'msgs': msgs, 'records':int(end)-int(start)}))
-
-
-
 @login_required
 def action(request, action):
-	from django.utils import simplejson
+	#from django.utils import simplejson
 	import imapclient as imapclient
 
 	# a few vars that get used in (almost) every action
@@ -425,28 +252,44 @@ def action(request, action):
 	server.login(my_imap_server.username, my_imap_server.passwd)
 	nummsgs = server.select_folder(folder)
 
-	returnstatus = "SUCCESS"
+	rstat = "SUCCESS"
 	if action == 'markread':
 		try:
 			uid = request.GET.get('uid')
-			server.add_flags([uid], [imapclient.SEEN])
-			returnstatus = 'SUCCESS'
+			rtext = server.add_flags([uid], [imapclient.SEEN])
+			rstat = 'SUCCESS'
 		except:
-			returnstatus = 'FAILURE'
+			rstat = 'FAILURE'
 	elif action == 'markunread':
 		try:
 			uid = request.GET.get('uid')
-			server.remove_flags([uid], [imapclient.SEEN])
-			returnstatus = 'SUCCESS'
+			rtext = server.remove_flags([uid], [imapclient.SEEN])
+			rstat = 'SUCCESS'
 		except:
-			returnstatus = 'FAILURE'
+			rstat = 'FAILURE'
 	elif action == 'markimportant':
 		try:
 			uid = request.GET.get('uid')
-			server.add_flags([uid], [imapclient.FLAGGED])
-			returnstatus = 'SUCCESS'
+			rtext = server.add_flags([uid], [imapclient.FLAGGED])
+			rstat = 'SUCCESS'
 		except:
-			returnstatus = 'FAILURE'
+			rstat = 'FAILURE'
 
 
-	return HttpResponse(simplejson.dumps({'status':returnstatus}))
+	return HttpResponse(simplejson.dumps({'status':rstat, 'msg':rtext}))
+
+def escape(s, quote=None):
+	'''replace special characters "&", "<" and ">" to HTML-safe sequences.
+	If the optional flag quote is true, the quotation mark character (")
+	is also translated.
+
+	copied from python's cgi module and slightly
+	massaged.'''
+	if s is None:
+		return ""
+	s = s.replace("&", "&amp;") # Must be done first!
+	s = s.replace("<", "&lt;")
+	s = s.replace(">", "&gt;")
+	if quote:
+		s = s.replace('"', "&quot;")
+	return s
