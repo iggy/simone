@@ -1,6 +1,6 @@
 from django.conf.urls.defaults import *
 
-urlpatterns = patterns('mail.views',
+urlpatterns = patterns('django_webmail.mail.views',
     (r'^$', 'index'),
     #(r'main/$', 'main'),
     #(r'msglist/(?P<folder_name>.*?)/$', 'msglist'),

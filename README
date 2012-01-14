@@ -1,6 +1,9 @@
 What works:
 reading email.... that's about it for now
 
+temporary install notes:
+have to rename the directory to django_webmail since python doesn't like hyphens in module names... whoops
+
 
 Requirements:
 django (1.3ish)

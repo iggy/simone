@@ -56,7 +56,7 @@ def UserProfileExtraWork(sender, instance, signal, *args, **kwargs):
 	"""
 	Inserts a blank imap server entry (if necessary) and associates it with the user
 	"""
-	from person.models import UserProfile
+	from django_webmail.person.models import UserProfile
 	#user = instance
 	##user.create_profile()
 	##user.get_profile().about = 'test'

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from person.models import UserProfile, ImapServer, SmtpServer, Signature
+from django_webmail.person.models import UserProfile, ImapServer, SmtpServer, Signature
 
 admin.site.register(UserProfile)
 admin.site.register(ImapServer)
