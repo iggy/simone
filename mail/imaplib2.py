@@ -45,6 +45,7 @@ class IMAP4Folder:
 		self.name = name
 
 	def search(self):
+		# TODO
 		"""Search the folder"""
 		pass
 
@@ -105,7 +106,7 @@ class IMAP4Folder:
 			saveflags = self.getflags('%s:%s' % (start, stop))
 
 			ret = self.parent.docommand('FETCH %s:%s (UID FLAGS INTERNALDATE RFC822)' % (start, stop))
-			#self.debug('fetch command ret = ',  ret)
+			self.debug('fetch command ret = ',  ret)
 
 			# the returned string looks something like this:
 			# '* 1 FETCH (UID 1 FLAGS (\\Seen) INTERNALDATE "29-Jan-2007 10:25:56 -0600" RFC822 {1493}\r\nDelivered-To: dn.......<rest of the body>.....)\r\n'
@@ -184,6 +185,7 @@ class IMAP4:
 		self.port = port
 		self.index = 0
 
+		self.foldersep = "."
 		self.foldercache = {}
 
 		self.ident = 000001 # if you change this, you have to change the string slice indices in docommand
@@ -236,8 +238,13 @@ class IMAP4:
 			#self.sock.sendall('003 LIST "" *\r\n')
 			resp = self.docommand('LIST "" *')
 			self.debug('resp =',  resp )
-			self.folderlist = re.findall(r'LIST \(.*\) "." "([^"]+)"', resp)
+			self.folderlist = re.findall(r'LIST \(.*\) "([^"]+)" "([^"]+)"', resp)
 			#self.folderlist = re.findall(r'LIST .*', resp,  re.M)
+			self.foldersep = self.folderlist[0][0]
+			self.debug(self.foldersep)
+			self.folderlist.sort()
+			self.folderlist = [y for x, y in self.folderlist]
+			#sorted = self.folderlist
 			self.debug(self.folderlist)
 
 			return self.folderlist

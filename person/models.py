@@ -43,9 +43,9 @@ class UserProfile(models.Model):
     about = models.TextField(blank=True)
     editor = models.CharField(max_length=1, choices = (('1', 'Text'), ('2', 'Rich Text')), default='1')
 
-    signatures = models.ManyToManyField(Signature)
-    imap_servers = models.ManyToManyField(ImapServer)
-    smtp_servers = models.ManyToManyField(SmtpServer)
+    signatures = models.ManyToManyField(Signature,blank=True,null=True)
+    imap_servers = models.ManyToManyField(ImapServer,blank=True,null=True)
+    smtp_servers = models.ManyToManyField(SmtpServer,blank=True,null=True)
     
     def __unicode__(self):
         return '%s\'s UserProfile' % (self.user,)

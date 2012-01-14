@@ -81,7 +81,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django-webmail.mail',
     'django-webmail.person',
-    'django_extensions',
+    #'django_extensions',
 )
 
 AUTH_PROFILE_MODULE = 'person.UserProfile'

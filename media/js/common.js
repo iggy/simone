@@ -31,11 +31,35 @@ $(document).ready(function() {
 			// change the input we use to track the folder
 			$('#msglist .foldersel').val($(this).text());
 			// reset some of the nav variables to defaults
+			// FIXME more thorough
 			$('#msglist .pagesel').val('1');
 			// now let the msg list know we changed some stuff
 			$('#msglist .foldersel').change();
 		});
 	});
+	
+	$.jstree._themes = "/site_media/js/";
+	
+	$('#foldertree2').jstree({
+		'plugins': ['core', 'themes', 'json', 'ui'],
+		'json': {
+			'ajax': {
+				'url': 'json/folderlist2/?server=0',
+				'data': function(n) {
+					return {
+						"operation": "subfolders",
+						"id": n.attr ? n.attr('id') : 1
+					};
+				},
+			}
+		},
+		'themes': {
+			'theme': 'classic',
+			'url': '/site_media/js/themes/classic/style.css'
+		}
+	});
+	console.log('foldertree2 should be done now');
+	
 
 	// hide the spinner
 	$('#spinner').hide()
@@ -133,13 +157,13 @@ $(document).ready(function() {
 				$tbl.find('tr:not(:first)').remove();
 				for(var i = 0 ; i < j['msglist'].length ; i++) {
 					msg = j['msglist'][i]
-					console.log(msg);
+					//console.log(msg);
 					var rclass = 'odd';
 					if(i % 2 == 0)
 						rclass = 'even';
 					// handle flags
 					fclass = ''
-					console.log(msg['flags'].join());
+					//console.log(msg['flags'].join());
 					if(msg['flags'].join().search("\\Seen") != -1)
 						rclass += ' msgseen';
 					else

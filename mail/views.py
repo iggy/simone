@@ -1,5 +1,5 @@
 # Create your views here.
-import imaplib, re, email
+import email
 from pprint import pprint
 
 from django.shortcuts import render_to_response, HttpResponse
@@ -9,8 +9,26 @@ from django.contrib.auth.models import User
 from django import forms
 from django.http import HttpResponseRedirect
 
-from mail import imaplib2
-from mail.dateutil import parser
+def debug(*args):
+	print ">>>>>>"
+	for d in args:
+		pprint(d)
+	print "<<<<<<"
+
+def f(p,t,c):
+ s=p.split('.');a=s[0];b=s[1:]
+ if b:
+  if a not in c:c[a]={}
+  f('.'.join(b),t,c[a])
+ else:c[a]=t
+#menu={}
+#for i in items:f(i,i,menu)
+
+
+try:
+	import imapclient
+except:
+	print "imapclient module not available, please install it (pip install imapclient)"
 
 try:
 	import simplejson
@@ -25,7 +43,10 @@ except:
 @login_required
 def index(request):
 	# if they haven't filled in their options, we won't have much luck connecting to their mail server
-	if request.user.get_profile().imap_servers.all()[0].username == None:
+	try:
+		if request.user.get_profile().imap_servers.all()[0].username == None:
+			pass
+	except:
 		return HttpResponseRedirect('config/newconfig/')
 
 	folder = "INBOX"
@@ -34,6 +55,7 @@ def index(request):
 
 	return render_to_response('mail/main.html', locals())
 
+# FIXME handle sorting
 @login_required
 def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
 	server = int(server)
@@ -43,44 +65,52 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
 	start = int(page) * int(perpage) - int(perpage) + 1
 	stop =  int(page) * int(perpage)
 
-	imap = imaplib2.IMAP4(srvr.address, srvr.username, srvr.passwd)
-
-	if stop > len(imap[folder]):
-		stop = len(imap[folder])
+	server = imapclient.IMAPClient(srvr.address, use_uid=True)
+	server.login(srvr.username, srvr.passwd)
+	nummsgs = server.select_folder(folder)
+	
+	if stop > nummsgs:
+		stop = nummsgs
+	
+	server.select_folder(folder)
 
 	# we just need the headers for the msglist
 	msglst = []
-	for m in imap[folder][start:stop]:
-		e = m['email']
+	
+	fetched = server.fetch('%d:%d' % (start, stop), ['UID', 'FLAGS', 'INTERNALDATE', 'BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)]', 'RFC822.SIZE'])
+	for uid in fetched:
+		m = fetched[uid]
+		mfrom, msubject = m['BODY[HEADER.FIELDS (FROM SUBJECT)]'].split('\r\n', 1)
+		mfrom = mfrom.split(': ', 1)[1].rstrip('\r\n')
+		msubject = msubject.split(': ', 1)[1].rstrip('\r\n')
 		msglst.append({
-			'uid': m['uid'],
-			'flags': m['flags'],
-			'subject': escape(e.get('subject',  str(''))),
-			'from': escape(e.get('from'),  u''),
-			'date': parser.parse(m['date']).strftime('%b %d %Y - %H:%M'),
-			'size': m['size'],
+			'uid': uid,
+			'flags': m['FLAGS'],
+			'subject': escape(msubject, u''),
+			'from': escape(mfrom,  u''),
+			'date': m['INTERNALDATE'].strftime('%b %d %Y - %H:%M'),
+			'size': m['RFC822.SIZE'],
 		})
+	
+	server.logout()
 
-	return HttpResponse(simplejson.dumps({'totalmsgs':len(imap[folder]), 'start': start, 'stop': stop, 'msglist': msglst}))
+	return HttpResponse(simplejson.dumps({'totalmsgs':len(nummsgs), 'start': start, 'stop': stop, 'msglist': msglst}))
 
 @login_required
 def viewmsg(request, server, folder, uid):
-	# TODO convert to imapclient.py
 	# these are here so they get passed through to the template
 	folder = folder
-	uid = uid
+	uid = int(uid)
 	server = int(server)
+	
 	isrv = request.user.get_profile().imap_servers.all()[server]
-	imap = imaplib.IMAP4_SSL(isrv.address)
-	imap.login(isrv.username, isrv.passwd)
+	i = imapclient.IMAPClient(isrv.address, use_uid=True)
+	i.login(isrv.username, isrv.passwd)
 
-	countup = imap.select(folder, True)
+	i.select_folder(folder)
 
-	mailbody = imap.uid("FETCH", uid, "(BODY[])")
-	mailmsg = email.message_from_string(mailbody[1][0][1])
-	mail = re.search(r'(.*)^$(.*)', mailbody[1][0][1], re.M)
-
-	header = mail.group(1)
+	mailbody = i.fetch([uid], ['BODY[]'])
+	mailmsg = email.message_from_string(mailbody[uid]['BODY[]'])
 
 	if not mailmsg.is_multipart():
 		body = mailmsg.get_payload()
@@ -88,8 +118,9 @@ def viewmsg(request, server, folder, uid):
 		for part in mailmsg.walk():
 			if(part.get_content_type() == mailmsg.get_default_type()):
 				body = part.get_payload().decode('quopri_codec')
-	imap.logout()
 
+	i.logout()
+	
 	if request.GET.get('json') == "true":
 		from django.utils import simplejson
 		return HttpResponse(simplejson.dumps({'headers':mailmsg.items(), 'body':body}))
@@ -98,9 +129,9 @@ def viewmsg(request, server, folder, uid):
 
 @login_required
 def newmail(request):
-    # TODO need to figure out what email addresses they are allowed to use as from:
-    # TODO also change the whole sending email to use newforms
-    return render_to_response('mail/newmail.html', locals())
+	# TODO need to figure out what email addresses they are allowed to use as from:
+	# TODO also change the whole sending email to use newforms
+	return render_to_response('mail/newmail.html', locals())
 
 @login_required
 def send(request):
@@ -135,20 +166,15 @@ def send(request):
 
 @login_required
 def config(request, action):
-    #from django.utils import simplejson
-    from person.models import UserProfile, ImapServer, SmtpServer
+    from mail.forms import ImapServerForm, SmtpServerForm
 
     if action == "newconfig" or action == "newIMAPform":
         # we already know they don't have anything in the database, just show them a blank form
-        #UserForm = forms.form_for_model(UserProfile)
-        ImapForm = forms.form_for_model(ImapServer)
-        #uform = UserForm()
-        iform = ImapForm(initial={'address':'localhost','port':'143'})
+        iform = ImapServerForm(initial={'address':'localhost','port':'143'})
         srvtype = "IMAP"
 
     elif action == "newSMTPform":
-        SmtpForm = forms.form_for_model(SmtpServer)
-        sform = SmtpForm(initial={'address':'localhost','port':'25'})
+        sform = SmtpServerForm(initial={'address':'localhost','port':'25'})
         srvtype = "SMTP"
 
     elif action == "addnew":
@@ -157,8 +183,7 @@ def config(request, action):
                 request.user.get_profile().imap_servers.remove(srv)
 
         # we are adding some new configuration
-        ImapForm = forms.form_for_model(ImapServer)
-        iform = ImapForm(request.POST)
+        iform = ImapServerForm(request.POST)
         i = request.user.get_profile().imap_servers.create(address = request.POST.get('address'),
                         port = request.POST.get('port'),
                         username = request.POST.get('username'),
@@ -172,8 +197,7 @@ def config(request, action):
         return HttpResponseRedirect('/mail/')
 
     elif action == "addnewsmtp":
-        SmtpForm = forms.form_for_model(SmtpServer)
-        sform = SmtpForm(request.POST)
+        sform = SmtpServerForm(request.POST)
         s = request.user.get_profile().smtp_servers.create(address = request.POST.get('address'),
                         port = request.POST.get('port'),
                         username = request.POST.get('username'),
@@ -189,19 +213,11 @@ def config(request, action):
         if saction == "REMOVE":
             srv = request.user.get_profile().imap_servers.remove(request.user.get_profile().imap_servers.all()[whichsrv])
 
-        #s = request.user.get_profile().imap_servers.get() FIXME: not finished here, but I need to go out and drink
         return HttpResponse(simplejson.dumps({'status':'OK'}))
     else:
         # default action / index
         imapsrvs = request.user.get_profile().imap_servers.all()
         # the code below uses newforms, but these forms are so short it turned out working better to just hand code them
-        #iforms = []
-        #for i in imapsrvs:
-            #IForm = forms.form_for_instance(i, formfield_callback=form_callback)
-            ##IForm.base_fields['passwd'].widget = forms.PasswordInput()
-            #f = IForm()
-            #iforms.append(f)
-
 
     return render_to_response('mail/config/'+action+'.html', locals())
 
@@ -222,9 +238,111 @@ def json(request, action):
 	if action == "folderlist":
 		server = int(request.GET['server'])
 		srvr = uprof.imap_servers.all()[server]
-		imap = imaplib2.IMAP4(srvr.address, srvr.username, srvr.passwd)
-		# FIXME delimiter shouldn't be fixed
-		return HttpResponse(simplejson.dumps({'delimiter':'.', 'folders':imap.list_folders()}))
+
+		imap = imapclient.IMAPClient(srvr.address, use_uid=True)
+		imap.login(srvr.username, srvr.passwd)
+		flist = imap.list_folders()
+		imap.logout()
+		
+		delimiter = flist[0][1]
+		
+		# FIXME use list of subscribed folders
+		return HttpResponse(simplejson.dumps({
+			'delimiter': flist[0][1],
+			'folders': [z for x,y,z in flist]
+		}))
+		
+	if action == "folderlist2":
+		server = int(request.GET['server'])
+		srvr = uprof.imap_servers.all()[server]
+
+		imap = imapclient.IMAPClient(srvr.address, use_uid=True)
+		imap.login(srvr.username, srvr.passwd)
+		flist = imap.list_folders()
+		imap.logout()
+		
+		debug(flist)
+		
+		done = []
+		jstreefolders = []
+		
+		#def old_f(p,t,c):
+			#if '.' not in p:
+				#c[p]=t
+				#return
+			#a,b=p.split('.', 1)
+			#if b:
+				#if a not in c:c[a]={}
+				#f('.'.join(b),t,c[a])
+			#else:c[a]=t
+			
+		#def rec(path, fullpath, fdict, sep):
+			#segs = path.split(sep)
+			#a = segs[0]
+			#b = segs[1:]
+			#if not b:
+				#try:
+					#fdict[a] = fullpath
+				#except:
+					#fdict = {}
+					#fdict[a] = fullpath
+			#else:
+				##debug("fdict[a] = ", fdict[a], fdict, a)
+				##if fdict[a] == a:
+					##fdict[a] = {}
+				#if a not in fdict:
+					#fdict[a] = {}
+				#debug(jstreefolders)
+				#rec(sep.join(b), fullpath, fdict[a], sep)
+				
+		sortedlist = sorted(flist)
+		debug(sortedlist)
+		for flags, delim, fld in flist:
+			debug(flags, delim, fld)
+			#f(fld,fld,jstreefolders)
+			#rec(fld, fld, jstreefolders, delim)
+			
+			
+			if fld.split(delim)[0] in done:
+				continue
+			done.append(fld.split(delim)[0])
+			
+			#if delim not in fld:
+			if '\\HasNoChildren' in flags:
+				jstreefolders.append({
+					'title': fld.split(delim)[0],
+					'data': fld.split(delim)[0],
+					#'metadata': {'id':fld},
+					'attr': {'rel':'folder'},
+				})
+			else:
+				jstreefolders.append({
+					'title': fld.split(delim)[0],
+					'data': fld.split(delim)[0],
+					'state': 'closed',
+					'attr': {'rel':'folder'},
+					#'metadata': {'id': fld},
+				})
+		
+		
+		jstreefolders.append({
+			'title': 'Test1',
+			'state': 'closed',
+			'attr': {'rel':'folder'},
+			'children': [
+				'Test2', 
+				'Test3',
+				{'title': 'Test4','state':'closed','attr': {'rel':'folder'},},
+				{'title': 'Test5','state':'closed','attr': {'rel':'folder'},'children':[]}
+			]
+		})
+		
+		resp = {'data': jstreefolders}
+		
+		debug(resp)
+		
+		# FIXME use list of subscribed folders
+		return HttpResponse(simplejson.dumps(jstreefolders))
 
 	elif action == "serverlist":
 		srvlist = []
@@ -235,9 +353,6 @@ def json(request, action):
 
 @login_required
 def action(request, action):
-	#from django.utils import simplejson
-	import imapclient as imapclient
-
 	# a few vars that get used in (almost) every action
 	server = int(request.GET.get('server'))
 	folder = request.GET.get('folder')
@@ -257,21 +372,18 @@ def action(request, action):
 		try:
 			uid = request.GET.get('uid')
 			rtext = server.add_flags([uid], [imapclient.SEEN])
-			rstat = 'SUCCESS'
 		except:
 			rstat = 'FAILURE'
 	elif action == 'markunread':
 		try:
 			uid = request.GET.get('uid')
 			rtext = server.remove_flags([uid], [imapclient.SEEN])
-			rstat = 'SUCCESS'
 		except:
 			rstat = 'FAILURE'
 	elif action == 'markimportant':
 		try:
 			uid = request.GET.get('uid')
 			rtext = server.add_flags([uid], [imapclient.FLAGGED])
-			rstat = 'SUCCESS'
 		except:
 			rstat = 'FAILURE'
 
