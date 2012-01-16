@@ -48,16 +48,16 @@ USE_I18N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = './media/'
+#MEDIA_ROOT = './media/'
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
-MEDIA_URL = '/media/'
+#MEDIA_URL = '/media/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/admin_media/'
+#ADMIN_MEDIA_PREFIX = '/admin_media/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '&5c4gyn8a!@*kpd#%36his9py!a6(bw)s-o(_!y%8+b0g9+cqk'
@@ -72,7 +72,9 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+	'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+	#'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.doc.XViewMiddleware',
 )
 
@@ -85,12 +87,16 @@ TEMPLATE_DIRS = (
     '/var/www/django_webmail/templates/',
 )
 
+#TEMPLATE_CONTEXT_PROCESSORS = (
+#	'django.contrib.messages.context_processors.messages'
+#)
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-	'django.contrib.messages',
+	#'django.contrib.messages',
 	'django.contrib.staticfiles',
     'django.contrib.admin',
     'django_webmail.mail',
@@ -106,6 +112,31 @@ STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/django_webmail/static/'
 
 AUTH_PROFILE_MODULE = 'person.UserProfile'
+
+# LOGGING = {
+    # 'version': 1,
+    # 'disable_existing_loggers': False,
+    # 'filters': {
+        # 'require_debug_false': {
+            # '()': 'django.utils.log.CallbackFilter',
+            # 'callback': lambda r: not DEBUG
+        # }
+    # },
+    # 'handlers': {
+        # 'mail_admins': {
+            # 'level': 'ERROR',
+            # 'filters': ['require_debug_false'],
+            # 'class': 'django.utils.log.AdminEmailHandler'
+        # }
+    # },
+    # 'loggers': {
+        # 'django.request': {
+            # 'handlers': ['mail_admins'],
+            # 'level': 'ERROR',
+            # 'propagate': True,
+        # },
+    # }
+# }
 
 try:
     from local_settings import *

@@ -133,6 +133,7 @@ $(document).ready(function() {
 			$foldersel.val() + '/' + // folder
 			$pagesel.val() + '/' + // page
 			$perpagesel.val() + '/' + // msgs per page
+			'date/'+
 			$sortordersel.val().charAt(0) + '/' + // sort order
 			'/'; // search terms
 		};
@@ -148,7 +149,9 @@ $(document).ready(function() {
 				console.log(j['totalmsgs'], $perpagesel.val(), Math.ceil(j['totalmsgs'] / $perpagesel.val()));
 				for(var i = 1 ; i <= Math.max(Math.ceil(j['totalmsgs'] / $perpagesel.val()), 1) ; i++) {
 					var selht = '';
-					if(i == Math.ceil(j['stop']/$perpagesel.val()))
+					if($sortordersel.val().charAt(0) == "A" && i == Math.ceil(j['stop']/$perpagesel.val()))
+						selht = ' selected="selected"';
+					if($sortordersel.val().charAt(0) == "D" && i == Math.floor(j['totalmsgs']/$perpagesel.val() - j['stop']/$perpagesel.val()) + 1)
 						selht = ' selected="selected"';
 					$pagesel.append('<option'+selht+'>' + i + '</option>');
 				}
@@ -179,6 +182,11 @@ $(document).ready(function() {
 //						if(msg['flags'][k] == "\\Flagged")
 //							fclass += ' msgimport';
 //					}
+
+					// TODO finish pulling out the <*> and stuffing it into the alt tag maybe
+					r = new RegExp("&lt;.*&gt;")
+					console.log("regex5", r.exec(msg['from']))
+
 					$tbl.append('<tr class="msg ' + rclass + '" id="msg-' + msg['uid'] + '"> \
 						<td class="subject' + fclass + '">' + msg['subject'] + '</td> \
 						<td>' + msg['from'] + '</td> \

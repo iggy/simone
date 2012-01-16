@@ -30,10 +30,12 @@ try:
 except:
 	print "imapclient module not available, please install it (pip install imapclient)"
 
-try:
-	import simplejson
-except:
-	from django.utils import simplejson
+#try:
+#	import simplejson
+#except:
+#	from django.utils import simplejson
+
+import json as simplejson
 
 # TODO leaving index as is for a little bit more development
 # index/login page
@@ -58,19 +60,27 @@ def index(request):
 # FIXME handle sorting
 @login_required
 def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
+	debug(server, folder, page, perpage, sortc, sortdir, search)
 	server = int(server)
 	srvr = request.user.get_profile().imap_servers.all()[server]
-	pprint(srvr)
+	#pprint(srvr)
 
 	start = int(page) * int(perpage) - int(perpage) + 1
 	stop =  int(page) * int(perpage)
 
-	server = imapclient.IMAPClient(srvr.address, use_uid=True)
+	server = imapclient.IMAPClient(srvr.address, use_uid=False)
 	server.login(srvr.username, srvr.passwd)
-	nummsgs = server.select_folder(folder)
+	folder_info = server.select_folder(folder)
+	nummsgs = folder_info['EXISTS']
 	
 	if stop > nummsgs:
 		stop = nummsgs
+	
+	debug(start, stop, sortdir)
+	if sortdir == u'D':
+		start = nummsgs - int(page) * int(perpage)
+		stop = nummsgs - int(int(page) - 1) * int(perpage)
+	debug(start, stop)
 	
 	server.select_folder(folder)
 
@@ -78,23 +88,28 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
 	msglst = []
 	
 	fetched = server.fetch('%d:%d' % (start, stop), ['UID', 'FLAGS', 'INTERNALDATE', 'BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)]', 'RFC822.SIZE'])
+	#debug("fetched = ", fetched)
+	
+		
+	
 	for uid in fetched:
 		m = fetched[uid]
 		mfrom, msubject = m['BODY[HEADER.FIELDS (FROM SUBJECT)]'].split('\r\n', 1)
 		mfrom = mfrom.split(': ', 1)[1].rstrip('\r\n')
 		msubject = msubject.split(': ', 1)[1].rstrip('\r\n')
+		msg = email.message_from_string(m['BODY[HEADER.FIELDS (FROM SUBJECT)]'])
 		msglst.append({
 			'uid': uid,
 			'flags': m['FLAGS'],
-			'subject': escape(msubject, u''),
-			'from': escape(mfrom,  u''),
+			'subject': escape(msg['subject']),#escape(msubject, u''),
+			'from': escape(msg['from']),#escape(mfrom,  u''),
 			'date': m['INTERNALDATE'].strftime('%b %d %Y - %H:%M'),
 			'size': m['RFC822.SIZE'],
 		})
 	
 	server.logout()
 
-	return HttpResponse(simplejson.dumps({'totalmsgs':len(nummsgs), 'start': start, 'stop': stop, 'msglist': msglst}))
+	return HttpResponse(simplejson.dumps({'totalmsgs': nummsgs, 'start': start, 'stop': stop, 'msglist': msglst}))
 
 @login_required
 def viewmsg(request, server, folder, uid):
@@ -104,7 +119,7 @@ def viewmsg(request, server, folder, uid):
 	server = int(server)
 	
 	isrv = request.user.get_profile().imap_servers.all()[server]
-	i = imapclient.IMAPClient(isrv.address, use_uid=True)
+	i = imapclient.IMAPClient(isrv.address, use_uid=False)
 	i.login(isrv.username, isrv.passwd)
 
 	i.select_folder(folder)
@@ -122,7 +137,6 @@ def viewmsg(request, server, folder, uid):
 	i.logout()
 	
 	if request.GET.get('json') == "true":
-		from django.utils import simplejson
 		return HttpResponse(simplejson.dumps({'headers':mailmsg.items(), 'body':body}))
 
 	return render_to_response('mail/viewmsg.html', locals())
@@ -231,6 +245,47 @@ def config(request, action):
         #formfield.widget = forms.PasswordInput()
     #return formfield
 
+class Tree:
+  def __init__(self, parent=None):
+    self.value = None
+    self.children = {}
+    self.parent = parent
+
+  def fromPath(self, path):
+    if path:
+      a = path.split('.', 1)
+      self.value = a[0]
+      parent_path = self.value
+      if self.parent:
+        parent_path = self.parent + '.' + parent_path
+      if len(a) > 1:
+        self.merge(Tree(parent_path).fromPath(a[1]))
+    return self
+
+  def merge(self, subtree):
+    if subtree.value in self.children:
+      for k,v in subtree.children.iteritems():
+        self.children[subtree.value].merge(v)
+    else:
+      self.children[subtree.value] = subtree
+
+  def myPath(self):
+    path = self.value
+    if self.parent:
+      path = self.parent + '.' + path
+    return path
+
+  def toDict(self):
+    r = {}
+    m = self.myPath()
+    if m:
+      r['_path'] = m
+    for k,v in self.children.iteritems():
+      r[k] = v.toDict()
+    return r
+
+
+
 @login_required
 def json(request, action):
 	uprof = request.user.get_profile()
@@ -239,7 +294,7 @@ def json(request, action):
 		server = int(request.GET['server'])
 		srvr = uprof.imap_servers.all()[server]
 
-		imap = imapclient.IMAPClient(srvr.address, use_uid=True)
+		imap = imapclient.IMAPClient(srvr.address, use_uid=False)
 		imap.login(srvr.username, srvr.passwd)
 		flist = imap.list_folders()
 		imap.logout()
@@ -256,7 +311,7 @@ def json(request, action):
 		server = int(request.GET['server'])
 		srvr = uprof.imap_servers.all()[server]
 
-		imap = imapclient.IMAPClient(srvr.address, use_uid=True)
+		imap = imapclient.IMAPClient(srvr.address, use_uid=False)
 		imap.login(srvr.username, srvr.passwd)
 		flist = imap.list_folders()
 		imap.logout()
@@ -296,9 +351,9 @@ def json(request, action):
 				#rec(sep.join(b), fullpath, fdict[a], sep)
 				
 		sortedlist = sorted(flist)
-		debug(sortedlist)
+		# debug(sortedlist)
 		for flags, delim, fld in flist:
-			debug(flags, delim, fld)
+			# debug(flags, delim, fld)
 			#f(fld,fld,jstreefolders)
 			#rec(fld, fld, jstreefolders, delim)
 			
@@ -339,7 +394,7 @@ def json(request, action):
 		
 		resp = {'data': jstreefolders}
 		
-		debug(resp)
+		# debug(resp)
 		
 		# FIXME use list of subscribed folders
 		return HttpResponse(simplejson.dumps(jstreefolders))
@@ -363,7 +418,7 @@ def action(request, action):
 	except (IndexError, TypeError):
 		return HttpResponse(simplejson.dumps({'error':'Invalid server'}))
 
-	server = imapclient.IMAPClient(my_imap_server.address, use_uid=True)
+	server = imapclient.IMAPClient(my_imap_server.address, use_uid=False)
 	server.login(my_imap_server.username, my_imap_server.passwd)
 	nummsgs = server.select_folder(folder)
 
@@ -397,8 +452,13 @@ def escape(s, quote=None):
 
 	copied from python's cgi module and slightly
 	massaged.'''
+	
+	from email.header import decode_header
+	
 	if s is None:
 		return ""
+	s, x = decode_header(s)[0]
+	s = s.decode(x or "ascii", "xmlcharrefreplace")
 	s = s.replace("&", "&amp;") # Must be done first!
 	s = s.replace("<", "&lt;")
 	s = s.replace(">", "&gt;")
