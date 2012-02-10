@@ -94,9 +94,9 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
 	
 	for uid in fetched:
 		m = fetched[uid]
-		mfrom, msubject = m['BODY[HEADER.FIELDS (FROM SUBJECT)]'].split('\r\n', 1)
-		mfrom = mfrom.split(': ', 1)[1].rstrip('\r\n')
-		msubject = msubject.split(': ', 1)[1].rstrip('\r\n')
+		#mfrom, msubject = m['BODY[HEADER.FIELDS (FROM SUBJECT)]'].split('\r\n', 1)
+		#mfrom = mfrom.split(': ', 1)[1].rstrip('\r\n')
+		#msubject = msubject.split(': ', 1)[1].rstrip('\r\n')
 		msg = email.message_from_string(m['BODY[HEADER.FIELDS (FROM SUBJECT)]'])
 		msglst.append({
 			'uid': uid,
@@ -126,6 +126,8 @@ def viewmsg(request, server, folder, uid):
 
 	mailbody = i.fetch([uid], ['BODY[]'])
 	mailmsg = email.message_from_string(mailbody[uid]['BODY[]'])
+	
+	debug(folder, uid, folder)
 
 	if not mailmsg.is_multipart():
 		body = mailmsg.get_payload()
@@ -135,6 +137,7 @@ def viewmsg(request, server, folder, uid):
 				body = part.get_payload().decode('quopri_codec')
 
 	i.logout()
+	debug(body)
 	
 	if request.GET.get('json') == "true":
 		return HttpResponse(simplejson.dumps({'headers':mailmsg.items(), 'body':body}))
@@ -388,16 +391,18 @@ def json(request, action):
 				'Test2', 
 				'Test3',
 				{'title': 'Test4','state':'closed','attr': {'rel':'folder'},},
-				{'title': 'Test5','state':'closed','attr': {'rel':'folder'},'children':[]}
+				{'title': 'Test5','state':'closed','attr': {'rel':'folder'},'children':None}
 			]
 		})
+		
+		test = {'INBOX':{'title': 'Test1','state': 'closed','attr': {'rel':'folder'},}}
 		
 		resp = {'data': jstreefolders}
 		
 		# debug(resp)
 		
 		# FIXME use list of subscribed folders
-		return HttpResponse(simplejson.dumps(jstreefolders))
+		return HttpResponse(simplejson.dumps(test))
 
 	elif action == "serverlist":
 		srvlist = []
@@ -458,7 +463,10 @@ def escape(s, quote=None):
 	if s is None:
 		return ""
 	s, x = decode_header(s)[0]
-	s = s.decode(x or "ascii", "xmlcharrefreplace")
+	try:
+		s = s.decode(x, "xmlcharrefreplace")
+	except:
+		pass
 	s = s.replace("&", "&amp;") # Must be done first!
 	s = s.replace("<", "&lt;")
 	s = s.replace(">", "&gt;")

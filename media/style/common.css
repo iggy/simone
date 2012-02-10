@@ -126,6 +126,6 @@ br {clear:left;}
 	font-size: 90%;
 }
 #foldertree li {
-	padding:5px;
-	border-bottom: 1px solid silver;
+	padding:1px;
+/* 	border-bottom: 1px solid silver; */
 }
