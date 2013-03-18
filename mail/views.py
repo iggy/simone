@@ -1,6 +1,7 @@
 # Create your views here.
 import email
 from pprint import pprint
+import string
 
 from django.shortcuts import render_to_response, HttpResponse
 from django.conf import settings
@@ -70,8 +71,11 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
 
 	server = imapclient.IMAPClient(srvr.address, use_uid=False)
 	server.login(srvr.username, srvr.passwd)
+	debug(server)
 	folder_info = server.select_folder(folder)
-	nummsgs = folder_info['EXISTS']
+	debug(folder_info)
+	#nummsgs = folder_info['EXISTS']
+	nummsgs = folder_info
 	
 	if stop > nummsgs:
 		stop = nummsgs
@@ -107,9 +111,10 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
 			'size': m['RFC822.SIZE'],
 		})
 	
-	server.logout()
+	#server.logout()
 
 	return HttpResponse(simplejson.dumps({'totalmsgs': nummsgs, 'start': start, 'stop': stop, 'msglist': msglst}))
+	#return HttpResponse(simplejson.dumps({'totalmsgs': len(msglst), 'start': start, 'stop': stop, 'msglist': msglst}))
 
 @login_required
 def viewmsg(request, server, folder, uid):
@@ -119,7 +124,8 @@ def viewmsg(request, server, folder, uid):
 	server = int(server)
 	
 	isrv = request.user.get_profile().imap_servers.all()[server]
-	i = imapclient.IMAPClient(isrv.address, use_uid=False)
+	#i = imapclient.IMAPClient(isrv.address, use_uid=False)
+	i = imapclient.IMAPClient(isrv.address)
 	i.login(isrv.username, isrv.passwd)
 
 	i.select_folder(folder)
@@ -136,7 +142,7 @@ def viewmsg(request, server, folder, uid):
 			if(part.get_content_type() == mailmsg.get_default_type()):
 				body = part.get_payload().decode('quopri_codec')
 
-	i.logout()
+	#i.logout()
 	debug(body)
 	
 	if request.GET.get('json') == "true":
@@ -299,15 +305,19 @@ def json(request, action):
 
 		imap = imapclient.IMAPClient(srvr.address, use_uid=False)
 		imap.login(srvr.username, srvr.passwd)
-		flist = imap.list_folders()
-		imap.logout()
+		#flist = imap.list_folders()
+		#imap.logout()
 		
-		delimiter = flist[0][1]
+		#delimiter = flist[0][1]
 		
 		# FIXME use list of subscribed folders
+		#return HttpResponse(simplejson.dumps({
+		#	'delimiter': flist[0][1],
+		#	'folders': [z for x,y,z in flist]
+		#}))
 		return HttpResponse(simplejson.dumps({
-			'delimiter': flist[0][1],
-			'folders': [z for x,y,z in flist]
+			'delimiter': imap.get_folder_delimiter(),
+			'folders': sorted(imap.list_folders())
 		}))
 		
 	if action == "folderlist2":
@@ -317,7 +327,7 @@ def json(request, action):
 		imap = imapclient.IMAPClient(srvr.address, use_uid=False)
 		imap.login(srvr.username, srvr.passwd)
 		flist = imap.list_folders()
-		imap.logout()
+		#imap.logout()
 		
 		debug(flist)
 		
