@@ -2,3 +2,5 @@
 *.pyo
 iggy.db*
 *.bak
+mail.db*
+awsadmin

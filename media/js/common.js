@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 Brian Jackson (iggy@theiggy.com)
+ * Copyright 2007-2013 Brian Jackson (iggy@theiggy.com)
  *
  * Anything not explicitly licensed some other way is released under the new BSD license
  * http://www.opensource.org/licenses/bsd-license.php
@@ -13,6 +13,10 @@ dw.viewmsg = {};
 
 $(document).ready(function() {
 	console.log('doc ready');
+	
+	// refresh msg list periodically
+	// TODO stuff a configurable time into the body or something
+	refid = window.setInterval(function(){console.log('msglist refresh'); $('#msglist .foldersel').change();}, 5*60*1000);
 
 	$('#msglist').srvDatatable();
 
@@ -94,7 +98,8 @@ $(document).ready(function() {
 			Msgs Per Page: \
 			<select class="perpagesel"> \
 			<option>10</option> \
-			<option selected="selected">20</option> \
+			<option>20</option> \
+			<option selected="selected">40</option> \
 			<option>50</option> \
 			</select> \
 			Sort: \
@@ -158,14 +163,15 @@ $(document).ready(function() {
 
 				// fill the msglist table
 				$tbl.find('tr:not(:first)').remove();
-				for(var i = 0 ; i < j['msglist'].length ; i++) {
-					msg = j['msglist'][i]
-					//console.log(msg);
+				console.log(j['msglist'].length);
+				for(var uid in j['msglist']) {
+					msg = j['msglist'][uid];
+					console.log('168', uid, msg);
 					var rclass = 'odd';
 					if(i % 2 == 0)
 						rclass = 'even';
 					// handle flags
-					fclass = ''
+					fclass = '';
 					//console.log(msg['flags'].join());
 					if(msg['flags'].join().search("\\Seen") != -1)
 						rclass += ' msgseen';
@@ -184,8 +190,8 @@ $(document).ready(function() {
 //					}
 
 					// TODO finish pulling out the <*> and stuffing it into the alt tag maybe
-					r = new RegExp("&lt;.*&gt;")
-					console.log("regex5", r.exec(msg['from']))
+					r = new RegExp("&lt;.*&gt;");
+					console.log("regex5", r.exec(msg['from']));
 
 					$tbl.append('<tr class="msg ' + rclass + '" id="msg-' + msg['uid'] + '"> \
 						<td class="subject' + fclass + '">' + msg['subject'] + '</td> \
@@ -198,8 +204,19 @@ $(document).ready(function() {
 				// msg listener
 				$('tr.msg').click(function(e) {
 					console.log(this, e, this.id.replace('msg-', ''), $(window).width(), $(window).height());
+
+					if(e.which==2) {
+						// open message in new tab if message was middle clicked
+						server = '0';
+						folder = $('#msglist .foldersel').val();
+						uid = this.id.replace('msg-', '');
+						window.open('viewmsg/' + server + '/' + folder + '/' + uid + '/', '_blank');
+						
+						return true;
+					}
+
 					// show a modal dialog with an email msg
-					server = '0'
+					server = '0';
 					folder = $('#msglist .foldersel').val();
 					uid = this.id.replace('msg-', '');
 					dlgw = $(window).width() - 30;

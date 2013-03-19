@@ -11,6 +11,7 @@ from django import forms
 from django.http import HttpResponseRedirect
 
 def debug(*args):
+	return
 	print ">>>>>>"
 	for d in args:
 		pprint(d)
@@ -69,13 +70,12 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
 	start = int(page) * int(perpage) - int(perpage) + 1
 	stop =  int(page) * int(perpage)
 
-	server = imapclient.IMAPClient(srvr.address, use_uid=False)
-	server.login(srvr.username, srvr.passwd)
-	debug(server)
-	folder_info = server.select_folder(folder)
+	s = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
+	s.login(srvr.username, srvr.passwd)
+	debug(s)
+	folder_info = s.select_folder(folder)
 	debug(folder_info)
-	#nummsgs = folder_info['EXISTS']
-	nummsgs = folder_info
+	nummsgs = folder_info['EXISTS']
 	
 	if stop > nummsgs:
 		stop = nummsgs
@@ -86,32 +86,31 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
 		stop = nummsgs - int(int(page) - 1) * int(perpage)
 	debug(start, stop)
 	
-	server.select_folder(folder)
+	s.select_folder(folder)
 
 	# we just need the headers for the msglist
-	msglst = []
+	msglst = {}
 	
-	fetched = server.fetch('%d:%d' % (start, stop), ['UID', 'FLAGS', 'INTERNALDATE', 'BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)]', 'RFC822.SIZE'])
-	#debug("fetched = ", fetched)
-	
-		
+	fetched = s.fetch('%d:%d' % (start, stop), ['UID', 'FLAGS', 'INTERNALDATE', 'BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)]', 'RFC822.SIZE'])
 	
 	for uid in fetched:
-		m = fetched[uid]
-		#mfrom, msubject = m['BODY[HEADER.FIELDS (FROM SUBJECT)]'].split('\r\n', 1)
-		#mfrom = mfrom.split(': ', 1)[1].rstrip('\r\n')
-		#msubject = msubject.split(': ', 1)[1].rstrip('\r\n')
-		msg = email.message_from_string(m['BODY[HEADER.FIELDS (FROM SUBJECT)]'])
-		msglst.append({
-			'uid': uid,
-			'flags': m['FLAGS'],
-			'subject': escape(msg['subject']),#escape(msubject, u''),
-			'from': escape(msg['from']),#escape(mfrom,  u''),
-			'date': m['INTERNALDATE'].strftime('%b %d %Y - %H:%M'),
-			'size': m['RFC822.SIZE'],
-		})
+		try:
+			m = fetched[uid]
+			msg = email.message_from_string(m['BODY[HEADER.FIELDS (FROM SUBJECT)]'])
+			msglst[uid] = {
+				'uid': uid,
+				'flags': m['FLAGS'],
+				'subject': escape(msg['subject']),#escape(msubject, u''),
+				'from': escape(msg['from']),#escape(mfrom,  u''),
+				'date': m['INTERNALDATE'].strftime('%b %d %Y - %H:%M'),
+				'size': m['RFC822.SIZE'],
+			}
+		except:
+			# FIXME just ignoring for now (safe, but perhaps not as correct as it could
+			# be), but we should likely retry or adjust the message list in the future
+			pass
 	
-	#server.logout()
+	#s.logout()
 
 	return HttpResponse(simplejson.dumps({'totalmsgs': nummsgs, 'start': start, 'stop': stop, 'msglist': msglst}))
 	#return HttpResponse(simplejson.dumps({'totalmsgs': len(msglst), 'start': start, 'stop': stop, 'msglist': msglst}))
@@ -124,8 +123,7 @@ def viewmsg(request, server, folder, uid):
 	server = int(server)
 	
 	isrv = request.user.get_profile().imap_servers.all()[server]
-	#i = imapclient.IMAPClient(isrv.address, use_uid=False)
-	i = imapclient.IMAPClient(isrv.address)
+	i = imapclient.IMAPClient(isrv.address, port=isrv.port, use_uid=False, ssl=isrv.ssl)
 	i.login(isrv.username, isrv.passwd)
 
 	i.select_folder(folder)
@@ -303,28 +301,24 @@ def json(request, action):
 		server = int(request.GET['server'])
 		srvr = uprof.imap_servers.all()[server]
 
-		imap = imapclient.IMAPClient(srvr.address, use_uid=False)
+		imap = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
 		imap.login(srvr.username, srvr.passwd)
-		#flist = imap.list_folders()
+		flist = imap.list_folders()
 		#imap.logout()
 		
 		#delimiter = flist[0][1]
 		
 		# FIXME use list of subscribed folders
-		#return HttpResponse(simplejson.dumps({
-		#	'delimiter': flist[0][1],
-		#	'folders': [z for x,y,z in flist]
-		#}))
 		return HttpResponse(simplejson.dumps({
-			'delimiter': imap.get_folder_delimiter(),
-			'folders': sorted(imap.list_folders())
+			'delimiter': flist[0][1],
+			'folders': sorted([z for x,y,z in flist], key=unicode.lower)
 		}))
 		
 	if action == "folderlist2":
 		server = int(request.GET['server'])
 		srvr = uprof.imap_servers.all()[server]
 
-		imap = imapclient.IMAPClient(srvr.address, use_uid=False)
+		imap = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
 		imap.login(srvr.username, srvr.passwd)
 		flist = imap.list_folders()
 		#imap.logout()
@@ -334,35 +328,6 @@ def json(request, action):
 		done = []
 		jstreefolders = []
 		
-		#def old_f(p,t,c):
-			#if '.' not in p:
-				#c[p]=t
-				#return
-			#a,b=p.split('.', 1)
-			#if b:
-				#if a not in c:c[a]={}
-				#f('.'.join(b),t,c[a])
-			#else:c[a]=t
-			
-		#def rec(path, fullpath, fdict, sep):
-			#segs = path.split(sep)
-			#a = segs[0]
-			#b = segs[1:]
-			#if not b:
-				#try:
-					#fdict[a] = fullpath
-				#except:
-					#fdict = {}
-					#fdict[a] = fullpath
-			#else:
-				##debug("fdict[a] = ", fdict[a], fdict, a)
-				##if fdict[a] == a:
-					##fdict[a] = {}
-				#if a not in fdict:
-					#fdict[a] = {}
-				#debug(jstreefolders)
-				#rec(sep.join(b), fullpath, fdict[a], sep)
-				
 		sortedlist = sorted(flist)
 		# debug(sortedlist)
 		for flags, delim, fld in flist:
@@ -433,7 +398,7 @@ def action(request, action):
 	except (IndexError, TypeError):
 		return HttpResponse(simplejson.dumps({'error':'Invalid server'}))
 
-	server = imapclient.IMAPClient(my_imap_server.address, use_uid=False)
+	server = imapclient.IMAPClient(my_imap_server.address, use_uid=False, ssl=my_imap_server.ssl)
 	server.login(my_imap_server.username, my_imap_server.passwd)
 	nummsgs = server.select_folder(folder)
 

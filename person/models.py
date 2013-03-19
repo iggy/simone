@@ -15,7 +15,7 @@ class Signature(models.Model):
 # FIXME also needs ssl checkbox/bool
 class ImapServer(models.Model):
     address = models.CharField(max_length=255,null=True)
-    port = models.CharField(max_length=5,default="143",null=True)
+    port = models.IntegerField(default=143,null=True)
     username = models.CharField(max_length=255,null=True)
     passwd = models.CharField(max_length=255,null=True)
     ssl = models.BooleanField(default=False)
@@ -29,7 +29,7 @@ class ImapServer(models.Model):
 
 class SmtpServer(models.Model):
     address = models.CharField(max_length=255,null=True)
-    port = models.CharField(max_length=5,default="143",null=True)
+    port = models.IntegerField(default=25,null=True)
     username = models.CharField(max_length=255,null=True)
     passwd = models.CharField("Password", max_length=255,null=True)
     def __unicode__(self):
