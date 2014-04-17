@@ -16,15 +16,15 @@
 <div id="page">
 
 <div id="leftbar">
-	<div id="leftbar_toolbar">
-		<a href="#"><img src="/site_media/images/mail-get.png" alt="Check For New Mail" title="Check For New Mail" /></a>
-		<a href="#" id="newmaillink"><img src="/site_media/images/mail-new.png" alt="New Mail" title="Compose New Mail" /></a>
+	<ul id="leftbar_toolbar" class="ui-widget ui-helper-clearfix">
+		<li class="ui-state-default ui-corner-all"><a href="#" id="refreshmail" onclick="$('#msglist .foldersel').change();" class="ui-icon ui-icon-refresh" alt="Refresh"><!--<img src="/site_media/images/mail-get.png" alt="Check For New Mail" title="Check For New Mail" />--></a></li>
+		<li class="ui-state-default ui-corner-all"><a href="#" id="newmaillink" onclick="" class="ui-icon ui-icon-document" alt="Compose New Email"><!--<img src="/site_media/images/mail-new.png" alt="New Mail" title="Compose New Mail" />--></a></li>
 <!-- FIXME don't use the admin site's logout -->
-		<a href="/admin/logout/"><img src="/site_media/images/system-log-out.png" alt="Logout" title="Logout" /></a>
-        <a href="#" id="prefslink"><img src="/site_media/images/configure.png" alt="Prefs" title="Preferences" /></a>
+		<li class="ui-state-default ui-corner-all"><a href="/admin/logout/" class="ui-icon ui-icon-power"><!--<img src="/site_media/images/system-log-out.png" alt="Logout" title="Logout" />--></a></li>
+		<li class="ui-state-default ui-corner-all"><a href="#" id="prefslink" class="ui-icon ui-icon-wrench"><!--<img src="/site_media/images/configure.png" alt="Prefs" title="Preferences" />--></a></li>
 <!--		<a href="#" onclick="showSpinner(); return false;">Show</a>
 		<a href="#" onclick="hideSpinner(); return false;">Hide</a>-->
-	</div>
+	</ul>
     <div id="folderlist">
 		<div id="foldertree"></div>
 		<div id="foldertree2"></div>

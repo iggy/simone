@@ -42,31 +42,31 @@ $(document).ready(function() {
 		});
 	});
 	
-	$.jstree._themes = "/site_media/js/";
-	
-	$('#foldertree2').jstree({
-		'plugins': ['core', 'themes', 'json', 'ui'],
-		'json': {
-			'ajax': {
-				'url': 'json/folderlist2/?server=0',
-				'data': function(n) {
-					return {
-						"operation": "subfolders",
-						"id": n.attr ? n.attr('id') : 1
-					};
-				},
-			}
-		},
-		'themes': {
-			'theme': 'classic',
-			'url': '/site_media/js/themes/classic/style.css'
-		}
-	});
-	console.log('foldertree2 should be done now');
+//	$.jstree._themes = "/site_media/js/";
+//	
+//	$('#foldertree2').jstree({
+//		'plugins': ['core', 'themes', 'json', 'ui'],
+//		'json': {
+//			'ajax': {
+//				'url': 'json/folderlist2/?server=0',
+//				'data': function(n) {
+//					return {
+//						"operation": "subfolders",
+//						"id": n.attr ? n.attr('id') : 1
+//					};
+//				},
+//			}
+//		},
+//		'themes': {
+//			'theme': 'classic',
+//			'url': '/site_media/js/themes/classic/style.css'
+//		}
+//	});
+//	console.log('foldertree2 should be done now');
 	
 
 	// hide the spinner
-	$('#spinner').hide()
+	$('#spinner').hide();
 });
 
 /*
@@ -88,13 +88,14 @@ $(document).ready(function() {
 
 		var navht = '<form class="msgnav" action="msglist/" method="get"> \
 			<input type="text" readonly="readonly" value="INBOX" class="foldersel" /> \
-			<input type="button" value="&lt;&lt;" /> \
-			<input type="button" value="&lt;" /> \
+			<button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" onclick="$(\'#msglist .foldersel\').firstPage(); return false;"> \
+			<span class="ui-icon ui-icon-arrowthickstop-1-w"></span></button> \
+			<input type="button" value="&lt;" class="ui-icon ui-icon-arrowthick-1-w" /> \
 			<select class="pagesel"> \
 			<option>1</option> \
 			</select> \
-			<input type="button" value="&gt;" /> \
-			<input type="button" value="&gt;&gt;" />  \
+			<input type="button" value="&gt;" class="ui-icon ui-icon-arrowthick-1-e" /> \
+			<input type="button" value="&gt;&gt;" class="ui-icon ui-icon-arrowthickstop-1-e" />  \
 			Msgs Per Page: \
 			<select class="perpagesel"> \
 			<option>10</option> \
@@ -142,6 +143,13 @@ $(document).ready(function() {
 			$sortordersel.val().charAt(0) + '/' + // sort order
 			'/'; // search terms
 		};
+		
+		function firstPage() {
+			console.log("first page", this);
+			$pagesel.value('1');
+			update();
+			return false;
+		}
 
 		function update() {
 			$.getJSON(getUrl(), function(data) {
