@@ -18,6 +18,8 @@ Add a new user to use
 $ python2 manage.py changepassword *newuser* --pythonpath=..
 Logout
 Go to http://127.0.0.1/mail
+Fill in your IMAP details
+Profit!
 
 
 What works:
