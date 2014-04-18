@@ -1,0 +1,8 @@
+*.pyc
+*.pyo
+iggy.db*
+*.bak
+mail.db*
+awsadmin
+local_settings.*
+db.sqlite3

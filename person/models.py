@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db.models import signals
 from django.dispatch import dispatcher
 
@@ -37,26 +37,29 @@ class SmtpServer(models.Model):
             return 'None'
         return '%s@smtp://%s:%s' % (self.username, self.address, self.port)
 
-class UserProfile(models.Model):
-    user = models.ForeignKey(User, unique=True)
-
+class UserProfile(AbstractUser):
     about = models.TextField(blank=True)
-    editor = models.CharField(max_length=1, choices = (('1', 'Text'), ('2', 'Rich Text')), default='1')
+    editor = models.CharField(max_length=1, 
+        choices = (('1', 'Text'), ('2', 'Rich Text')), 
+        default='1')
 
     signatures = models.ManyToManyField(Signature,blank=True,null=True)
     imap_servers = models.ManyToManyField(ImapServer,blank=True,null=True)
     smtp_servers = models.ManyToManyField(SmtpServer,blank=True,null=True)
     
     def __unicode__(self):
-        return '%s\'s UserProfile' % (self.user,)
+        return '%s\'s UserProfile' % (self.username,)
 
-
+    #USERNAME_FIELD = 
+    #REQUIRED_FIELDS = []
+    #class Meta(AbstractUser.Meta):
+    #    pass
 
 def UserProfileExtraWork(sender, instance, signal, *args, **kwargs):
 	"""
 	Inserts a blank imap server entry (if necessary) and associates it with the user
 	"""
-	from django_webmail.person.models import UserProfile
+	from simone.person.models import UserProfile
 	#user = instance
 	##user.create_profile()
 	##user.get_profile().about = 'test'

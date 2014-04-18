@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django import forms
 from django.http import HttpResponseRedirect
+from django.template import RequestContext
 
 def debug(*args):
 	return
@@ -48,14 +49,14 @@ import json as simplejson
 def index(request):
 	# if they haven't filled in their options, we won't have much luck connecting to their mail server
 	try:
-		if request.user.get_profile().imap_servers.all()[0].username == None:
+		if request.user.imap_servers.all()[0].username == None:
 			pass
 	except:
 		return HttpResponseRedirect('config/newconfig/')
 
 	folder = "INBOX"
 
-	defaultEditor = request.user.get_profile().editor
+	defaultEditor = request.user.editor
 
 	return render_to_response('mail/main.html', locals())
 
@@ -64,7 +65,7 @@ def index(request):
 def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
 	debug(server, folder, page, perpage, sortc, sortdir, search)
 	server = int(server)
-	srvr = request.user.get_profile().imap_servers.all()[server]
+	srvr = request.user.imap_servers.all()[server]
 	#pprint(srvr)
 
 	start = int(page) * int(perpage) - int(perpage) + 1
@@ -122,7 +123,7 @@ def viewmsg(request, server, folder, uid):
 	uid = int(uid)
 	server = int(server)
 	
-	isrv = request.user.get_profile().imap_servers.all()[server]
+	isrv = request.user.imap_servers.all()[server]
 	i = imapclient.IMAPClient(isrv.address, port=isrv.port, use_uid=False, ssl=isrv.ssl)
 	i.login(isrv.username, isrv.passwd)
 
@@ -171,12 +172,12 @@ def send(request):
 
 	if subject and message and mailfrom and mailto:
 		try:
-			send_mail(subject, message, mailfrom, [mailto], auth_user=request.user, auth_password=request.user.get_profile().smtp_servers.all()[0].passwd)
+			send_mail(subject, message, mailfrom, [mailto], auth_user=request.user, auth_password=request.user.smtp_servers.all()[0].passwd)
 			# FIXME send plain text part as well as html part
 			#msg = EmailMultiAlternatives(subject, message, mailfrom, [mailto])
 			#if request.POST.get('usingRTE') == "true":
 				#msg.content_subtype = "html"
-			#msg.send(auth_user=request.user, auth_password=request.user.get_profile().smtp_servers.all()[0].passwd)
+			#msg.send(auth_user=request.user, auth_password=request.user.smtp_servers.all()[0].passwd)
 		except BadHeaderError:
 			return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid Header Found'}))
 		except SMTPAuthenticationError:
@@ -200,26 +201,23 @@ def config(request, action):
 
     elif action == "addnew":
         if request.POST.get('newconfig') == "true":
-            for srv in request.user.get_profile().imap_servers.all():
-                request.user.get_profile().imap_servers.remove(srv)
+            for srv in request.user.imap_servers.all():
+                request.user.imap_servers.remove(srv)
 
         # we are adding some new configuration
         iform = ImapServerForm(request.POST)
-        i = request.user.get_profile().imap_servers.create(address = request.POST.get('address'),
+        i = request.user.imap_servers.create(address = request.POST.get('address'),
                         port = request.POST.get('port'),
                         username = request.POST.get('username'),
                         passwd = request.POST.get('passwd'))
         i.save()
 
-        # if they didn't have a "real" imap server setup before delete the fake one
-        #if request.user.get_profile().imap_servers.all()[0].username == None:
-            #o = request.user.get_profile().imap_servers.remove(0)
-            #o = request.user.get_profile().imap_servers.remove(request.user.get_profile().imap_servers.all()[0])
         return HttpResponseRedirect('/mail/')
 
     elif action == "addnewsmtp":
         sform = SmtpServerForm(request.POST)
-        s = request.user.get_profile().smtp_servers.create(address = request.POST.get('address'),
+        s = request.user.smtp_servers.create(
+                        address = request.POST.get('address'),
                         port = request.POST.get('port'),
                         username = request.POST.get('username'),
                         passwd = request.POST.get('passwd'))
@@ -232,15 +230,17 @@ def config(request, action):
         whichsrv = int(request.GET.get('which'))
 
         if saction == "REMOVE":
-            srv = request.user.get_profile().imap_servers.remove(request.user.get_profile().imap_servers.all()[whichsrv])
+            srv = request.user.imap_servers.remove(request.user.imap_servers.all()[whichsrv])
 
         return HttpResponse(simplejson.dumps({'status':'OK'}))
     else:
         # default action / index
-        imapsrvs = request.user.get_profile().imap_servers.all()
-        # the code below uses newforms, but these forms are so short it turned out working better to just hand code them
+        imapsrvs = request.user.imap_servers.all()
+        # the code below uses newforms, but these forms are so short it turned 
+        # out working better to just hand code them
 
-    return render_to_response('mail/config/'+action+'.html', locals())
+    return render_to_response('mail/config/'+action+'.html', locals(), 
+        context_instance=RequestContext(request))
 
 #def form_callback(f, **args):
     #if f.name == "passwd":
@@ -295,7 +295,7 @@ class Tree:
 
 @login_required
 def json(request, action):
-	uprof = request.user.get_profile()
+	uprof = request.user
 
 	if action == "folderlist":
 		server = int(request.GET['server'])
@@ -394,7 +394,7 @@ def action(request, action):
 
 	# get the server
 	try:
-		my_imap_server = request.user.get_profile().imap_servers.all()[server]
+		my_imap_server = request.user.imap_servers.all()[server]
 	except (IndexError, TypeError):
 		return HttpResponse(simplejson.dumps({'error':'Invalid server'}))
 
