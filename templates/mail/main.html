@@ -17,11 +17,27 @@
 
 <div id="leftbar">
 	<ul id="leftbar_toolbar" class="ui-widget ui-helper-clearfix">
-		<li class="ui-state-default ui-corner-all"><a href="#" id="refreshmail" onclick="$('#msglist .foldersel').change();" class="ui-icon ui-icon-refresh" alt="Refresh"><!--<img src="/site_media/images/mail-get.png" alt="Check For New Mail" title="Check For New Mail" />--></a></li>
-		<li class="ui-state-default ui-corner-all"><a href="#" id="newmaillink" onclick="" class="ui-icon ui-icon-document" alt="Compose New Email"><!--<img src="/site_media/images/mail-new.png" alt="New Mail" title="Compose New Mail" />--></a></li>
+		<li class="ui-state-default ui-corner-all">
+            <a href="#" onclick="$('#msglist .foldersel').change();" 
+                class="ui-icon ui-icon-refresh" title="Refresh">
+            </a>
+        </li>
+		<li class="ui-state-default ui-corner-all">
+            <a href="#" id="newmaillink" onclick="" 
+                class="ui-icon ui-icon-document" title="Compose New Email">
+            </a>
+        </li>
 <!-- FIXME don't use the admin site's logout -->
-		<li class="ui-state-default ui-corner-all"><a href="/admin/logout/" class="ui-icon ui-icon-power"><!--<img src="/site_media/images/system-log-out.png" alt="Logout" title="Logout" />--></a></li>
-		<li class="ui-state-default ui-corner-all"><a href="#" id="prefslink" class="ui-icon ui-icon-wrench"><!--<img src="/site_media/images/configure.png" alt="Prefs" title="Preferences" />--></a></li>
+		<li class="ui-state-default ui-corner-all">
+            <a href="/admin/logout/" 
+                class="ui-icon ui-icon-power" title="Logout">
+            </a>
+        </li>
+		<li class="ui-state-default ui-corner-all">
+            <a href="#" id="prefslink" 
+                class="ui-icon ui-icon-wrench" title>
+            </a>
+        </li>
 <!--		<a href="#" onclick="showSpinner(); return false;">Show</a>
 		<a href="#" onclick="hideSpinner(); return false;">Hide</a>-->
 	</ul>
