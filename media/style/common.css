@@ -130,5 +130,7 @@ br {clear:left;}
 }
 #foldertree li {
 	padding:1px;
+	float: none;
+	display: block;
 /* 	border-bottom: 1px solid silver; */
 }

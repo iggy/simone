@@ -108,7 +108,7 @@ $(document).ready(function() {
     Sort: \
     <select class="sortordersel ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"> \
         <option>Asc</option> \
-        <option>Desc</option> \
+        <option selected="selected">Desc</option> \
     </select> \
 </form> \
 			';
@@ -123,6 +123,8 @@ $(document).ready(function() {
 		$cnt.append(navht);
 
 		$cnt.append(tableht);
+
+        $('#msglist th').addClass('ui-corner-all');
 
 		var $foldersel = $cnt.find('.foldersel'),
 			$pagesel = $cnt.find('.pagesel'),
@@ -198,7 +200,7 @@ $(document).ready(function() {
 					msg = j['msglist'][uid];
 					console.log('168', uid, msg);
 					var rclass = 'odd';
-					if(i % 2 == 0)
+					if(uid % 2 == 0)
 						rclass = 'even';
 					// handle flags
 					fclass = '';
