@@ -1,6 +1,10 @@
 simone
 ======
 
+Questions? Answers? General thoughts?
+
+#simone @ irc.oftc.net
+
 Django webmail package
 
 to run locally:
@@ -31,6 +35,7 @@ python-simplejson (part of newer python's I think)
 imapclient (pip install imapclient)
 probably python-2.5
 
-Icons are from kde4
-src/KDE/kdebase/runtime/pics/oxygen
+Uses:
+jQuery
+jQueryUI (including the overcast theme)
 
