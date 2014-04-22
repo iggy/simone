@@ -23,7 +23,7 @@
             </a>
         </li>
 		<li class="ui-state-default ui-corner-all">
-            <a href="#" id="newmaillink" onclick="" 
+            <a href="#" id="newmaillink" onclick="dw.dialog.compose(); return false;" 
                 class="ui-icon ui-icon-document" title="Compose New Email">
             </a>
         </li>
@@ -34,7 +34,7 @@
             </a>
         </li>
 		<li class="ui-state-default ui-corner-all">
-            <a href="#" id="prefslink" 
+            <a href="#" id="prefslink" onclick="dw.dialog.prefs(); return false;" 
                 class="ui-icon ui-icon-wrench" title>
             </a>
         </li>
@@ -45,7 +45,8 @@
 		<div id="foldertree"></div>
 		<div id="foldertree2"></div>
     </div>
-    <div id="leftbar_bottom_info">
+    <div id="leftbar_bottom_info" class="ui-widget">
+        <br />
     </div>
 </div>
 

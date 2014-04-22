@@ -7,7 +7,6 @@ from django.shortcuts import render_to_response, HttpResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django import forms
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
 
@@ -150,41 +149,50 @@ def viewmsg(request, server, folder, uid):
 	return render_to_response('mail/viewmsg.html', locals())
 
 @login_required
+def prefs(request):
+    from mail.forms import SmtpServerForm
+    smtpform = SmtpServerForm(initial={'address':'localhost','port':'25'})
+    return render_to_response('mail/config/prefs.html', locals(), context_instance=RequestContext(request))
+
+@login_required
 def newmail(request):
 	# TODO need to figure out what email addresses they are allowed to use as from:
 	# TODO also change the whole sending email to use newforms
-	return render_to_response('mail/newmail.html', locals())
+	return render_to_response('mail/newmail.html', locals(), context_instance=RequestContext(request))
 
 @login_required
 def send(request):
-	from django.core.mail import send_mail, BadHeaderError#, EmailMultiAlternatives
-	from smtplib import SMTPAuthenticationError
-	#from django.utils import simplejson
+    from django.core.mail import send_mail, BadHeaderError#, EmailMultiAlternatives
+    from smtplib import SMTPAuthenticationError
+    #from django.utils import simplejson
 
-	# attempt to send the mail
-	subject = request.POST.get('newmailsubject', '')
-	message = request.POST.get('editor', '')
-	mailfrom = request.POST.get('newmailfrom', '') # TODO should actually get their default from
-	mailto = request.POST.get('newmailto', '')
+    # attempt to send the mail
+    subject = request.POST.get('newmailsubject', '')
+    message = request.POST.get('editor', '')
+    mailfrom = request.POST.get('newmailfrom', '') # TODO should actually get their default from
+    mailto = request.POST.get('newmailto', '')
 
-	if request.POST.get('usingRTE') == "true":
-		message = '<html><head></head>' + message + '</html>'
+    if request.POST.get('usingRTE') == "true":
+        message = '<html><head></head>' + message + '</html>'
 
-	if subject and message and mailfrom and mailto:
-		try:
-			send_mail(subject, message, mailfrom, [mailto], auth_user=request.user, auth_password=request.user.smtp_servers.all()[0].passwd)
-			# FIXME send plain text part as well as html part
-			#msg = EmailMultiAlternatives(subject, message, mailfrom, [mailto])
-			#if request.POST.get('usingRTE') == "true":
-				#msg.content_subtype = "html"
-			#msg.send(auth_user=request.user, auth_password=request.user.smtp_servers.all()[0].passwd)
-		except BadHeaderError:
-			return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid Header Found'}))
-		except SMTPAuthenticationError:
-			return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid SMTP server settings'}))
-		return HttpResponse(simplejson.dumps({'status':'SUCCESS', 'message': 'Mail sent succesfully'})) # we can use short responses since we will only be submitting via ajax
-	else:
-		return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Fill in all fields'+subject+message+mailfrom+mailto}))
+    if subject and message and mailfrom and mailto:
+        try:
+            debug(request, request.user, request.user.smtp_servers, request.user.smtp_servers.all())
+            send_mail(subject, message, mailfrom, [mailto], 
+                auth_user=request.user.smtp_servers.all()[0].username, 
+                auth_password=request.user.smtp_servers.all()[0].passwd)
+            # FIXME send plain text part as well as html part
+            #msg = EmailMultiAlternatives(subject, message, mailfrom, [mailto])
+            #if request.POST.get('usingRTE') == "true":
+                #msg.content_subtype = "html"
+            #msg.send(auth_user=request.user, auth_password=request.user.smtp_servers.all()[0].passwd)
+        except BadHeaderError:
+            return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid Header Found'}))
+        except SMTPAuthenticationError:
+            return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid SMTP server settings'}))
+        return HttpResponse(simplejson.dumps({'status':'SUCCESS', 'message': 'Mail sent succesfully'})) # we can use short responses since we will only be submitting via ajax
+    else:
+        return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Fill in all fields'+subject+message+mailfrom+mailto}))
 
 @login_required
 def config(request, action):

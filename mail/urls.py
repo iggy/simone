@@ -11,5 +11,6 @@ urlpatterns = patterns('simone.mail.views',
     (r'config/(?P<action>.*?)/$', 'config'),
     (r'json/(?P<action>.*?)/$', 'json'),
     (r'action/(?P<action>.*?)/$', 'action'),
+    (r'prefs/$', 'prefs'),
 
 )

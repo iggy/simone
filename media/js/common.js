@@ -10,6 +10,7 @@ var folders = {};
 var msglist = {};
 var dw = {}; // miscellaneous variables
 dw.viewmsg = {};
+dw.dialog = {};
 
 $(document).ready(function() {
 	console.log('doc ready');
@@ -256,8 +257,8 @@ $(document).ready(function() {
 						height: dlgh
 					};
 
-					dw.dialog = $('<div></div>').append('body');
-					$(dw.dialog).load('viewmsg/' + server + '/' + folder + '/' + uid + '/').dialog(options);
+					dw.dialog.viewmsg = $('<div></div>').append('body');
+					$(dw.dialog.viewmsg).load('viewmsg/' + server + '/' + folder + '/' + uid + '/').dialog(options);
 				});
 				$('tr.msg').hover(
 					function() { $(this).addClass('msghover'); },
@@ -273,4 +274,33 @@ dw.viewmsg.markmsg = function(how, server, folder, uid) {
     $.getJSON('action/mark'+how+'/?server='+server+'&folder='+folder+'&uid='+uid, function(j) {
         console.log(this, j);
     });
+};
+
+dw.dialog.compose = function() {
+    $('body').append('<div id="compose" class="hidden"></div>');
+    $('#compose').load('newmail/', function(j) {
+        console.log(this, j);
+        
+        $('#compose').dialog({'width':'auto'});
+    });
+};
+
+dw.dialog.prefs = function() {
+    $('body').append('<div id="prefs" class="hidden"></div>');
+    $('#prefs').load('prefs/', function(j) {
+        console.log(this, j);
+        
+        $('#prefs').dialog({'width':'auto'});
+        
+        $('#tabs').tabs();
+    });
+};
+
+dw.addSMTP = function(form) {
+    
+    console.log(form);
+};
+
+dw.sendMsg = function(form) {
+    console.log(form);
 };

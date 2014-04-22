@@ -12,3 +12,6 @@ class ImapServerForm(forms.ModelForm):
 class SmtpServerForm(forms.ModelForm):
     class Meta:
         model = SmtpServer
+        widgets = {
+            'passwd': forms.PasswordInput(),
+        }
