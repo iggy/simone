@@ -128,8 +128,9 @@ br {clear:left;}
 	text-decoration: none;
 	font-size: 90%;
 }
-#foldertree li {
+#foldertree li, #foldertree2 li {
 	padding:1px;
+    margin-left: 12px;
 	float: none;
 	display: block;
 /* 	border-bottom: 1px solid silver; */

@@ -3,7 +3,7 @@ simone
 
 Questions? Answers? General thoughts?
 
-#simone @ irc.oftc.net
+  #simone @ irc.oftc.net
 
 Django webmail package
 
@@ -34,6 +34,7 @@ django (1.6+)
 python-simplejson (part of newer python's I think)
 imapclient (pip install imapclient)
 probably python-2.5
+(NOTE: do not intall imaplib2)
 
 Uses:
 jQuery

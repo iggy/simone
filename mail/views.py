@@ -11,7 +11,7 @@ from django.http import HttpResponseRedirect
 from django.template import RequestContext
 
 def debug(*args):
-	return
+	#return
 	print ">>>>>>"
 	for d in args:
 		pprint(d)
@@ -140,7 +140,7 @@ def viewmsg(request, server, folder, uid):
 			if(part.get_content_type() == mailmsg.get_default_type()):
 				body = part.get_payload().decode('quopri_codec')
 
-	#i.logout()
+	i.logout()
 	debug(body)
 	
 	if request.GET.get('json') == "true":
@@ -303,96 +303,61 @@ class Tree:
 
 @login_required
 def json(request, action):
-	uprof = request.user
+    uprof = request.user
 
-	if action == "folderlist":
-		server = int(request.GET['server'])
-		srvr = uprof.imap_servers.all()[server]
+    if action == "folderlist":
+        server = int(request.GET['server'])
+        srvr = uprof.imap_servers.all()[server]
 
-		imap = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
-		imap.login(srvr.username, srvr.passwd)
-		flist = imap.list_folders()
-		#imap.logout()
-		
-		#delimiter = flist[0][1]
-		
-		# FIXME use list of subscribed folders
-		return HttpResponse(simplejson.dumps({
-			'delimiter': flist[0][1],
-			'folders': sorted([z for x,y,z in flist], key=unicode.lower)
-		}))
-		
-	if action == "folderlist2":
-		server = int(request.GET['server'])
-		srvr = uprof.imap_servers.all()[server]
+        imap = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
+        imap.login(srvr.username, srvr.passwd)
+        flist = imap.list_folders()
+        #imap.logout()
+        
+        #delimiter = flist[0][1]
+        
+        # FIXME use list of subscribed folders
+        return HttpResponse(simplejson.dumps({
+            'delimiter': flist[0][1],
+            'folders': sorted([z for x,y,z in flist], key=unicode.lower)
+        }))
+        
+    if action == "folderlist2":
+        # TODO order the folders in a more natural order
+        server = int(request.GET['server'])
+        srvr = uprof.imap_servers.all()[server]
+        parent = ''
+        if request.GET['parent']:
+            parent = request.GET['parent'] + '.'
 
-		imap = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
-		imap.login(srvr.username, srvr.passwd)
-		flist = imap.list_folders()
-		#imap.logout()
-		
-		debug(flist)
-		
-		done = []
-		jstreefolders = []
-		
-		sortedlist = sorted(flist)
-		# debug(sortedlist)
-		for flags, delim, fld in flist:
-			# debug(flags, delim, fld)
-			#f(fld,fld,jstreefolders)
-			#rec(fld, fld, jstreefolders, delim)
-			
-			
-			if fld.split(delim)[0] in done:
-				continue
-			done.append(fld.split(delim)[0])
-			
-			#if delim not in fld:
-			if '\\HasNoChildren' in flags:
-				jstreefolders.append({
-					'title': fld.split(delim)[0],
-					'data': fld.split(delim)[0],
-					#'metadata': {'id':fld},
-					'attr': {'rel':'folder'},
-				})
-			else:
-				jstreefolders.append({
-					'title': fld.split(delim)[0],
-					'data': fld.split(delim)[0],
-					'state': 'closed',
-					'attr': {'rel':'folder'},
-					#'metadata': {'id': fld},
-				})
-		
-		
-		jstreefolders.append({
-			'title': 'Test1',
-			'state': 'closed',
-			'attr': {'rel':'folder'},
-			'children': [
-				'Test2', 
-				'Test3',
-				{'title': 'Test4','state':'closed','attr': {'rel':'folder'},},
-				{'title': 'Test5','state':'closed','attr': {'rel':'folder'},'children':None}
-			]
-		})
-		
-		test = {'INBOX':{'title': 'Test1','state': 'closed','attr': {'rel':'folder'},}}
-		
-		resp = {'data': jstreefolders}
-		
-		# debug(resp)
-		
-		# FIXME use list of subscribed folders
-		return HttpResponse(simplejson.dumps(test))
+        imap = imapclient.IMAPClient(srvr.address, port=srvr.port, 
+            use_uid=False, ssl=srvr.ssl)
+        imap.login(srvr.username, srvr.passwd)
+        flist = imap.list_folders(directory=parent, pattern='%')
+        flist.reverse()
+        imap.logout()
+        
+        debug(flist)
+        jstreefolders = []
+        for flags, delim, folder in flist:
+            debug(flags, delim, folder)
+            fd = {'ItemId':folder,'Title':folder.split(delim)[-1]}
+            if u'\\HasChildren' in flags:
+                fd.update({'HasSubItem':True})
+            debug(fd)
+            jstreefolders.append(fd)
+            
+        debug(jstreefolders)
+        
+        # FIXME use list of subscribed folders
+        return HttpResponse(simplejson.dumps(jstreefolders))
 
-	elif action == "serverlist":
-		srvlist = []
-		i = 0
-		for i, server in enumerate(uprof.imap_servers.all()):
-			srvlist.append([i, server.address])
-		return HttpResponse(simplejson.dumps({'servers':srvlist}))
+    if action == "serverlist":
+        srvlist = []
+        i = 0
+        for i, server in enumerate(uprof.imap_servers.all()):
+            srvlist.append([i, server.address])
+        return HttpResponse(simplejson.dumps({'servers':srvlist}))
 
 @login_required
 def action(request, action):

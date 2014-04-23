@@ -26,6 +26,7 @@ $(document).ready(function() {
 
 	// folder list
 	$.getJSON('json/folderlist/?server=0', function(data) {
+        return;
 		console.log('folderlist callback', data);
 		j = eval(data);
 		$('#foldertree').append('<ul>');
@@ -51,6 +52,21 @@ $(document).ready(function() {
 			$('#msglist .foldersel').change();
 		});
 	});
+    
+    $.getJSON('json/folderlist2/?server=0&parent=', function(data) {
+        console.log('fl2', data);
+        $('#foldertree2').jsonTree(data, {
+            mandatorySelect: true,
+            lazyLoad: true,
+            lazyRequestUrl: 'json/folderlist2/?server=0',
+            lazySendParameterName: 'parent',
+        });
+        $('#foldertree2 li').click(function(d) {
+            console.log(d);
+            $('.foldersel').val(d.currentTarget.outerText);
+            $('#msglist .foldersel').change();
+        });
+    });
     
 	// hide the spinner
 	$('#spinner').hide();
