@@ -11,41 +11,25 @@ from django.http import HttpResponseRedirect
 from django.template import RequestContext
 
 def debug(*args):
-	#return
+	return
 	print ">>>>>>"
 	for d in args:
 		pprint(d)
 	print "<<<<<<"
-
-def f(p,t,c):
- s=p.split('.');a=s[0];b=s[1:]
- if b:
-  if a not in c:c[a]={}
-  f('.'.join(b),t,c[a])
- else:c[a]=t
-#menu={}
-#for i in items:f(i,i,menu)
-
 
 try:
 	import imapclient
 except:
 	print "imapclient module not available, please install it (pip install imapclient)"
 
-#try:
-#	import simplejson
-#except:
-#	from django.utils import simplejson
-
 import json as simplejson
-
-# TODO leaving index as is for a little bit more development
-# index/login page
-#def index(request):
-#    return render_to_response('mail/index.html', locals())
 
 @login_required
 def index(request):
+    """main index view
+    
+    :param request: request object from Django
+    """
 	# if they haven't filled in their options, we won't have much luck connecting to their mail server
 	try:
 		if request.user.imap_servers.all()[0].username == None:
@@ -62,6 +46,17 @@ def index(request):
 # FIXME handle sorting
 @login_required
 def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
+    """return the list of messages as json data
+    
+    :param request: request object from Django
+    :param server: server number
+    :param folder: folder to grab messages
+    :param page: which page (set of messages) to fetch
+    :param perpage: how many messages to show per page
+    :param sortc: which column to sort on
+    :param sortdir: direction to sort (asc, desc)
+    :param search: search terms
+    """
 	debug(server, folder, page, perpage, sortc, sortdir, search)
 	server = int(server)
 	srvr = request.user.imap_servers.all()[server]
@@ -110,13 +105,20 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
 			# be), but we should likely retry or adjust the message list in the future
 			pass
 	
-	#s.logout()
+	s.logout()
 
 	return HttpResponse(simplejson.dumps({'totalmsgs': nummsgs, 'start': start, 'stop': stop, 'msglist': msglst}))
 	#return HttpResponse(simplejson.dumps({'totalmsgs': len(msglst), 'start': start, 'stop': stop, 'msglist': msglst}))
 
 @login_required
 def viewmsg(request, server, folder, uid):
+    """view message text
+    
+    :param request: request object from Django
+    :param server: server number
+    :param folder: which folder the message is in
+    :param uid: the uid of the message to fetch
+    """
 	# these are here so they get passed through to the template
 	folder = folder
 	uid = int(uid)
@@ -150,21 +152,32 @@ def viewmsg(request, server, folder, uid):
 
 @login_required
 def prefs(request):
+    """preferences dialog
+    
+    :param request: request object from Django
+    """
     from mail.forms import SmtpServerForm
     smtpform = SmtpServerForm(initial={'address':'localhost','port':'25'})
     return render_to_response('mail/config/prefs.html', locals(), context_instance=RequestContext(request))
 
 @login_required
 def newmail(request):
+    """Compose new email dialog
+    
+    :param request: request object from Django
+    """
 	# TODO need to figure out what email addresses they are allowed to use as from:
 	# TODO also change the whole sending email to use newforms
 	return render_to_response('mail/newmail.html', locals(), context_instance=RequestContext(request))
 
 @login_required
 def send(request):
+    """send an email from the browser
+    
+    :param request: request object from Django
+    """
     from django.core.mail import send_mail, BadHeaderError#, EmailMultiAlternatives
     from smtplib import SMTPAuthenticationError
-    #from django.utils import simplejson
 
     # attempt to send the mail
     subject = request.POST.get('newmailsubject', '')
@@ -196,18 +209,26 @@ def send(request):
 
 @login_required
 def config(request, action):
+    """display form/change configuration settings, gets info from forms sent from browser
+    
+    :param request: request object from Django
+    :param action: what action to do
+    """
     from mail.forms import ImapServerForm, SmtpServerForm
 
     if action == "newconfig" or action == "newIMAPform":
+        """display new IMAP form"""
         # we already know they don't have anything in the database, just show them a blank form
         iform = ImapServerForm(initial={'address':'localhost','port':'143'})
         srvtype = "IMAP"
 
     elif action == "newSMTPform":
+        """display new SMTP form"""
         sform = SmtpServerForm(initial={'address':'localhost','port':'25'})
         srvtype = "SMTP"
 
     elif action == "addnew":
+        """save new IMAP config"""
         if request.POST.get('newconfig') == "true":
             for srv in request.user.imap_servers.all():
                 request.user.imap_servers.remove(srv)
@@ -223,6 +244,7 @@ def config(request, action):
         return HttpResponseRedirect('/mail/')
 
     elif action == "addnewsmtp":
+        """save new SMTP config"""
         sform = SmtpServerForm(request.POST)
         s = request.user.smtp_servers.create(
                         address = request.POST.get('address'),
@@ -233,6 +255,7 @@ def config(request, action):
         return HttpResponse(simplejson.dumps({'status':'OK'}))
 
     elif action == "edit":
+        """change existing settings from a form"""
         saction = request.GET.get('saction')
         srvtype = request.GET.get('srvtype')
         whichsrv = int(request.GET.get('which'))
@@ -242,6 +265,7 @@ def config(request, action):
 
         return HttpResponse(simplejson.dumps({'status':'OK'}))
     else:
+        """tbh, not even sure how this would get hit"""
         # default action / index
         imapsrvs = request.user.imap_servers.all()
         # the code below uses newforms, but these forms are so short it turned 
@@ -252,6 +276,11 @@ def config(request, action):
 
 @login_required
 def json(request, action):
+    """return data to the browser as json data
+    
+    :param request: request object from Django
+    :param action: what data the browser requested
+    """
     uprof = request.user
 
     if action == "folderlist2":
@@ -293,6 +322,11 @@ def json(request, action):
 
 @login_required
 def action(request, action):
+    """perform action on a message
+    
+    :param request: request object from Django
+    :param action: what to do
+    """
 	# a few vars that get used in (almost) every action
 	server = int(request.GET.get('server'))
 	folder = request.GET.get('folder')
