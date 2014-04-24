@@ -250,78 +250,10 @@ def config(request, action):
     return render_to_response('mail/config/'+action+'.html', locals(), 
         context_instance=RequestContext(request))
 
-#def form_callback(f, **args):
-    #if f.name == "passwd":
-        #return forms.PasswordInput()
-    #return f.formfield(**args)
-#def form_callback(f, **args):
-    #formfield = f.formfield(**args)
-    #if f.name == "passwd":
-        #formfield.widget = forms.PasswordInput()
-    #return formfield
-
-class Tree:
-  def __init__(self, parent=None):
-    self.value = None
-    self.children = {}
-    self.parent = parent
-
-  def fromPath(self, path):
-    if path:
-      a = path.split('.', 1)
-      self.value = a[0]
-      parent_path = self.value
-      if self.parent:
-        parent_path = self.parent + '.' + parent_path
-      if len(a) > 1:
-        self.merge(Tree(parent_path).fromPath(a[1]))
-    return self
-
-  def merge(self, subtree):
-    if subtree.value in self.children:
-      for k,v in subtree.children.iteritems():
-        self.children[subtree.value].merge(v)
-    else:
-      self.children[subtree.value] = subtree
-
-  def myPath(self):
-    path = self.value
-    if self.parent:
-      path = self.parent + '.' + path
-    return path
-
-  def toDict(self):
-    r = {}
-    m = self.myPath()
-    if m:
-      r['_path'] = m
-    for k,v in self.children.iteritems():
-      r[k] = v.toDict()
-    return r
-
-
-
 @login_required
 def json(request, action):
     uprof = request.user
 
-    if action == "folderlist":
-        server = int(request.GET['server'])
-        srvr = uprof.imap_servers.all()[server]
-
-        imap = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
-        imap.login(srvr.username, srvr.passwd)
-        flist = imap.list_folders()
-        #imap.logout()
-        
-        #delimiter = flist[0][1]
-        
-        # FIXME use list of subscribed folders
-        return HttpResponse(simplejson.dumps({
-            'delimiter': flist[0][1],
-            'folders': sorted([z for x,y,z in flist], key=unicode.lower)
-        }))
-        
     if action == "folderlist2":
         # TODO order the folders in a more natural order
         server = int(request.GET['server'])

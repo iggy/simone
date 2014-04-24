@@ -60,11 +60,12 @@ $(document).ready(function() {
             lazyLoad: true,
             lazyRequestUrl: 'json/folderlist2/?server=0',
             lazySendParameterName: 'parent',
-        });
-        $('#foldertree2 li').click(function(d) {
-            console.log(d);
-            $('.foldersel').val(d.currentTarget.outerText);
-            $('#msglist .foldersel').change();
+            onSelect: function(selid, selli, clickedli) {
+                console.log("ft2 onSelect", selid, selli, clickedli);
+                console.log(selli.attr('value'));
+                $('.foldersel').val(selli.attr('value'));
+                $('#msglist .foldersel').change();
+            },
         });
     });
     
