@@ -56,27 +56,27 @@ class UserProfile(AbstractUser):
     #    pass
 
 def UserProfileExtraWork(sender, instance, signal, *args, **kwargs):
-	"""
-	Inserts a blank imap server entry (if necessary) and associates it with the user
-	"""
-	from simone.person.models import UserProfile
-	#user = instance
-	##user.create_profile()
-	##user.get_profile().about = 'test'
-	##user.get_profile().save()
-	#user.get_profile() = UserProfile()
-	#user.get_profile().save()
+    """
+    Inserts a blank imap server entry (if necessary) and associates it with the user
+    """
+    from simone.person.models import UserProfile
+    #user = instance
+    ##user.create_profile()
+    ##user.get_profile().about = 'test'
+    ##user.get_profile().save()
+    #user.get_profile() = UserProfile()
+    #user.get_profile().save()
 
-	try:
-		#userprofile.objects.get(user=instance)
-		profile = instance.get_profile()
-	except:
-		new_profile = UserProfile(user=instance)
-		new_profile.save()
+    try:
+        #userprofile.objects.get(user=instance)
+        profile = instance.get_profile()
+    except:
+        new_profile = UserProfile(user=instance)
+        new_profile.save()
 
-	i = instance.get_profile().imap_servers.create()
-	i.save()
-	#user.save_profile()
+    i = instance.get_profile().imap_servers.create()
+    i.save()
+    #user.save_profile()
 
 # we want this called after every user is inserted
 # FIXME - port to 1.0
