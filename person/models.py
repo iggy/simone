@@ -1,8 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.db.models import signals
-from django.dispatch import dispatcher
-
 
 class Signature(models.Model):
     text = models.TextField(blank=True)
@@ -49,35 +46,3 @@ class UserProfile(AbstractUser):
     
     def __unicode__(self):
         return '%s\'s UserProfile' % (self.username,)
-
-    #USERNAME_FIELD = 
-    #REQUIRED_FIELDS = []
-    #class Meta(AbstractUser.Meta):
-    #    pass
-
-def UserProfileExtraWork(sender, instance, signal, *args, **kwargs):
-    """
-    Inserts a blank imap server entry (if necessary) and associates it with the user
-    """
-    from simone.person.models import UserProfile
-    #user = instance
-    ##user.create_profile()
-    ##user.get_profile().about = 'test'
-    ##user.get_profile().save()
-    #user.get_profile() = UserProfile()
-    #user.get_profile().save()
-
-    try:
-        #userprofile.objects.get(user=instance)
-        profile = instance.get_profile()
-    except:
-        new_profile = UserProfile(user=instance)
-        new_profile.save()
-
-    i = instance.get_profile().imap_servers.create()
-    i.save()
-    #user.save_profile()
-
-# we want this called after every user is inserted
-# FIXME - port to 1.0
-#dispatcher.connect(UserProfileExtraWork, signal=signals.post_save, sender=User)

@@ -1,6 +1,6 @@
 #from django.forms import ModelForm, fields
 from django import forms
-from person.models import UserProfile, ImapServer, SmtpServer
+from person.models import ImapServer, SmtpServer
 
 class ImapServerForm(forms.ModelForm):
     class Meta:

@@ -11,7 +11,7 @@ from django.http import HttpResponseRedirect
 from django.template import RequestContext
 
 def debug(*args):
-    return
+    #return
     print ">>>>>>"
     for d in args:
         pprint(d)
@@ -302,14 +302,14 @@ def json(request, action):
         debug(flist)
         jstreefolders = []
         for flags, delim, folder in flist:
-            debug(flags, delim, folder)
+            #debug(flags, delim, folder)
             fd = {'ItemId':folder,'Title':folder.split(delim)[-1]}
             if u'\\HasChildren' in flags:
                 fd.update({'HasSubItem':True})
-            debug(fd)
+            #debug(fd)
             jstreefolders.append(fd)
             
-        debug(jstreefolders)
+        #debug(jstreefolders)
         
         # FIXME use list of subscribed folders
         return HttpResponse(simplejson.dumps(jstreefolders))

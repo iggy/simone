@@ -24,35 +24,7 @@ $(document).ready(function() {
 
 	dw.msgtable = $('#msglist').srvDatatable();
 
-	// folder list
-	$.getJSON('json/folderlist/?server=0', function(data) {
-        return;
-		console.log('folderlist callback', data);
-		j = eval(data);
-		$('#foldertree').append('<ul>');
-		for(var i = 0 ; i < j['folders'].length ; i++) {
-			$('#foldertree').append(' \
-            <li> \
-                <a class="foldersel" href="#">'+
-                j['folders'][i]+
-                '</a> \
-            </li> \
-            ');
-		}
-		$('#foldertree').append('</ul>');
-
-		$('.foldersel').click(function(e) {
-			console.log('e =', e, 'this =', this, $(this).text());
-			// change the input we use to track the folder
-			$('#msglist .foldersel').val($(this).text());
-			// reset some of the nav variables to defaults
-			// FIXME more thorough
-			$('#msglist .pagesel').val('1');
-			// now let the msg list know we changed some stuff
-			$('#msglist .foldersel').change();
-		});
-	});
-    
+	// folder tree
     $.getJSON('json/folderlist2/?server=0&parent=', function(data) {
         console.log('fl2', data);
         $('#foldertree2').jsonTree(data, {
@@ -320,4 +292,20 @@ dw.addSMTP = function(form) {
 
 dw.sendMsg = function(form) {
     console.log(form);
+};
+
+dw.visfolders = [];
+dw.updateFolderCounts = function(d) {
+	console.log(d);
+	
+	dw.visfolders = [];
+	$('#foldertree2  > ul > li > span').each(function(d) {
+		// get a list of folders
+		// TODO subfolders aren't getting their parent
+		console.log(d, this, $(this).text());
+		dw.visfolders.push($(this).text()); 
+		console.log(dw.visfolders);
+		// send list to server, it sends back unread counts per folder
+		
+	});
 };
