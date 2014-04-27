@@ -55,23 +55,28 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     :param perpage: how many messages to show per page
     :param sortc: which column to sort on
     :param sortdir: direction to sort (asc, desc)
-    :param search: search terms
+    :param search: search terms (urlencoded)
     """
-    debug(server, folder, page, perpage, sortc, sortdir, search)
+    debug("args:", server, folder, page, perpage, sortc, sortdir, search)
     server = int(server)
     srvr = request.user.imap_servers.all()[server]
     #pprint(srvr)
-
-    start = int(page) * int(perpage) - int(perpage) + 1
-    stop =  int(page) * int(perpage)
 
     s = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
     s.login(srvr.username, srvr.passwd)
     debug(s)
     folder_info = s.select_folder(folder)
     debug(folder_info)
-    nummsgs = folder_info['EXISTS']
     
+    if search == "":
+        search = u'ALL'
+    tofetch = s.sort("ARRIVAL", search)
+    
+    nummsgs = len(tofetch)
+    
+    start = int(page) * int(perpage) - int(perpage) + 1
+    stop =  int(page) * int(perpage)
+
     if stop > nummsgs:
         stop = nummsgs
     
@@ -81,12 +86,10 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
         stop = nummsgs - int(int(page) - 1) * int(perpage)
     debug(start, stop)
     
-    s.select_folder(folder)
-
     # we just need the headers for the msglist
     msglst = {}
     
-    fetched = s.fetch('%d:%d' % (start, stop), ['UID', 'FLAGS', 'INTERNALDATE', 'BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)]', 'RFC822.SIZE'])
+    fetched = s.fetch(tofetch[start:stop], ['UID', 'FLAGS', 'INTERNALDATE', 'BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)]', 'RFC822.SIZE'])
     
     for uid in fetched:
         try:

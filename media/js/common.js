@@ -59,9 +59,10 @@ $(document).ready(function() {
  */
 ;(function($) {
     $.fn.srvDatatable = function() {
-        console.log('start srvDatatable', this);
+        console.log('start srvDatatable', this, $(this));
         var $cnt = $(this);
 
+        // html used for the navigation above the message list
         var navht = ' \
 <form class="msgnav" action="msglist/" method="get" onSubmit="return false;"> \
     <input type="text" readonly="readonly" value="INBOX" class="foldersel" /> \
@@ -100,6 +101,11 @@ $(document).ready(function() {
         <option>Asc</option> \
         <option selected="selected">Desc</option> \
     </select> \
+    <input id="msgsearch" type="text" class="ui-widget " /> \
+    <button id="searchsubmit" \
+        class="ui-widget ui-state-default ui-widget ui-corner-all ui-button-text-only"> \
+        Search \
+    </button> \
 </form> \
             ';
 // TODO filters (unread, marked, etc)
@@ -121,24 +127,30 @@ $(document).ready(function() {
             $pagesel = $cnt.find('.pagesel'),
             $perpagesel = $cnt.find('.perpagesel'),
             $sortordersel = $cnt.find('.sortordersel'),
-            $tbl = $cnt.find('table');
+            $tbl = $cnt.find('table'),
+            $msgsearch = $cnt.find('#msgsearch'),
+            $searchsubmit = $cnt.find('#searchsubmit');
 
         $foldersel.change(update);
         $pagesel.change(update);
         $perpagesel.change(update);
         $sortordersel.change(update);
+        $searchsubmit.click(update);
 
         update();
 
         function getUrl() {
-            return $cnt.find('.msgnav').attr('action') + // form action specifies the base of the url
+            var url = $cnt.find('.msgnav').attr('action') + // form action specifies the base of the url
             '0/' + // server
             $foldersel.val() + '/' + // folder
             $pagesel.val() + '/' + // page
             $perpagesel.val() + '/' + // msgs per page
             'date/'+
             $sortordersel.val().charAt(0) + '/' + // sort order
-            '/'; // search terms
+            $msgsearch.val() + '/'; // search terms
+            
+            console.log('getURL()', url);
+            return url;
         };
         
         function firstPage() {
