@@ -138,7 +138,7 @@ def viewmsg(request, server, folder, uid):
     debug(mailbody[uid]['BODY'], len(mailbody[uid]['BODY']))
     if len(mailbody[uid]['BODY']) > 2 and mailbody[uid]['BODY'][2][1] == u'utf-8':
         mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'replace')
-    elif mailbody[uid]['BODY'][0][0][2][1] == u'utf-8':
+    elif len(mailbody[uid]['BODY']) <= 2 and mailbody[uid]['BODY'][0][0][2][1] == u'utf-8':
         mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'replace')
     mailmsg = email.message_from_string(mailstr.decode('quopri'))
     

@@ -24,7 +24,7 @@ $(document).ready(function() {
 
     dw.msgtable = $('#msglist').srvDatatable();
 
-    // folder tree
+    // folder tree -- https://github.com/Erffun/JsonTree
     $.getJSON('json/folderlist2/?server=0&parent=', function(data) {
         console.log('fl2', data);
         $('#foldertree2').jsonTree(data, {
@@ -65,7 +65,7 @@ $(document).ready(function() {
         // html used for the navigation above the message list
         var navht = ' \
 <form class="msgnav" action="msglist/" method="get" onSubmit="return false;"> \
-    <input type="text" readonly="readonly" value="INBOX" class="foldersel" /> \
+    <input type="text" readonly="readonly" value="INBOX" class="foldersel ui-widget" /> \
     <button \
         class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" \
         onclick="$(\'#msglist .pagesel\').firstPage();"> \
@@ -89,39 +89,42 @@ $(document).ready(function() {
         onclick="$(\'#msglist .pagesel\').lastPage(); return false;"> \
             <span class="ui-icon ui-icon-arrowthickstop-1-e"></span> \
     </button> \
-    Msgs Per Page: \
-    <select class="perpagesel ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"> \
+    <select title="Messages To Show Per Page" \
+        class="perpagesel ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"> \
         <option selected="selected">10</option> \
         <option>20</option> \
         <option>40</option> \
         <option>50</option> \
     </select> \
-    Sort: \
-    <select class="sortordersel ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"> \
+    <select title="Sort Direction" \
+        class="sortordersel ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"> \
         <option>Asc</option> \
         <option selected="selected">Desc</option> \
     </select> \
-    <input id="msgsearch" type="text" class="ui-widget " /> \
+    <input id="msgsearch" type="text" class="ui-widget" /> \
     <button id="searchsubmit" \
-        class="ui-widget ui-state-default ui-widget ui-corner-all ui-button-text-only"> \
-        Search \
+        class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"> \
+        <span class="ui-button-text">Search</span> \
     </button> \
 </form> \
             ';
 // TODO filters (unread, marked, etc)
-        var tableht = '<table><tr> \
-            <th><input type="checkbox" /></th> \
-            <th style="width:60%">Subject</th> \
-            <th style="width:20%">From</th> \
-            <th style="width:14%">Date</th> \
-            <th style="width:5%">Size</th>\
-            </tr></table>';
+        var tableht = ' \
+<table class="ui-datatable"> \
+    <tr class="ui-tabs-nav ui-helper-reset ui-widget-header ui-corner-all"> \
+        <th><input type="checkbox" /></th> \
+        <th>Subject</th> \
+        <th>From</th> \
+        <th style="width:13em">Date</th> \
+        <th>Size</th>\
+    </tr> \
+</table>';
 
         $cnt.append(navht);
 
         $cnt.append(tableht);
 
-        $('#msglist th').addClass('ui-corner-all');
+        //$('#msglist th').addClass('ui-corner-all');
 
         var $foldersel = $cnt.find('.foldersel'),
             $pagesel = $cnt.find('.pagesel'),
@@ -202,7 +205,7 @@ $(document).ready(function() {
                 for(var uid in j['msglist']) {
                     msg = j['msglist'][uid];
                     console.log('168', uid, msg);
-                    var rclass = 'odd';
+                    var rclass = 'odd ui-state-highlight';
                     if(uid % 2 == 0)
                         rclass = 'even';
                     // handle flags
@@ -326,3 +329,4 @@ dw.updateFolderCounts = function(d) {
         
     });
 };
+
