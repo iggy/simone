@@ -262,6 +262,9 @@ $(document).ready(function() {
 
                     dw.dialog.viewmsg = $('<div></div>').append('body');
                     $(dw.dialog.viewmsg).load('viewmsg/' + server + '/' + folder + '/' + uid + '/').dialog(options);
+                    
+                    $(this).removeClass('msgunseen');
+                    $(this).addClass('msgseen');
                 });
                 $('tr.msg').hover(
                     function() { $(this).addClass('msghover'); },

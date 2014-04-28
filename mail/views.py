@@ -1,5 +1,5 @@
 # Create your views here.
-import email
+import email, quopri
 from pprint import pprint
 import string
 
@@ -133,8 +133,14 @@ def viewmsg(request, server, folder, uid):
 
     i.select_folder(folder)
 
-    mailbody = i.fetch([uid], ['BODY[]'])
-    mailmsg = email.message_from_string(mailbody[uid]['BODY[]'])
+    mailbody = i.fetch([uid], ['BODY', 'BODY[]'])
+    mailstr = mailbody[uid]['BODY[]']
+    debug(mailbody[uid]['BODY'], len(mailbody[uid]['BODY']))
+    if len(mailbody[uid]['BODY']) > 2 and mailbody[uid]['BODY'][2][1] == u'utf-8':
+        mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'replace')
+    elif mailbody[uid]['BODY'][0][0][2][1] == u'utf-8':
+        mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'replace')
+    mailmsg = email.message_from_string(mailstr.decode('quopri'))
     
     debug(folder, uid, folder)
 
