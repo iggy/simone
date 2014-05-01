@@ -370,6 +370,12 @@ def action(request, action):
             rtext = server.add_flags([uid], [imapclient.FLAGGED])
         except:
             rstat = 'FAILURE'
+    elif action == 'markdeleted':
+        try:
+            uid = request.GET.get('uid')
+            rtext = server.delete_messages([uid])
+        except:
+            rstat = 'FAILURE'
 
 
     return HttpResponse(simplejson.dumps({'status':rstat, 'msg':rtext}))

@@ -1,14 +1,75 @@
 <div class="msgtoolbar">
 <!-- 	<a href="#" onclick="YAHOO.dw.msglist.init({}, {server:0, folder:'{{ folder }}' });"><img src="/site_media/images/go-up.png" alt="Up To Parent Folder" title="Up To Parent Folder" /></a> -->
-	<a href="#"><img src="/site_media/images/mail-reply-sender.png" alt="Reply To Sender" title="Reply To Sender" /></a>
-	<a href="#"><img src="/site_media/images/mail-reply-all.png" alt="Reply To All" title="Reply To All" /></a>
-	<a href="#"><img src="/site_media/images/mail-replylist.png" alt="Reply To List" title="Reply To List" /></a>
-	<a href="#"><img src="/site_media/images/mail-forward.png" alt="Forward" title="Forward" /></a>
-	<a href="#"><img src="/site_media/images/mail-delete.png" alt="Delete" title="Delete" /></a>
+	<a href="#">
+		<img src="/site_media/images/mail-reply-sender.png" alt="Reply To Sender" 
+			title="Reply To Sender" />
+	</a>
+	<a href="#">
+		<img src="/site_media/images/mail-reply-all.png" alt="Reply To All" 
+			title="Reply To All" />
+	</a>
+	<a href="#">
+		<img src="/site_media/images/mail-replylist.png" alt="Reply To List" 
+			title="Reply To List" />
+	</a>
+	<a href="#">
+		<img src="/site_media/images/mail-forward.png" alt="Forward" 
+			title="Forward" />
+	</a>
+	<a href="#">
+		<img src="/site_media/images/mail-delete.png" alt="Delete" 
+			title="Delete" />
+	</a>
+	<button 
+		title="Reply To Sender" 
+        class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" 
+        onclick="dw.dialog.reply(event, 'sender', '{{ server }}', '{{ folder }}', '{{ uid }}');"> 
+            <span class="ui-button-text">Reply</span> 
+    </button>
+	<button 
+		title="Reply To All" 
+        class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" 
+        onclick="dw.dialog.reply(event, 'all', '{{ server }}', '{{ folder }}', '{{ uid }}');"> 
+            <span class="ui-button-text">All</span> 
+    </button>
+	<button 
+		title="Reply To List" 
+        class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" 
+        onclick="dw.dialog.reply(event, 'list', '{{ server }}', '{{ folder }}', '{{ uid }}');"> 
+            <span class="ui-button-text">List</span> 
+    </button>
+	<button 
+		title="Forward Message" 
+        class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" 
+        onclick="dw.dialog.forward(event, 'forward', '{{ server }}', '{{ folder }}', '{{ uid }}');"> 
+            <span class="ui-button-text">Forward</span> 
+    </button>
+	<button 
+		title="Delete Message" 
+        class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" 
+        onclick="dw.viewmsg.markmsg(event, 'deleted', '{{ server }}', '{{ folder }}', '{{ uid }}');"> 
+            <span class="ui-button-text">Delete</span> 
+    </button>
 	Mark As: 
-	<a href="#" onclick="dw.viewmsg.markmsg('read', '{{ server }}', '{{ folder }}', '{{ uid }}'); $('#msglist .foldersel').change(); return false;">Read</a>
-	<a href="#" onclick="dw.viewmsg.markmsg('unread', '{{ server }}', '{{ folder }}', '{{ uid }}'); $('#msglist .foldersel').change(); return false;">Unread</a>
-	<a href="#" onclick="dw.viewmsg.markmsg('important', '{{ server }}', '{{ folder }}', '{{ uid }}'); $('#msglist .foldersel').change(); return false;">Important</a>
+	<button 
+		title="Mark Message Read" 
+        class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" 
+        onclick="dw.viewmsg.markmsg(event, 'read', '{{ server }}', '{{ folder }}', '{{ uid }}');"> 
+            <span class="ui-icon ui-icon-mail-open"></span> 
+    </button>
+	<button 
+		title="Mark Message Unread" 
+        class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" 
+        onclick="dw.viewmsg.markmsg(event, 'unread', '{{ server }}', '{{ folder }}', '{{ uid }}');"> 
+            <span class="ui-icon ui-icon-mail-closed"></span> 
+    </button>
+	<button 
+		title="Mark Message Important" 
+        class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" 
+        onclick="dw.viewmsg.markmsg(event, 'important', '{{ server }}', '{{ folder }}', '{{ uid }}');"> 
+            <span class="ui-icon ui-icon-notice"></span> 
+    </button>
+
 </div>
 <div class="message" id="message">
 	<div class="mailheader">

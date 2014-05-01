@@ -46,16 +46,16 @@ $(document).ready(function() {
 });
 
 /*
- * jQuery server side datatable plugin 0.1
+ * jQuery server side datatable plugin
  *
  * Copyright (c) 2009 Brian Jackson <iggy@theiggy.com>
  *
  * A datatable plugin that does all the searching, sorting, pagination, etc. on
- * the server. This was written mainly for Django-Webmail, which uses an IMAP
+ * the server. This was written mainly for Simone, which uses an IMAP
  * backend. The IMAP server will almost always be better at sorting, searching,
- * etc. It could eventually be generalized to be useful to others.
+ * etc.
  *
- * Licensed under same license as django-webmail (i.e. BSD)
+ * Licensed under same license as Simone (i.e. BSD)
  */
 ;(function($) {
     $.fn.srvDatatable = function() {
@@ -84,7 +84,7 @@ $(document).ready(function() {
         onclick="$(\'#msglist .pagesel\').nextPage(); return false;"> \
             <span class="ui-icon ui-icon-arrowthick-1-e"></span> \
     </button> \
-    <button \
+    <button id="lastPageButton" \
         class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" \
         onclick="$(\'#msglist .pagesel\').lastPage(); return false;"> \
             <span class="ui-icon ui-icon-arrowthickstop-1-e"></span> \
@@ -104,7 +104,7 @@ $(document).ready(function() {
     <input id="msgsearch" type="text" class="ui-widget" /> \
     <button id="searchsubmit" \
         class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"> \
-        <span class="ui-button-text">Search</span> \
+        <span class="ui-button">Search</span> \
     </button> \
 </form> \
             ';
@@ -141,6 +141,13 @@ $(document).ready(function() {
         $searchsubmit.click(update);
 
         update();
+        
+        // setup the checkboxes
+        $('#msglist th input[type=checkbox]').click(function(event) {
+            // clicked the table header checkbox, so check all the visible boxes
+            console.log('th checkbox click', event);
+            $('#msglist input[type=checkbox]').val(event.currentTarget.checked);
+        });
 
         function getUrl() {
             var url = $cnt.find('.msgnav').attr('action') + // form action specifies the base of the url
@@ -156,29 +163,29 @@ $(document).ready(function() {
             return url;
         };
         
-        function firstPage() {
+        function firstPage(e) {
             console.log("first page", this);
+            e.preventDefault();
             $pagesel.val('1');
             update();
-            return false;
         };
-        function prevPage() {
+        function prevPage(e) {
             console.log("prev page", this);
+            e.preventDefault();
             $pagesel.val($pagesel.val()-1);
             update();
-            return false;
         };
-        function nextPage() {
+        function nextPage(e) {
             console.log("next page", this);
+            e.preventDefault();
             $pagesel.val($pagesel.val()+1);
             update();
-            return false;
         };
-        function lastPage() {
+        function lastPage(e) {
             console.log("last page", this);
+            e.preventDefault();
             $pagesel.val('1');
             update();
-            return false;
         };
         function update() {
             $.getJSON(getUrl(), function(data) {
@@ -190,6 +197,12 @@ $(document).ready(function() {
                 $pagesel.empty();
                 console.log(j['totalmsgs'], $perpagesel.val(), 
                     Math.ceil(j['totalmsgs'] / $perpagesel.val()));
+                $('#lastPageButton').click(function(event) {
+                    console.log('lastPageButton click', event);
+                    $pagesel.val(Math.max(Math.ceil(j['totalmsgs'] / $perpagesel.val()), 1));
+                    $pagesel.change();
+                    event.preventDefault();
+                });
                 for(var i = 1 ; i <= Math.max(Math.ceil(j['totalmsgs'] / $perpagesel.val()), 1) ; i++) {
                     var selht = '';
                     if($sortordersel.val().charAt(0) == "A" && i == Math.ceil(j['stop']/$perpagesel.val()))
@@ -279,16 +292,19 @@ $(document).ready(function() {
     };
 }(jQuery));
 
-dw.viewmsg.markmsg = function(how, server, folder, uid) {
+dw.viewmsg.markmsg = function(e, how, server, folder, uid) {
+    console.log(e, how, server, folder, uid, this);
+    e.preventDefault();
     $.getJSON('action/mark'+how+'/?server='+server+'&folder='+folder+'&uid='+uid, function(j) {
-        console.log(this, j);
+        console.log('markmsg json callback', this, j);
+        $('#msglist .foldersel').change();
     });
 };
 
 dw.dialog.compose = function() {
     $('body').append('<div id="compose" class="hidden"></div>');
     $('#compose').load('newmail/', function(j) {
-        console.log(this, j);
+        console.log('compose callback', this, j);
         
         $('#compose').dialog({'width':'auto'});
     });
@@ -297,7 +313,7 @@ dw.dialog.compose = function() {
 dw.dialog.prefs = function() {
     $('body').append('<div id="prefs" class="hidden"></div>');
     $('#prefs').load('prefs/', function(j) {
-        console.log(this, j);
+        console.log('prefs dialog callback', this, j);
         
         $('#prefs').dialog({'width':'auto'});
         
@@ -307,16 +323,16 @@ dw.dialog.prefs = function() {
 
 dw.addSMTP = function(form) {
     
-    console.log(form);
+    console.log('addSMTP', form);
 };
 
 dw.sendMsg = function(form) {
-    console.log(form);
+    console.log('sendMsg', form);
 };
 
 dw.visfolders = [];
 dw.updateFolderCounts = function(d) {
-    console.log(d);
+    console.log('updateFolderCounts', d);
     
     dw.visfolders = [];
     $('#foldertree2  > ul > li > span').each(function(d) {

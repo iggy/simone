@@ -3,4 +3,5 @@ form.msgnav{padding:6px 0px;}
 .ui-treeview ul{padding-left:15px;margin:0px}
 .ui-datatable {font-size:60%;}
 .ui-datatable td{padding-right:6px;}
-.msgnav .ui-widget{font-size:.8em;}
+.msgnav .ui-widget, #checkedTools button, #checkedTools select {font-size:.8em;padding:.2em .4em}
+/*select.ui-widget,input.ui-widget{padding:.4em 1em;}*/ /* make these more in line with buttons */
