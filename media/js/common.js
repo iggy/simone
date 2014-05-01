@@ -236,9 +236,9 @@ $(document).ready(function() {
                     console.log("regex5", r.exec(msg['from']));
 
                     $tbl.append(' \
-<tr class="msg ' + rclass + '" id="msg-' + msg['uid'] + '"> \
+<tr class="msg ' + rclass + '"> \
     <td><input type="checkbox" /></td> \
-    <td class="subject' + fclass + '">' + msg['subject'] + '</td> \
+    <td class="subject' + fclass + '" id="msg-' + msg['uid'] + '">' + msg['subject'] + '</td> \
     <td>' + msg['from'] + '</td> \
     <td>' + msg['date'] + '</td> \
     <td>' + Math.round((msg['size']/1024)*10)/10 + 'K</td> \
@@ -247,7 +247,7 @@ $(document).ready(function() {
                 }
 
                 // msg listener
-                $('tr.msg').click(function(e) {
+                $('tr.msg td.subject').click(function(e) {
                     console.log(this, e, this.id.replace('msg-', ''), $(window).width(), $(window).height());
 
                     if(e.which==2) {
