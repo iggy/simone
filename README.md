@@ -35,6 +35,6 @@ Requirements:
 (NOTE: do not intall imaplib2)
 
 Uses:
-jQuery
-jQueryUI (including the overcast theme)
-JsonTree (https://github.com/Erffun/JsonTree)
+* jQuery
+* jQueryUI (including the overcast theme)
+* JsonTree (https://github.com/Erffun/JsonTree)
