@@ -1,20 +1,17 @@
 # Create your views here.
 import email, quopri
 from pprint import pprint
-import string
 
 from django.shortcuts import render_to_response, HttpResponse
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
 
 def debug(*args):
     #return
     print ">>>>>>"
-    for d in args:
-        pprint(d)
+    for arg in args:
+        pprint(arg)
     print "<<<<<<"
 
 try:
@@ -27,10 +24,11 @@ import json as simplejson
 @login_required
 def index(request):
     """main index view
-    
+
     :param request: request object from Django
     """
-    # if they haven't filled in their options, we won't have much luck connecting to their mail server
+    # if they haven't filled in their options, we won't have much luck 
+    # connecting to their mail server
     try:
         if request.user.imap_servers.all()[0].username == None:
             pass
@@ -62,20 +60,20 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     srvr = request.user.imap_servers.all()[server]
     #pprint(srvr)
 
-    s = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
-    s.login(srvr.username, srvr.passwd)
+    imap = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
+    imap.login(srvr.username, srvr.passwd)
     debug(s)
-    folder_info = s.select_folder(folder)
+    folder_info = imap.select_folder(folder)
     debug(folder_info)
     
     if search == "":
         search = u'ALL'
-    tofetch = s.sort("ARRIVAL", search)
+    tofetch = imap.sort("ARRIVAL", search)
     
     nummsgs = len(tofetch)
     
     start = int(page) * int(perpage) - int(perpage) + 1
-    stop =  int(page) * int(perpage)
+    stop = int(page) * int(perpage)
 
     if stop > nummsgs:
         stop = nummsgs
@@ -89,7 +87,7 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     # we just need the headers for the msglist
     msglst = {}
     
-    fetched = s.fetch(tofetch[start:stop], ['UID', 'FLAGS', 'INTERNALDATE', 'BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)]', 'RFC822.SIZE'])
+    fetched = imap.fetch(tofetch[start:stop], ['UID', 'FLAGS', 'INTERNALDATE', 'BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)]', 'RFC822.SIZE'])
     
     for uid in fetched:
         try:
@@ -108,7 +106,7 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
             # be), but we should likely retry or adjust the message list in the future
             pass
     
-    s.logout()
+    imap.logout()
 
     return HttpResponse(simplejson.dumps({'totalmsgs': nummsgs, 'start': start, 'stop': stop, 'msglist': msglst}))
     #return HttpResponse(simplejson.dumps({'totalmsgs': len(msglst), 'start': start, 'stop': stop, 'msglist': msglst}))
@@ -166,7 +164,7 @@ def prefs(request):
     :param request: request object from Django
     """
     from mail.forms import SmtpServerForm
-    smtpform = SmtpServerForm(initial={'address':'localhost','port':'25'})
+    smtpform = SmtpServerForm(initial={'address':'localhost', 'port':'25'})
     return render_to_response('mail/config/prefs.html', locals(), context_instance=RequestContext(request))
 
 @login_required
@@ -228,12 +226,12 @@ def config(request, action):
     if action == "newconfig" or action == "newIMAPform":
         """display new IMAP form"""
         # we already know they don't have anything in the database, just show them a blank form
-        iform = ImapServerForm(initial={'address':'localhost','port':'143'})
+        iform = ImapServerForm(initial={'address':'localhost', 'port':'143'})
         srvtype = "IMAP"
 
     elif action == "newSMTPform":
         """display new SMTP form"""
-        sform = SmtpServerForm(initial={'address':'localhost','port':'25'})
+        sform = SmtpServerForm(initial={'address':'localhost', 'port':'25'})
         srvtype = "SMTP"
 
     elif action == "addnew":
@@ -244,11 +242,11 @@ def config(request, action):
 
         # we are adding some new configuration
         iform = ImapServerForm(request.POST)
-        i = request.user.imap_servers.create(address = request.POST.get('address'),
-                        port = request.POST.get('port'),
-                        username = request.POST.get('username'),
-                        passwd = request.POST.get('passwd'),
-                        ssl = request.POST.get('ssl'))
+        i = request.user.imap_servers.create(address=request.POST.get('address'),
+                        port=request.POST.get('port'),
+                        username=request.POST.get('username'),
+                        passwd=request.POST.get('passwd'),
+                        ssl=request.POST.get('ssl'))
         i.save()
 
         return HttpResponseRedirect('/mail/')
@@ -257,10 +255,10 @@ def config(request, action):
         """save new SMTP config"""
         sform = SmtpServerForm(request.POST)
         s = request.user.smtp_servers.create(
-                        address = request.POST.get('address'),
-                        port = request.POST.get('port'),
-                        username = request.POST.get('username'),
-                        passwd = request.POST.get('passwd'))
+                        address=request.POST.get('address'),
+                        port=request.POST.get('port'),
+                        username=request.POST.get('username'),
+                        passwd=request.POST.get('passwd'))
         s.save()
         return HttpResponse(simplejson.dumps({'status':'OK'}))
 
@@ -278,16 +276,16 @@ def config(request, action):
         """tbh, not even sure how this would get hit"""
         # default action / index
         imapsrvs = request.user.imap_servers.all()
-        # the code below uses newforms, but these forms are so short it turned 
+        # the code below uses newforms, but these forms are so short it turned
         # out working better to just hand code them
 
-    return render_to_response('mail/config/'+action+'.html', locals(), 
+    return render_to_response('mail/config/'+action+'.html', locals(),
         context_instance=RequestContext(request))
 
 @login_required
 def json(request, action):
     """return data to the browser as json data
-    
+
     :param request: request object from Django
     :param action: what data the browser requested
     """
@@ -312,12 +310,12 @@ def json(request, action):
         jstreefolders = []
         for flags, delim, folder in flist:
             #debug(flags, delim, folder)
-            fd = {'ItemId':folder,'Title':folder.split(delim)[-1]}
+            fd = {'ItemId':folder, 'Title':folder.split(delim)[-1]}
             if u'\\HasChildren' in flags:
                 fd.update({'HasSubItem':True})
             #debug(fd)
             jstreefolders.append(fd)
-            
+
         #debug(jstreefolders)
         
         # FIXME use list of subscribed folders
