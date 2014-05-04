@@ -43,6 +43,7 @@ $(document).ready(function() {
     
     // hide the spinner
     $('#spinner').hide();
+    $('#serverMessage').hide();
 });
 
 /*
@@ -146,7 +147,10 @@ $(document).ready(function() {
         $('#msglist th input[type="checkbox"]').click(function(event) {
             // clicked the table header checkbox, so check all the visible boxes
             console.log('th checkbox click', event);
-            $('#msglist input[type="checkbox"]').checked(event.currentTarget.checked);
+            isChecked = event.currentTarget.checked;
+            $('#msglist input[type="checkbox"]').each(function(index) {
+                $(this)[0].checked = isChecked;
+            });
         });
 
         function getUrl() {
@@ -189,34 +193,38 @@ $(document).ready(function() {
         };
         function update() {
             $.getJSON(getUrl(), function(data) {
-                console.log('get msglist callback');
-                j = eval(data);
-                console.log('j = ', j);
+                console.log('get msglist callback', data);
+                
+                if(data['status'] == 'ERROR') {
+                    $('#serverMessage').html('Error searching: <br />' + data['message']);
+                    $('#serverMessage').removeClass('ui-state-highlight').addClass('ui-state-error').show().delay(5000).hide(500);
+                    return;
+                }
 
                 // fill pagesel
                 $pagesel.empty();
-                console.log(j['totalmsgs'], $perpagesel.val(), 
-                    Math.ceil(j['totalmsgs'] / $perpagesel.val()));
+                console.log(data['totalmsgs'], $perpagesel.val(), 
+                    Math.ceil(data['totalmsgs'] / $perpagesel.val()));
                 $('#lastPageButton').click(function(event) {
                     console.log('lastPageButton click', event);
-                    $pagesel.val(Math.max(Math.ceil(j['totalmsgs'] / $perpagesel.val()), 1));
+                    $pagesel.val(Math.max(Math.ceil(data['totalmsgs'] / $perpagesel.val()), 1));
                     $pagesel.change();
                     event.preventDefault();
                 });
-                for(var i = 1 ; i <= Math.max(Math.ceil(j['totalmsgs'] / $perpagesel.val()), 1) ; i++) {
+                for(var i = 1 ; i <= Math.max(Math.ceil(data['totalmsgs'] / $perpagesel.val()), 1) ; i++) {
                     var selht = '';
-                    if($sortordersel.val().charAt(0) == "A" && i == Math.ceil(j['stop']/$perpagesel.val()))
+                    if($sortordersel.val().charAt(0) == "A" && i == Math.ceil(data['stop']/$perpagesel.val()))
                         selht = ' selected="selected"';
-                    if($sortordersel.val().charAt(0) == "D" && i == Math.floor(j['totalmsgs']/$perpagesel.val() - j['stop']/$perpagesel.val()) + 1)
+                    if($sortordersel.val().charAt(0) == "D" && i == Math.floor(data['totalmsgs']/$perpagesel.val() - data['stop']/$perpagesel.val()) + 1)
                         selht = ' selected="selected"';
                     $pagesel.append('<option'+selht+'>' + i + '</option>');
                 }
 
                 // fill the msglist table
                 $tbl.find('tr:not(:first)').remove();
-                console.log(j['msglist'].length);
-                for(var uid in j['msglist']) {
-                    msg = j['msglist'][uid];
+                console.log(data['msglist'].length);
+                for(var uid in data['msglist']) {
+                    msg = data['msglist'][uid];
                     console.log('168', uid, msg);
                     var rclass = 'odd ui-state-highlight';
                     if(uid % 2 == 0)
@@ -323,7 +331,7 @@ dw.dialog.prefs = function() {
         
         $('#prefs').dialog({'width':'auto'});
         
-        $('#tabs').tabs();
+        $('#prefstabs').tabs();
     });
 };
 

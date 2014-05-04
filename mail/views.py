@@ -2,9 +2,10 @@
 import email
 import json
 import smtplib
+import sys
 from pprint import pprint
 
-from django.shortcuts import render_to_response, HttpResponse
+from django.shortcuts import render, render_to_response, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
@@ -64,7 +65,11 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     
     if search == "":
         search = u'ALL'
-    tofetch = imap.sort("ARRIVAL", search)
+    try:
+        tofetch = imap.sort("ARRIVAL", search)
+    except:
+        exctype, value = sys.exc_info()[:2]
+        return HttpResponse(json.dumps({'status': 'ERROR', 'message': str(value)}))
     
     nummsgs = len(tofetch)
     
@@ -127,15 +132,12 @@ def viewmsg(request, server, folder, uid):
 
     mailbody = i.fetch([uid], ['BODY', 'BODY[]'])
     mailstr = mailbody[uid]['BODY[]']
-    debug(mailbody[uid]['BODY'], len(mailbody[uid]['BODY']))
     if len(mailbody[uid]['BODY']) > 2 and mailbody[uid]['BODY'][2][1] == u'utf-8':
         mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'replace')
     elif len(mailbody[uid]['BODY']) <= 2 and mailbody[uid]['BODY'][0][0][2][1] == u'utf-8':
         mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'replace')
     mailmsg = email.message_from_string(mailstr.decode('quopri'))
     
-    debug(folder, uid, folder)
-
     if not mailmsg.is_multipart():
         body = mailmsg.get_payload()
     else:
@@ -144,12 +146,11 @@ def viewmsg(request, server, folder, uid):
                 body = part.get_payload().decode('quopri_codec')
 
     i.logout()
-    debug(body)
     
     if request.GET.get('json') == "true":
         return HttpResponse(json.dumps({'headers':mailmsg.items(), 'body':body}))
 
-    return render_to_response('mail/viewmsg.html', locals())
+    return render(request, 'mail/viewmsg.html', {'mailmsg':mailmsg, 'body':body})
 
 @login_required
 def prefs(request):
