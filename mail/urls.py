@@ -9,7 +9,7 @@ urlpatterns = patterns('simone.mail.views',
     url(r'newmail/', 'newmail'),
     url(r'send/$', 'send'),
     url(r'config/(?P<action>.*?)/$', 'config'),
-    url(r'json/(?P<action>.*?)/$', 'json'),
+    url(r'json/(?P<action>.*?)/$', 'jsonview'),
     url(r'action/(?P<action>.*?)/$', 'action'),
     url(r'prefs/$', 'prefs'),
 )

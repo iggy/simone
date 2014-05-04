@@ -14,11 +14,12 @@
     </div>
     <div id="tab2">
         <h2>SMTP Settings</h2>
-        <form method="post" action="/mail/config/addnewsmtp/" onsubmit="dw.addSMTP(this);">
+        <form method="post" action="/mail/config/addnewsmtp/" onsubmit="dw.addSMTP(event, this);">
             {% csrf_token %}
             <table>
                 {{ smtpform }}
             </table>
-            <input type="submit" value="Submit" />
+            <input class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text" 
+                type="submit" value="Submit" />
         </form>
     </div>

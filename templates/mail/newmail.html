@@ -2,19 +2,37 @@
 
 <!--<button type="button" id="toggleEditor" onclick="YAHOO.dw.newmail.initRTE();">Toggle Rich Text Editor</button>-->
 
-<form method="post" action="/mail/send/" onsubmit="dw.sendMail(this); return false;">
+<form method="post" action="/mail/send/" onsubmit="dw.sendMail(event, this);">
     {% csrf_token %}
-	<label for="newmailfrom">From: </label>
-    <input type="text" name="newmailfrom" id="newmailfrom" value="iggy@theiggy.org" /><br />
-	<label for="newmailto">To: </label>
-    <input type="text" name="newmailto" id="newmailto" value="brian@3mb.com" /><br />
-<!-- 	<label for="newmailcc">CC: </label><input type="text" name="newmailcc" id="newmailcc" /><br /> -->
-	<label for="newmailsubject">Subject: </label>
-    <input type="text" name="newmailsubject" id="newmailsubject" value="test" /><br />
-	<textarea name="editor" id="editor" style="height: 250px; width: 500px;">
-    Test from django-webmail
-    </textarea><br />
+	<table>
+		<tr>
+			<td><label for="newmailfrom">From: </label></td>
+			<td><input type="text" name="newmailfrom" id="newmailfrom" value="The Iggy &lt;iggy@theiggy.com&gt;" /></td>
+		</tr>
+		<tr>
+			<td><label for="newmailto">To: </label></td>
+			<td><input type="text" name="newmailto" id="newmailto" value="Brian Jackson &lt;brian@3mb.us&gt;" /></td>
+		</tr>
+		<tr>
+			<td><label for="newmailcc">CC: </label>
+			<td><input type="text" name="newmailcc" id="newmailcc" /></td>
+		</tr>
+		<tr>
+			<td><label for="newmailsubject">Subject: </label></td>
+			<td><input type="text" name="newmailsubject" id="newmailsubject" value="test" /><br /></td>
+		</tr>
+		<tr>
+			<td colspan=2"><textarea name="editor" id="editor">Test from django-webmail</textarea></td>
+		</tr>
+		<tr>
+			<td colspan=2">
+				<button title="Send" onclick="dw.sendMail(event, this);"
+				class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only">
+					<span class="ui-button-text">Send</span> 
+				</button>
+			</td>
+		</tr>
+	</table>
 	<input type="hidden" id="usingRTE" name="usingRTE" value="false" />
-	<input type="submit" value="Send" />
 </form>
 

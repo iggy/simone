@@ -1,5 +1,7 @@
 # Create your views here.
-import email, quopri
+import email
+import json
+import smtplib
 from pprint import pprint
 
 from django.shortcuts import render_to_response, HttpResponse
@@ -18,8 +20,6 @@ try:
     import imapclient
 except:
     print "imapclient module not available, please install it (pip install imapclient)"
-
-import json as simplejson
 
 @login_required
 def index(request):
@@ -55,16 +55,12 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     :param sortdir: direction to sort (asc, desc)
     :param search: search terms (urlencoded)
     """
-    debug("args:", server, folder, page, perpage, sortc, sortdir, search)
     server = int(server)
     srvr = request.user.imap_servers.all()[server]
-    #pprint(srvr)
 
     imap = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
     imap.login(srvr.username, srvr.passwd)
-    debug(s)
     folder_info = imap.select_folder(folder)
-    debug(folder_info)
     
     if search == "":
         search = u'ALL'
@@ -78,11 +74,9 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     if stop > nummsgs:
         stop = nummsgs
     
-    debug(start, stop, sortdir)
     if sortdir == u'D':
         start = nummsgs - int(page) * int(perpage)
         stop = nummsgs - int(int(page) - 1) * int(perpage)
-    debug(start, stop)
     
     # we just need the headers for the msglist
     msglst = {}
@@ -93,6 +87,7 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
         try:
             m = fetched[uid]
             msg = email.message_from_string(m['BODY[HEADER.FIELDS (FROM SUBJECT)]'])
+            # TODO use email.email.Utils.parseaddr() to break up the from for pretty printing
             msglst[uid] = {
                 'uid': uid,
                 'flags': m['FLAGS'],
@@ -108,8 +103,7 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     
     imap.logout()
 
-    return HttpResponse(simplejson.dumps({'totalmsgs': nummsgs, 'start': start, 'stop': stop, 'msglist': msglst}))
-    #return HttpResponse(simplejson.dumps({'totalmsgs': len(msglst), 'start': start, 'stop': stop, 'msglist': msglst}))
+    return HttpResponse(json.dumps({'totalmsgs': nummsgs, 'start': start, 'stop': stop, 'msglist': msglst}))
 
 @login_required
 def viewmsg(request, server, folder, uid):
@@ -153,7 +147,7 @@ def viewmsg(request, server, folder, uid):
     debug(body)
     
     if request.GET.get('json') == "true":
-        return HttpResponse(simplejson.dumps({'headers':mailmsg.items(), 'body':body}))
+        return HttpResponse(json.dumps({'headers':mailmsg.items(), 'body':body}))
 
     return render_to_response('mail/viewmsg.html', locals())
 
@@ -175,44 +169,63 @@ def newmail(request):
     """
     # TODO need to figure out what email addresses they are allowed to use as from:
     # TODO also change the whole sending email to use newforms
+    # FIXME don't return a form if they don't have any smtp server setup
     return render_to_response('mail/newmail.html', locals(), context_instance=RequestContext(request))
 
 @login_required
 def send(request):
-    """send an email from the browser
+    """send an email from the browser and put a copy in Sent Messages
     
     :param request: request object from Django
     """
     from django.core.mail import send_mail, BadHeaderError#, EmailMultiAlternatives
-    from smtplib import SMTPAuthenticationError
+    
+    debug(request.user.smtp_servers.all(), request.user.imap_servers.all())
+    
+    ssrv = request.user.smtp_servers.all()[0] # FIXME which server?
+    isrv = request.user.imap_servers.all()[0] # FIXME which server?
 
     # attempt to send the mail
     subject = request.POST.get('newmailsubject', '')
     message = request.POST.get('editor', '')
     mailfrom = request.POST.get('newmailfrom', '') # TODO should actually get their default from
     mailto = request.POST.get('newmailto', '')
+    mailcc = request.POST.get('newmailcc', '')
 
     if request.POST.get('usingRTE') == "true":
-        message = '<html><head></head>' + message + '</html>'
+        message = '<html><head></head><body>' + message + '</body></html>'
+
+    emsg = email.mime.text.MIMEText(message)
+    emsg['Subject'] = subject
+    emsg['From'] = mailfrom
+    emsg['To'] = mailto
+    emsg['CC'] = mailcc
+    emsg['User-Agent'] = 'Simone Webmail'
+    emsg
 
     if subject and message and mailfrom and mailto:
         try:
-            debug(request, request.user, request.user.smtp_servers, request.user.smtp_servers.all())
-            send_mail(subject, message, mailfrom, [mailto], 
-                auth_user=request.user.smtp_servers.all()[0].username, 
-                auth_password=request.user.smtp_servers.all()[0].passwd)
-            # FIXME send plain text part as well as html part
-            #msg = EmailMultiAlternatives(subject, message, mailfrom, [mailto])
-            #if request.POST.get('usingRTE') == "true":
-                #msg.content_subtype = "html"
-            #msg.send(auth_user=request.user, auth_password=request.user.smtp_servers.all()[0].passwd)
-        except BadHeaderError:
-            return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid Header Found'}))
-        except SMTPAuthenticationError:
-            return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Invalid SMTP server settings'}))
-        return HttpResponse(simplejson.dumps({'status':'SUCCESS', 'message': 'Mail sent succesfully'})) # we can use short responses since we will only be submitting via ajax
+            debug(request, request.user, request.user.smtp_servers, request.user.smtp_servers.all(), emsg, emsg.as_string())
+            ss = smtplib.SMTP(host=ssrv.address, port=ssrv.port)
+            ss.set_debuglevel(1)
+            ss.starttls()
+            ss.login(ssrv.username, ssrv.passwd)
+            #ss.send_message(emsg) Python 3.2
+            ss.sendmail(emsg.get('From'), emsg.get_all('To'), str(emsg))
+            ss.quit()
+            # FIXME handle html/multipart email
+        except smtplib.SMTPAuthenticationError:
+            return HttpResponse(json.dumps({'status':'ERROR', 'message': 'Invalid SMTP server settings'}))
+
+        i = imapclient.IMAPClient(isrv.address, port=isrv.port, use_uid=False, ssl=isrv.ssl)
+        i.login(isrv.username, isrv.passwd)
+
+        i.select_folder('Sent')
+        resp = i.append('Sent', str(emsg), [imapclient.SEEN])
+        debug(resp)
+        return HttpResponse(json.dumps({'status':'SUCCESS', 'message': 'Mail sent succesfully'})) # we can use short responses since we will only be submitting via ajax
     else:
-        return HttpResponse(simplejson.dumps({'status':'ERROR', 'message': 'Fill in all fields'+subject+message+mailfrom+mailto}))
+        return HttpResponse(json.dumps({'status':'ERROR', 'message': 'Fill in all fields'+subject+message+mailfrom+mailto}))
 
 @login_required
 def config(request, action):
@@ -260,7 +273,7 @@ def config(request, action):
                         username=request.POST.get('username'),
                         passwd=request.POST.get('passwd'))
         s.save()
-        return HttpResponse(simplejson.dumps({'status':'OK'}))
+        return HttpResponse(json.dumps({'status':'OK'}))
 
     elif action == "edit":
         """change existing settings from a form"""
@@ -271,7 +284,7 @@ def config(request, action):
         if saction == "REMOVE":
             srv = request.user.imap_servers.remove(request.user.imap_servers.all()[whichsrv])
 
-        return HttpResponse(simplejson.dumps({'status':'OK'}))
+        return HttpResponse(json.dumps({'status':'OK'}))
     else:
         """tbh, not even sure how this would get hit"""
         # default action / index
@@ -283,7 +296,7 @@ def config(request, action):
         context_instance=RequestContext(request))
 
 @login_required
-def json(request, action):
+def jsonview(request, action):
     """return data to the browser as json data
 
     :param request: request object from Django
@@ -306,27 +319,22 @@ def json(request, action):
         flist.reverse()
         imap.logout()
         
-        debug(flist)
         jstreefolders = []
         for flags, delim, folder in flist:
-            #debug(flags, delim, folder)
             fd = {'ItemId':folder, 'Title':folder.split(delim)[-1]}
             if u'\\HasChildren' in flags:
                 fd.update({'HasSubItem':True})
-            #debug(fd)
             jstreefolders.append(fd)
 
-        #debug(jstreefolders)
-        
         # FIXME use list of subscribed folders
-        return HttpResponse(simplejson.dumps(jstreefolders))
+        return HttpResponse(json.dumps(jstreefolders))
 
     if action == "serverlist":
         srvlist = []
         i = 0
         for i, server in enumerate(uprof.imap_servers.all()):
             srvlist.append([i, server.address])
-        return HttpResponse(simplejson.dumps({'servers':srvlist}))
+        return HttpResponse(json.dumps({'servers':srvlist}))
 
 @login_required
 def action(request, action):
@@ -343,7 +351,7 @@ def action(request, action):
     try:
         my_imap_server = request.user.imap_servers.all()[server]
     except (IndexError, TypeError):
-        return HttpResponse(simplejson.dumps({'error':'Invalid server'}))
+        return HttpResponse(json.dumps({'error':'Invalid server'}))
 
     server = imapclient.IMAPClient(my_imap_server.address, use_uid=False, ssl=my_imap_server.ssl)
     server.login(my_imap_server.username, my_imap_server.passwd)
@@ -375,8 +383,9 @@ def action(request, action):
         except:
             rstat = 'FAILURE'
 
+    server.logout()
 
-    return HttpResponse(simplejson.dumps({'status':rstat, 'msg':rtext}))
+    return HttpResponse(json.dumps({'status':rstat, 'msg':rtext}))
 
 def escape(s, quote=None):
     '''replace special characters "&", "<" and ">" to HTML-safe sequences.

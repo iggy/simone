@@ -306,7 +306,13 @@ dw.dialog.compose = function() {
     $('#compose').load('newmail/', function(j) {
         console.log('compose callback', this, j);
         
-        $('#compose').dialog({'width':'auto'});
+        // Set a few style bits here that are calculated
+        // FIXME these values are pretty much pulled out of nowhere
+        $('#compose input[type=text]').width($(window).width()/2);
+        $('#editor').width($(window).width()-130);
+        $('#editor').height($(window).height()-300);
+        
+        $('#compose').dialog({'width':$(window).width()-30, 'height':$(window).height()-50});
     });
 };
 
@@ -321,13 +327,28 @@ dw.dialog.prefs = function() {
     });
 };
 
-dw.addSMTP = function(form) {
+dw.addSMTP = function(event, el) {
     
-    console.log('addSMTP', form);
+    console.log('addSMTP', event, el);
 };
 
-dw.sendMsg = function(form) {
-    console.log('sendMsg', form);
+dw.sendMail = function(event, el) {
+    event.preventDefault();
+    console.log('sendMail', event, el, $(el));
+    
+    form = $('#compose form');
+    fs = $(form).serialize();
+    console.log(fs);
+    $.post("send/", fs, function(data) {
+        console.log(data);
+        j = $.parseJSON(data);
+        if(j.status == "SUCCESS") {
+            $('#sendMailMsg').addClass('ui-state-highlight');
+        } else if(j.status == "ERROR") {
+            $('#sendMailMsg').addClass('ui-state-error');
+        }
+        $('#sendMailMsg').html('Status: ' + j.status + '<br />' + j.message);
+    })
 };
 
 dw.visfolders = [];
