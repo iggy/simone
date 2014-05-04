@@ -143,10 +143,10 @@ $(document).ready(function() {
         update();
         
         // setup the checkboxes
-        $('#msglist th input[type=checkbox]').click(function(event) {
+        $('#msglist th input[type="checkbox"]').click(function(event) {
             // clicked the table header checkbox, so check all the visible boxes
             console.log('th checkbox click', event);
-            $('#msglist input[type=checkbox]').val(event.currentTarget.checked);
+            $('#msglist input[type="checkbox"]').checked(event.currentTarget.checked);
         });
 
         function getUrl() {
