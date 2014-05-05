@@ -48,6 +48,7 @@ $(document).ready(function() {
     });
     
     // hide the spinner
+    $('#searchOptions').hide();
     $('#spinner').hide();
     $('#serverMessage').hide();
 });
@@ -262,7 +263,7 @@ $(document).ready(function() {
 
                 // msg listener
                 $('tr.msg td.subject').click(function(e) {
-                    console.log(this, e, this.id.replace('msg-', ''), $(window).width(), $(window).height());
+                    console.log('subject click', this, e, this.id.replace('msg-', ''), $(window).width(), $(window).height());
 
                     if(e.which==2) {
                         // open message in new tab if message was middle clicked
@@ -293,8 +294,8 @@ $(document).ready(function() {
                     dw.dialog.viewmsg = $('<div></div>').append('body');
                     $(dw.dialog.viewmsg).load('viewmsg/' + server + '/' + folder + '/' + uid + '/').dialog(options);
                     
-                    $(this).removeClass('msgunseen');
-                    $(this).addClass('msgseen');
+                    $(this).parent().removeClass('msgunseen');
+                    $(this).parent().addClass('msgseen');
                 });
                 $('tr.msg').hover(
                     function() { $(this).addClass('msghover'); },
@@ -335,6 +336,24 @@ dw.msglist.markmsg = function(e, how, server) {
     
     dw.updateFolderCounts();
 };
+// move or copy multiple messages from the msglist
+dw.msglist.mc = function(e, how) {
+    console.log(e, how);
+    e.preventDefault();
+    curfolder = $('#msglist .foldersel').val();
+    newfolder = $('#checkedFolder').val();
+    uids = []
+    $('#msglist tr > td input:checked').each(function(idx, el) { uids.push($(el).val()); });
+    uidso = {'uids': uids}
+    console.log(uidso, uids);
+    $.getJSON('action/mc'+how+'/?server=0&folder='+curfolder+'&newfolder='+newfolder+'&'+$.param(uidso), function(j) {
+        console.log('markmsg json callback', this, j);
+        $('#msglist .foldersel').change();
+    });
+    
+    $('#msglist .foldersel').delay(3000).change();
+};
+
 // load a new compose dialog
 dw.dialog.compose = function() {
     $('body').append('<div id="compose" class="hidden"></div>');

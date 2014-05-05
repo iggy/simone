@@ -40,6 +40,13 @@ def index(request):
     folder = "INBOX"
 
     defaultEditor = request.user.editor
+    
+    srvr = request.user.imap_servers.all()[0]
+    imap = imapclient.IMAPClient(srvr.address, port=srvr.port, use_uid=False, ssl=srvr.ssl)
+    imap.login(srvr.username, srvr.passwd)
+    folderlist = imap.list_folders()
+    folderlist.reverse()
+    imap.logout()
 
     return render_to_response('mail/main.html', locals())
 
@@ -67,7 +74,7 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     if search == "":
         search = u'ALL'
     try:
-        tofetch = imap.sort("ARRIVAL", search)
+        tofetch = imap.sort(['DATE', 'ARRIVAL'], search)
     except:
         exctype, value = sys.exc_info()[:2]
         return HttpResponse(json.dumps({'status': 'ERROR', 'message': str(value)}))
@@ -151,7 +158,14 @@ def viewmsg(request, server, folder, uid):
     if request.GET.get('json') == "true":
         return HttpResponse(json.dumps({'headers':mailmsg.items(), 'body':body}))
 
-    return render(request, 'mail/viewmsg.html', {'mailmsg':mailmsg, 'body':body})
+    data = {
+        'mailmsg':mailmsg,
+        'body':body,
+        'folder': folder,
+        'uid': uid,
+        'server': server,
+    }
+    return render(request, 'mail/viewmsg.html', data)
 
 @login_required
 def prefs(request):
@@ -379,9 +393,9 @@ def action(request, action):
     except (IndexError, TypeError):
         return HttpResponse(json.dumps({'error':'Invalid server'}))
 
-    server = imapclient.IMAPClient(my_imap_server.address, use_uid=False, ssl=my_imap_server.ssl)
-    server.login(my_imap_server.username, my_imap_server.passwd)
-    nummsgs = server.select_folder(folder)
+    imap = imapclient.IMAPClient(my_imap_server.address, use_uid=False, ssl=my_imap_server.ssl)
+    imap.login(my_imap_server.username, my_imap_server.passwd)
+    nummsgs = imap.select_folder(folder)
 
     if 'uid' in request.GET:
         uids = [ request.GET['uid'] ]
@@ -396,26 +410,51 @@ def action(request, action):
     rtext = "you suck at life"
     if action == 'markread':
         try:
-            rtext = server.add_flags(uids, [imapclient.SEEN])
+            rtext = imap.add_flags(uids, [imapclient.SEEN])
         except:
             rstat = 'FAILURE'
     elif action == 'markunread':
         try:
-            rtext = server.remove_flags(uids, [imapclient.SEEN])
+            rtext = imap.remove_flags(uids, [imapclient.SEEN])
         except:
             rstat = 'FAILURE'
     elif action == 'markimportant':
         try:
-            rtext = server.add_flags(uids, [imapclient.FLAGGED])
+            rtext = imap.add_flags(uids, [imapclient.FLAGGED])
         except:
             rstat = 'FAILURE'
     elif action == 'markdeleted':
         try:
-            rtext = server.delete_messages(uids)
+            rtext = imap.delete_messages(uids)
+            imap.expunge()
         except:
             rstat = 'FAILURE'
+    elif action == 'mccopy':
+        try:
+            newfolder = request.GET.get('newfolder', 'INBOX') # should be a safe default
+            rtext = imap.copy(uids, newfolder)
+        except:
+            rstat = 'FAILURE'
+    elif action == 'mcmove':
+        try:
+            newfolder = request.GET.get('newfolder', 'INBOX') # should be a safe default
+            debug(server, folder, newfolder, imap.capabilities())
+            # RFC 6851 is supported by my server, but not by python's imaplib
+            #if imap.has_capability(u'MOVE'):
+            #    rtext = imap.move(uids, newfolder)
+            #else:
+            #    raise # I'm lazy, if their server doesn't support move, neither do we
+            rtext1 = imap.copy(uids, newfolder)
+            rtext2 = imap.delete_messages(uids)
+            rtext3 = imap.expunge()
+            rtext.extend(rtext1)
+            rtext.extend(rtext2)
+            rtext.extend(rtext3)
+        except:
+            rstat = 'FAILURE'
+    
 
-    server.logout()
+    imap.logout()
 
     return HttpResponse(json.dumps({'status':rstat, 'msg':rtext}))
 
@@ -432,6 +471,7 @@ def escape(s, quote=None):
     if s is None:
         return ""
     s, x = decode_header(s)[0]
+    #s = s.encode('utf8')
     try:
         s = s.decode(x, "xmlcharrefreplace")
     except:
