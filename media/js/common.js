@@ -10,6 +10,7 @@ var folders = {};
 var msglist = {};
 var dw = {}; // miscellaneous variables
 dw.viewmsg = {};
+dw.msglist = {};
 dw.dialog = {};
 
 $(document).ready(function() {
@@ -39,6 +40,7 @@ $(document).ready(function() {
                 $('.foldersel').val(selli.attr('value'));
                 $('#msglist .foldersel').change();
                 $('#foldertree2 i').on('click', dw.updateFolderCounts); // HACK treefolder should have a onExpand
+                dw.updateFolderCounts();
             },
         });
         dw.updateFolderCounts();
@@ -249,7 +251,7 @@ $(document).ready(function() {
 
                     $tbl.append(' \
 <tr class="msg ' + rclass + '"> \
-    <td><input type="checkbox" /></td> \
+    <td><input type="checkbox" value="'+msg['uid']+'" id="'+msg['uid']+'-cb" /></td> \
     <td class="subject' + fclass + '" id="msg-' + msg['uid'] + '">' + msg['subject'] + '</td> \
     <td>' + msg['from'] + '</td> \
     <td>' + msg['date'] + '</td> \
@@ -304,6 +306,7 @@ $(document).ready(function() {
     };
 }(jQuery));
 
+// mark single message from msgview
 dw.viewmsg.markmsg = function(e, how, server, folder, uid) {
     console.log(e, how, server, folder, uid, this);
     e.preventDefault();
@@ -312,7 +315,27 @@ dw.viewmsg.markmsg = function(e, how, server, folder, uid) {
         $('#msglist .foldersel').change();
     });
 };
-
+// mark multiple messages from the msglist
+dw.msglist.markmsg = function(e, how, server) {
+    console.log(e, how, server, this);
+    e.preventDefault();
+    folder = $('#msglist .foldersel').val();
+    //uids = $('#msglist tr > td input:checked').map(function(){return $(this).val();});
+    uids = []
+    $('#msglist tr > td input:checked').each(function(idx, el) {
+        console.log('i', idx, 'e', el, 't', this, 'jt', $(this));
+        uids.push($(el).val());
+    });
+    uidso = {'uids': uids}
+    console.log(uidso, uids);
+    $.getJSON('action/mark'+how+'/?server='+server+'&folder='+folder+'&'+$.param(uidso), function(j) {
+        console.log('markmsg json callback', this, j);
+        $('#msglist .foldersel').change();
+    });
+    
+    dw.updateFolderCounts();
+};
+// load a new compose dialog
 dw.dialog.compose = function() {
     $('body').append('<div id="compose" class="hidden"></div>');
     $('#compose').load('newmail/', function(j) {

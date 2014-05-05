@@ -383,29 +383,35 @@ def action(request, action):
     server.login(my_imap_server.username, my_imap_server.passwd)
     nummsgs = server.select_folder(folder)
 
+    if 'uid' in request.GET:
+        uids = [ request.GET['uid'] ]
+    elif 'uids[]' in request.GET:
+        uids = request.GET.getlist('uids[]')
+    else:
+        uids = request.GET.get('uid', '') # we've probably failed at life at this point
+        
+    debug('uids', uids, request.GET)
+
     rstat = "SUCCESS"
+    rtext = "you suck at life"
     if action == 'markread':
         try:
-            uid = request.GET.get('uid')
-            rtext = server.add_flags([uid], [imapclient.SEEN])
+            rtext = server.add_flags(uids, [imapclient.SEEN])
         except:
             rstat = 'FAILURE'
     elif action == 'markunread':
         try:
-            uid = request.GET.get('uid')
-            rtext = server.remove_flags([uid], [imapclient.SEEN])
+            rtext = server.remove_flags(uids, [imapclient.SEEN])
         except:
             rstat = 'FAILURE'
     elif action == 'markimportant':
         try:
-            uid = request.GET.get('uid')
-            rtext = server.add_flags([uid], [imapclient.FLAGGED])
+            rtext = server.add_flags(uids, [imapclient.FLAGGED])
         except:
             rstat = 'FAILURE'
     elif action == 'markdeleted':
         try:
-            uid = request.GET.get('uid')
-            rtext = server.delete_messages([uid])
+            rtext = server.delete_messages(uids)
         except:
             rstat = 'FAILURE'
 

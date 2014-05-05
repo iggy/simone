@@ -75,8 +75,16 @@
 				<span class="ui-button">Copy</span>
 			</button>
 			<button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" 
-				id="checkedDelete" onclick="">
+				id="checkedDelete" onclick="dw.msglist.markmsg(event, 'deleted', '0');">
 				<span class="ui-button">Delete</span>
+			</button>
+			<button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" 
+				id="checkedMarkRead" onclick="dw.msglist.markmsg(event, 'read', '0');">
+				<span class="ui-button">Mark Read</span>
+			</button>
+			<button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" 
+				id="checkedMarkRead" onclick="dw.msglist.markmsg(event, 'unread', '0');">
+				<span class="ui-button">Mark Unread</span>
 			</button>
 		</div>
 	</div>

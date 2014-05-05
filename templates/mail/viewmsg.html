@@ -79,7 +79,7 @@
 	</div>
 
 	<div class="mailbody">
-{{ body|urlizetrunc:"50"|linebreaksbr }}
+{{ body|striptags|urlizetrunc:"50"|linebreaksbr }}
 	</div>
 
 </div>
