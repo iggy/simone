@@ -6,6 +6,7 @@ import sys
 from pprint import pprint
 
 from django.shortcuts import render, render_to_response, HttpResponse
+#, JsonResponse Django 1.7
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
@@ -336,6 +337,30 @@ def jsonview(request, action):
         for i, server in enumerate(uprof.imap_servers.all()):
             srvlist.append([i, server.address])
         return HttpResponse(json.dumps({'servers':srvlist}))
+        
+    if action == "unread":
+        ret = {'servers': {
+                '0': {
+                    'INBOX': 500,
+                    'Junk': 3,
+                }
+            }
+        }
+        server = int(request.POST['server'])
+        folders = request.POST.getlist('folders[]')
+        
+        srvr = uprof.imap_servers.all()[server]
+        imap = imapclient.IMAPClient(srvr.address, port=srvr.port, 
+            use_uid=False, ssl=srvr.ssl)
+        imap.login(srvr.username, srvr.passwd)
+
+        for f in folders:
+            resp = imap.select_folder(f)
+            unread = len(imap.search(['UNSEEN',]))
+            ret['servers']['0'][f] = unread
+
+        imap.logout()
+        return HttpResponse(json.dumps(ret))
 
 @login_required
 def action(request, action):

@@ -21,6 +21,7 @@ $(document).ready(function() {
         console.log('msglist refresh');
         $('#msglist .foldersel').change();
     }, 5*60*1000);
+    window.setInterval(dw.updateFolderCounts, 5*60*1000);
 
     dw.msgtable = $('#msglist').srvDatatable();
 
@@ -37,8 +38,11 @@ $(document).ready(function() {
                 console.log(selli.attr('value'));
                 $('.foldersel').val(selli.attr('value'));
                 $('#msglist .foldersel').change();
+                $('#foldertree2 i').on('click', dw.updateFolderCounts); // HACK treefolder should have a onExpand
             },
         });
+        dw.updateFolderCounts();
+        $('#foldertree2 i').on('click', dw.updateFolderCounts); // HACK treefolder should have a onExpand
     });
     
     // hide the spinner
@@ -364,14 +368,67 @@ dw.updateFolderCounts = function(d) {
     console.log('updateFolderCounts', d);
     
     dw.visfolders = [];
-    $('#foldertree2  > ul > li > span').each(function(d) {
+    $('#foldertree2 ul > li').each(function(d) {
         // get a list of folders
         // TODO subfolders aren't getting their parent
-        console.log(d, this, $(this).text());
-        dw.visfolders.push($(this).text()); 
+        console.log(d, this, $(this).text(), $(this).attr('value'));
+        dw.visfolders.push($(this).attr('value')); 
         console.log(dw.visfolders);
-        // send list to server, it sends back unread counts per folder
-        
     });
+    // send list to server, it sends back unread counts per folder
+    req = {'server':0, 'folders':dw.visfolders};
+    $.post('json/unread/', req, function(data, status, jhx){
+        console.log('updateFolderCounts json callback', data, status);
+        // FIXME handle multiple servers
+        for(var folder in data['servers']['0']){
+            console.log(folder);
+            console.log($('#foldertree2 li[value="'+folder+'"]'));
+            var count = '';
+            if(data['servers']['0'][folder] > 0)
+                count = '(' + data['servers']['0'][folder] + ')';
+            if($('#foldertree2 li[value="'+folder+'"] > span > b').size() > 0)
+                $('#foldertree2 li[value="'+folder+'"] > span > b').html(count);
+            else
+                $('#foldertree2 li[value="'+folder+'"] > span').append(' <b>' + count + '</b>');
+        }
+    }, 'json');
+    $('#foldertree2 i').on('click', dw.updateFolderCounts); // HACK treefolder should have a onExpand
 };
 
+// make Django's CSRF framework happy
+$(document).ajaxSend(function(event, xhr, settings) {
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    function sameOrigin(url) {
+        // url could be relative or scheme relative or absolute
+        var host = document.location.host; // host + port
+        var protocol = document.location.protocol;
+        var sr_origin = '//' + host;
+        var origin = protocol + sr_origin;
+        // Allow absolute or scheme relative URLs to same origin
+        return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+            (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+            // or any other URL that isn't scheme relative or absolute i.e relative.
+            !(/^(\/\/|http:|https:).*/.test(url));
+    }
+    function safeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
+        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+    }
+});
