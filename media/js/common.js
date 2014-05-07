@@ -356,9 +356,30 @@ dw.msglist.mc = function(e, how) {
 
 // load a new compose dialog
 dw.dialog.compose = function() {
-    $('body').append('<div id="compose" class="hidden"></div>');
+    $('#compose') || $('body').append('<div id="compose" class="hidden"></div>');
     $('#compose').load('newmail/', function(j) {
         console.log('compose callback', this, j);
+        
+        // Set a few style bits here that are calculated
+        // FIXME these values are pretty much pulled out of nowhere
+        $('#compose input[type=text]').width($(window).width()/2);
+        $('#editor').width($(window).width()-130);
+        $('#editor').height($(window).height()-300);
+        
+        $('#compose').dialog({'width':$(window).width()-30, 'height':$(window).height()-50});
+    });
+};
+dw.dialog.reply = function(event, who, server, folder, uid) {
+    console.log('dw.dialog.reply', event, who, server, folder, uid);
+    $('#compose') || $('body').append('<div id="compose" class="hidden"></div>');
+    var data = {
+        'who': who,
+        'server': server,
+        'folder': folder,
+        'uid': uid
+    }
+    $('#compose').load('replymail/', data, function(j) {
+        console.log('reply callback', this, j);
         
         // Set a few style bits here that are calculated
         // FIXME these values are pretty much pulled out of nowhere
