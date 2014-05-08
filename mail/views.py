@@ -101,11 +101,12 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
             m = fetched[uid]
             msg = email.message_from_string(m['BODY[HEADER.FIELDS (FROM SUBJECT)]'])
             # TODO use email.email.Utils.parseaddr() to break up the from for pretty printing
+            fromlist = email.Utils.parseaddr(msg['from'])
             msglst[uid] = {
                 'uid': uid,
                 'flags': m['FLAGS'],
                 'subject': escape(msg['subject']),#escape(msubject, u''),
-                'from': escape(msg['from']),#escape(mfrom,  u''),
+                'from': [escape(fromlist[0]), fromlist[1]],
                 'date': m['INTERNALDATE'].strftime('%b %d %Y - %H:%M'),
                 'size': m['RFC822.SIZE'],
             }
@@ -466,12 +467,13 @@ def escape(s, quote=None):
     copied from python's cgi module and slightly
     massaged.'''
     
-    from email.header import decode_header
-    
     if s is None:
         return ""
-    s, x = decode_header(s)[0]
-    #s = s.encode('utf8')
+    try:
+        s2, enc = email.Header.decode_header(s)[0]
+        s = s2.decode(enc)
+    except:
+        pass # we don't really care if it fails, worst case users see weirdness
     try:
         s = s.decode(x, "xmlcharrefreplace")
     except:

@@ -118,7 +118,7 @@ $(document).ready(function() {
             ';
 // TODO filters (unread, marked, etc)
         var tableht = ' \
-<table class="ui-datatable"> \
+<table class="ui-datatable" style="width:100%"> \
     <tr class="ui-tabs-nav ui-helper-reset ui-widget-header ui-corner-all"> \
         <th><input type="checkbox" /></th> \
         <th>Subject</th> \
@@ -198,7 +198,8 @@ $(document).ready(function() {
             $pagesel.val('1');
             update();
         };
-        function update() {
+        function update(event) {
+            event && event.preventDefault();
             $.getJSON(getUrl(), function(data) {
                 console.log('get msglist callback', data);
                 
@@ -254,7 +255,7 @@ $(document).ready(function() {
 <tr class="msg ' + rclass + '"> \
     <td><input type="checkbox" value="'+msg['uid']+'" id="'+msg['uid']+'-cb" /></td> \
     <td class="subject' + fclass + '" id="msg-' + msg['uid'] + '">' + msg['subject'] + '</td> \
-    <td>' + msg['from'] + '</td> \
+    <td><a href="mailto:'+msg['from'][1]+'">' + msg['from'][0] + '</a></td> \
     <td>' + msg['date'] + '</td> \
     <td>' + Math.round((msg['size']/1024)*10)/10 + 'K</td> \
 </tr> \
