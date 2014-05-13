@@ -102,6 +102,8 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
             msg = email.message_from_string(m['BODY[HEADER.FIELDS (FROM SUBJECT)]'])
             # TODO use email.email.Utils.parseaddr() to break up the from for pretty printing
             fromlist = email.Utils.parseaddr(msg['from'])
+            if fromlist[0] == '':
+                fromlist = [msg['from'], msg['from']]
             msglst[uid] = {
                 'uid': uid,
                 'flags': m['FLAGS'],
@@ -218,7 +220,7 @@ def send(request):
     emsg['To'] = mailto
     emsg['CC'] = mailcc
     emsg['User-Agent'] = 'Simone Webmail'
-    emsg
+    #emsg
 
     if subject and message and mailfrom and mailto:
         try:
