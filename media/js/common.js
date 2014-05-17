@@ -14,12 +14,12 @@ dw.msglist = {};
 dw.dialog = {};
 
 $(document).ready(function() {
-    console.log('doc ready');
+    //console.log('doc ready');
     
     // refresh msg list periodically
     // TODO stuff a configurable time into the body or something
     refid = window.setInterval(function(){
-        console.log('msglist refresh');
+        //console.log('msglist refresh');
         $('#msglist .foldersel').change();
     }, 5*60*1000);
     window.setInterval(dw.updateFolderCounts, 5*60*1000);
@@ -28,15 +28,15 @@ $(document).ready(function() {
 
     // folder tree -- https://github.com/Erffun/JsonTree
     $.getJSON('json/folderlist2/?server=0&parent=', function(data) {
-        console.log('fl2', data);
+        //console.log('fl2', data);
         $('#foldertree2').jsonTree(data, {
             mandatorySelect: true,
             lazyLoad: true,
             lazyRequestUrl: 'json/folderlist2/?server=0',
             lazySendParameterName: 'parent',
             onSelect: function(selid, selli, clickedli) {
-                console.log("ft2 onSelect", selid, selli, clickedli);
-                console.log(selli.attr('value'));
+                //console.log("ft2 onSelect", selid, selli, clickedli);
+                //console.log(selli.attr('value'));
                 $('.foldersel').val(selli.attr('value'));
                 $('#msglist .foldersel').change();
                 $('#foldertree2 i').on('click', dw.updateFolderCounts); // HACK treefolder should have a onExpand
@@ -67,16 +67,15 @@ $(document).ready(function() {
  */
 ;(function($) {
     $.fn.srvDatatable = function() {
-        console.log('start srvDatatable', this, $(this));
+        //console.log('start srvDatatable', this, $(this));
         var $cnt = $(this);
 
         // html used for the navigation above the message list
         var navht = ' \
 <form class="msgnav" action="msglist/" method="get" onSubmit="return false;"> \
     <input type="text" readonly="readonly" value="INBOX" class="foldersel ui-widget" /> \
-    <button \
-        class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" \
-        onclick="$(\'#msglist .pagesel\').firstPage();"> \
+    <button id="msgnav-firstpage"\
+        class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"> \
             <span class="ui-icon ui-icon-arrowthickstop-1-w"></span> \
     </button> \
     <button \
@@ -147,13 +146,14 @@ $(document).ready(function() {
         $perpagesel.change(update);
         $sortordersel.change(update);
         $searchsubmit.click(update);
+        $('#msgnav-firstpage').on('click', firstPage);
 
         update();
         
         // setup the checkboxes
         $('#msglist th input[type="checkbox"]').click(function(event) {
             // clicked the table header checkbox, so check all the visible boxes
-            console.log('th checkbox click', event);
+            //console.log('th checkbox click', event);
             isChecked = event.currentTarget.checked;
             $('#msglist input[type="checkbox"]').each(function(index) {
                 $(this)[0].checked = isChecked;
@@ -170,7 +170,7 @@ $(document).ready(function() {
             $sortordersel.val().charAt(0) + '/' + // sort order
             $msgsearch.val() + '/'; // search terms
             
-            console.log('getURL()', url);
+            //console.log('getURL()', url);
             return url;
         };
         
@@ -201,7 +201,7 @@ $(document).ready(function() {
         function update(event) {
             event && event.preventDefault();
             $.getJSON(getUrl(), function(data) {
-                console.log('get msglist callback', data);
+                //console.log('get msglist callback', data);
                 
                 if(data['status'] == 'ERROR') {
                     $('#serverMessage').html('Error searching: <br />' + data['message']);
@@ -211,8 +211,8 @@ $(document).ready(function() {
 
                 // fill pagesel
                 $pagesel.empty();
-                console.log(data['totalmsgs'], $perpagesel.val(), 
-                    Math.ceil(data['totalmsgs'] / $perpagesel.val()));
+                //console.log(data['totalmsgs'], $perpagesel.val(), 
+                //    Math.ceil(data['totalmsgs'] / $perpagesel.val()));
                 $('#lastPageButton').click(function(event) {
                     console.log('lastPageButton click', event);
                     $pagesel.val(Math.max(Math.ceil(data['totalmsgs'] / $perpagesel.val()), 1));
@@ -230,13 +230,14 @@ $(document).ready(function() {
 
                 // fill the msglist table
                 $tbl.find('tr:not(:first)').remove();
-                console.log(data['msglist'].length);
+                //console.log(data['msglist'].length);
                 for(var uid in data['msglist']) {
                     msg = data['msglist'][uid];
-                    console.log('168', uid, msg);
-                    var rclass = 'odd ui-state-highlight';
-                    if(uid % 2 == 0)
-                        rclass = 'even';
+                    //console.log('168', uid, msg);
+                    var rclass = '';
+                    //var rclass = 'odd ui-state-highlight';
+                    //if(uid % 2 == 0)
+                    //    rclass = 'even';
                     // handle flags
                     fclass = '';
                     //console.log(msg['flags'].join());
@@ -249,7 +250,7 @@ $(document).ready(function() {
 
                     // TODO finish pulling out the <*> and stuffing it into the alt tag maybe
                     r = new RegExp("&lt;.*&gt;");
-                    console.log("regex5", r.exec(msg['from']));
+                    //console.log("regex5", r.exec(msg['from']));
 
                     $tbl.append(' \
 <tr class="msg ' + rclass + '"> \
@@ -264,7 +265,7 @@ $(document).ready(function() {
 
                 // msg listener
                 $('tr.msg td.subject').click(function(e) {
-                    console.log('subject click', this, e, this.id.replace('msg-', ''), $(window).width(), $(window).height());
+                    //console.log('subject click', this, e, this.id.replace('msg-', ''), $(window).width(), $(window).height());
 
                     if(e.which==2) {
                         // open message in new tab if message was middle clicked
@@ -282,7 +283,7 @@ $(document).ready(function() {
                     uid = this.id.replace('msg-', '');
                     dlgw = $(window).width() - 30;
                     dlgh = $(window).height() - 50;
-                    console.log(dlgw, dlgh);
+                    //console.log(dlgw, dlgh);
                     options = {
                         title: 'View Message',
                         closeable: true,
@@ -310,28 +311,28 @@ $(document).ready(function() {
 
 // mark single message from msgview
 dw.viewmsg.markmsg = function(e, how, server, folder, uid) {
-    console.log(e, how, server, folder, uid, this);
+    //console.log(e, how, server, folder, uid, this);
     e.preventDefault();
     $.getJSON('action/mark'+how+'/?server='+server+'&folder='+folder+'&uid='+uid, function(j) {
-        console.log('markmsg json callback', this, j);
+        //console.log('markmsg json callback', this, j);
         $('#msglist .foldersel').change();
     });
 };
 // mark multiple messages from the msglist
 dw.msglist.markmsg = function(e, how, server) {
-    console.log(e, how, server, this);
+    //console.log(e, how, server, this);
     e.preventDefault();
     folder = $('#msglist .foldersel').val();
     //uids = $('#msglist tr > td input:checked').map(function(){return $(this).val();});
     uids = []
     $('#msglist tr > td input:checked').each(function(idx, el) {
-        console.log('i', idx, 'e', el, 't', this, 'jt', $(this));
+        //console.log('i', idx, 'e', el, 't', this, 'jt', $(this));
         uids.push($(el).val());
     });
     uidso = {'uids': uids}
-    console.log(uidso, uids);
+    //console.log(uidso, uids);
     $.getJSON('action/mark'+how+'/?server='+server+'&folder='+folder+'&'+$.param(uidso), function(j) {
-        console.log('markmsg json callback', this, j);
+        //console.log('markmsg json callback', this, j);
         $('#msglist .foldersel').change();
     });
     
@@ -339,16 +340,16 @@ dw.msglist.markmsg = function(e, how, server) {
 };
 // move or copy multiple messages from the msglist
 dw.msglist.mc = function(e, how) {
-    console.log(e, how);
+    //console.log(e, how);
     e.preventDefault();
     curfolder = $('#msglist .foldersel').val();
     newfolder = $('#checkedFolder').val();
     uids = []
     $('#msglist tr > td input:checked').each(function(idx, el) { uids.push($(el).val()); });
     uidso = {'uids': uids}
-    console.log(uidso, uids);
+    //console.log(uidso, uids);
     $.getJSON('action/mc'+how+'/?server=0&folder='+curfolder+'&newfolder='+newfolder+'&'+$.param(uidso), function(j) {
-        console.log('markmsg json callback', this, j);
+        //console.log('markmsg json callback', this, j);
         $('#msglist .foldersel').change();
     });
     
@@ -356,8 +357,10 @@ dw.msglist.mc = function(e, how) {
 };
 
 // load a new compose dialog
-dw.dialog.compose = function() {
-    $('#compose') || $('body').append('<div id="compose" class="hidden"></div>');
+dw.dialog.compose = function(event) {
+    console.log('open compose dialog');
+    event && event.preventDefault();
+    $('#compose').length || $('body').append('<div id="compose" class="hidden"></div>');
     $('#compose').load('newmail/', function(j) {
         console.log('compose callback', this, j);
         
@@ -392,7 +395,8 @@ dw.dialog.reply = function(event, who, server, folder, uid) {
     });
 };
 
-dw.dialog.prefs = function() {
+dw.dialog.prefs = function(event) {
+    event && event.preventDefault();
     $('body').append('<div id="prefs" class="hidden"></div>');
     $('#prefs').load('prefs/', function(j) {
         console.log('prefs dialog callback', this, j);
@@ -410,13 +414,13 @@ dw.addSMTP = function(event, el) {
 
 dw.sendMail = function(event, el) {
     event.preventDefault();
-    console.log('sendMail', event, el, $(el));
+    //console.log('sendMail', event, el, $(el));
     
     form = $('#compose form');
     fs = $(form).serialize();
-    console.log(fs);
+    //console.log(fs);
     $.post("send/", fs, function(data) {
-        console.log(data);
+        //console.log(data);
         j = $.parseJSON(data);
         if(j.status == "SUCCESS") {
             $('#sendMailMsg').addClass('ui-state-highlight');
@@ -429,24 +433,24 @@ dw.sendMail = function(event, el) {
 
 dw.visfolders = [];
 dw.updateFolderCounts = function(d) {
-    console.log('updateFolderCounts', d);
+    //console.log('updateFolderCounts', d);
     
     dw.visfolders = [];
     $('#foldertree2 ul > li').each(function(d) {
         // get a list of folders
         // TODO subfolders aren't getting their parent
-        console.log(d, this, $(this).text(), $(this).attr('value'));
+        //console.log(d, this, $(this).text(), $(this).attr('value'));
         dw.visfolders.push($(this).attr('value')); 
-        console.log(dw.visfolders);
+        //console.log(dw.visfolders);
     });
     // send list to server, it sends back unread counts per folder
     req = {'server':0, 'folders':dw.visfolders};
     $.post('json/unread/', req, function(data, status, jhx){
-        console.log('updateFolderCounts json callback', data, status);
+        //console.log('updateFolderCounts json callback', data, status);
         // FIXME handle multiple servers
         for(var folder in data['servers']['0']){
-            console.log(folder);
-            console.log($('#foldertree2 li[value="'+folder+'"]'));
+            //console.log(folder);
+            //console.log($('#foldertree2 li[value="'+folder+'"]'));
             var count = '';
             if(data['servers']['0'][folder] > 0)
                 count = '(' + data['servers']['0'][folder] + ')';

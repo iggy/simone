@@ -100,7 +100,6 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
         try:
             m = fetched[uid]
             msg = email.message_from_string(m['BODY[HEADER.FIELDS (FROM SUBJECT)]'])
-            # TODO use email.email.Utils.parseaddr() to break up the from for pretty printing
             fromlist = email.Utils.parseaddr(msg['from'])
             if fromlist[0] == '':
                 fromlist = [msg['from'], msg['from']]
@@ -115,6 +114,7 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
         except:
             # FIXME just ignoring for now (safe, but perhaps not as correct as it could
             # be), but we should likely retry or adjust the message list in the future
+            debug(sys.exc_info())
             pass
     
     imap.logout()
@@ -142,12 +142,12 @@ def viewmsg(request, server, folder, uid):
     i.select_folder(folder)
 
     mailbody = i.fetch([uid], ['BODY', 'BODY[]'])
-    mailstr = mailbody[uid]['BODY[]']
+    mailstr = mailbody[uid]['BODY[]'].encode('utf8')
     if len(mailbody[uid]['BODY']) > 2 and mailbody[uid]['BODY'][2][1] == u'utf-8':
-        mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'replace')
+        mailstr = mailbody[uid]['BODY[]']
     elif len(mailbody[uid]['BODY']) <= 2 and mailbody[uid]['BODY'][0][0][2][1] == u'utf-8':
-        mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'replace')
-    mailmsg = email.message_from_string(mailstr.decode('quopri'))
+        mailstr = mailbody[uid]['BODY[]']
+    mailmsg = email.message_from_string(mailstr)
     
     if not mailmsg.is_multipart():
         body = mailmsg.get_payload()

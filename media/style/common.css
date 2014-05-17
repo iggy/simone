@@ -1,6 +1,8 @@
 /* override a few of the pure defaults */
 menu, ol, ul {padding: 0px;}
 html {font-size:80%}
+html, button, input, select, textarea, .pure-g [class *= "pure-u"],
+.pure-g-r [class *= "pure-u"] { font-family: /*Georgia, Times, "Times New Roman",*/ serif;}
 
 tr.msgunseen{font-weight:bold;}
 form.msgnav{padding:6px 0px;}
@@ -9,6 +11,7 @@ form.msgnav{padding:6px 0px;}
 .ui-datatable td{padding-right:6px;}
 .msgnav .ui-widget, #checkedTools button, #checkedTools select {font-size:.8em;padding:.2em .4em}
 #compose table {width:100%;height:100%}
+.msgunseen {font-weight:bold;}
 td.subject:hover {cursor:pointer}
-
+#msglist tr:nth-child(odd) {background-color:#deedf7}
 #spinner {position:fixed;left:50%;top:50%;width:150px;height: 50px;margin-left:-75px;margin-top:-25px;background: url('/site_media/images/spinner.gif') center no-repeat #BFBFBF;border: solid 1px black;}
