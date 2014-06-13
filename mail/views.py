@@ -99,6 +99,7 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     for uid in fetched:
         try:
             m = fetched[uid]
+            # TODO use email.Parser.parsestr(headersonly=True) ?
             msg = email.message_from_string(m['BODY[HEADER.FIELDS (FROM SUBJECT)]'])
             fromlist = email.Utils.parseaddr(msg['from'])
             if fromlist[0] == '':

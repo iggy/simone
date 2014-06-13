@@ -56,7 +56,7 @@ $(document).ready(function() {
 /*
  * jQuery server side datatable plugin
  *
- * Copyright (c) 2009 Brian Jackson <iggy@theiggy.com>
+ * Copyright (c) 2009-2014 Brian Jackson <iggy@theiggy.com>
  *
  * A datatable plugin that does all the searching, sorting, pagination, etc. on
  * the server. This was written mainly for Simone, which uses an IMAP
@@ -336,6 +336,7 @@ dw.msglist.markmsg = function(e, how, server) {
         $('#msglist .foldersel').change();
     });
     
+    $('#msglist th input[type="checkbox"]').prop('checked', false);
     dw.updateFolderCounts();
 };
 // move or copy multiple messages from the msglist
@@ -354,6 +355,7 @@ dw.msglist.mc = function(e, how) {
     });
     
     $('#msglist .foldersel').delay(3000).change();
+    $('#msglist th input[type="checkbox"]').prop('checked', false);
 };
 
 // load a new compose dialog
