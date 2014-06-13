@@ -73,11 +73,12 @@
 </div>
 <div class="message" id="message">
 	<div class="mailheader">
+		<div>To: {{ mailmsg.to }}</div>
 		<div class="subject">Subject: {{ mailmsg.subject }}</div>
 		<div>From: {{ mailmsg.from }}</div>
 		<div>Date: {{ mailmsg.date }}</div>
 	</div>
-
+	<br />
 	<div class="mailbody">
 {{ body|striptags|urlizetrunc:"50"|linebreaksbr }}
 	</div>

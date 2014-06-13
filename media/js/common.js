@@ -48,7 +48,11 @@ $(document).ready(function() {
     });
     
     // hide the spinner
+	console.log(dw.dialog);
+	//dw.dialog.searchOptions = $('#searchOptions').dialog();
     $('#searchOptions').hide();
+	console.log(dw.dialog.searchOptions);
+		
     $('#spinner').hide();
     $('#serverMessage').hide();
 });

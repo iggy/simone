@@ -99,7 +99,9 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     for uid in fetched:
         try:
             m = fetched[uid]
-            msg = email.message_from_string(m['BODY[HEADER.FIELDS (FROM SUBJECT)]'])
+            p = email.parser.HeaderParser()
+            
+            msg = p.parsestr(m['BODY[HEADER.FIELDS (FROM SUBJECT)]'], True)
             fromlist = email.Utils.parseaddr(msg['from'])
             if fromlist[0] == '':
                 fromlist = [msg['from'], msg['from']]
@@ -140,21 +142,29 @@ def viewmsg(request, server, folder, uid):
     i.login(isrv.username, isrv.passwd)
 
     i.select_folder(folder)
+    
+    p = email.parser.Parser()
 
+    # BODY = metadata; BODY[] = the actual text of the body
     mailbody = i.fetch([uid], ['BODY', 'BODY[]'])
-    mailstr = mailbody[uid]['BODY[]'].encode('utf8')
+    debug(mailbody)
+    mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'ignore')
     if len(mailbody[uid]['BODY']) > 2 and mailbody[uid]['BODY'][2][1] == u'utf-8':
-        mailstr = mailbody[uid]['BODY[]']
+        mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'ignore')
     elif len(mailbody[uid]['BODY']) <= 2 and mailbody[uid]['BODY'][0][0][2][1] == u'utf-8':
         mailstr = mailbody[uid]['BODY[]']
-    mailmsg = email.message_from_string(mailstr)
+    mailmsg = p.parsestr(mailstr)
     
     if not mailmsg.is_multipart():
-        body = mailmsg.get_payload()
+        body = mailmsg.get_payload(decode=True)
     else:
         for part in mailmsg.walk():
-            if(part.get_content_type() == mailmsg.get_default_type()):
-                body = part.get_payload().decode('quopri_codec')
+            if(part.get_content_type() == 'text/plain'):
+                body = part.get_payload(decode=True)
+                break # FIXME this assumes the first text/plain part is what we want
+    if body == "":
+        body = "There is no plain text version of this message."
+        #body = body + "Raw Source:<br />" + mailmsg
 
     i.logout()
     
