@@ -3,9 +3,12 @@ simone
 
 Questions? Answers? General thoughts?
 
-  #simone @ irc.oftc.net
+  IRC: #simone @ irc.oftc.net
+  Email: iggy(at)theiggy.com
 
 Django webmail package
+
+What would you like to see? This package (mostly) fits my needs as is (minus some send/reply/fwd improvements I have planned). I'm interested to know what users would like to see out of the package.
 
 to run locally:
 * make sure requirements are installed (See below)
