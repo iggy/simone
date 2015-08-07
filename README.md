@@ -3,7 +3,7 @@ simone
 
 Questions? Answers? General thoughts?
 
-  IRC: #simone @ irc.oftc.net
+  IRC: #fast-food @ irc.oftc.net
   Email: iggy(at)theiggy.com
 
 Django webmail package
