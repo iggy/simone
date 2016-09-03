@@ -1,0 +1,4 @@
+django>=1.9.6
+django-model-utils>=2.0
+# Additional requirements go here
+imapclient
