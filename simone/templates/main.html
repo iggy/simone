@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block css %}
+{{ block.super }}
+  <link href="{% static "css/pure-min.css" %}" rel="stylesheet" type="text/css" />
+	<link href="https://code.jquery.com/ui/1.12.0/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+  <!-- <link href="{% static "css/cupertino/jquery-ui.min.css" %}" rel="stylesheet" type="text/css" /> -->
+  <!-- <link href="{% static "css/cupertino/jquery.ui.theme.css" %}" rel="stylesheet" type="text/css" /> -->
+  <link href="{% static "css/TreeStyle.min.css" %}" rel="stylesheet" type="text/css" />
+  <link href="{% static "css/common.css" %}" rel="stylesheet" type="text/css" />
+
+
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+
+{% block usertools %}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Login') }}</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+
+
+<div id="spinner"></div>
+
+
+<div id="page" class="pure-g">
+
+	<div id="leftbar" class="sidebar pure-u-3-24">
+		<ul id="leftbar_toolbar" class="ui-widget ui-helper-clearfix ">
+			<li class="ui-state-default ui-corner-all ui-button">
+				<a href="#" onclick="$('#msglist .foldersel').change(event);"
+					class="ui-icon ui-icon-refresh" title="Refresh">
+				</a>
+			</li>
+			<li class="ui-state-default ui-corner-all ui-button">
+				<a href="#" id="newmaillink" onclick="dw.dialog.compose(event);"
+					class="ui-icon ui-icon-document" title="Compose New Email">
+				</a>
+			</li>
+	<!-- FIXME don't use the admin site's logout -->
+			<li class="ui-state-default ui-corner-all ui-button">
+				<a href="/admin/logout/"
+					class="ui-icon ui-icon-power" title="Logout">
+				</a>
+			</li>
+			<li class="ui-state-default ui-corner-all ui-button">
+				<a href="#" id="prefslink" onclick="dw.dialog.prefs(event);"
+					class="ui-icon ui-icon-wrench" title>
+				</a>
+			</li>
+	<!--		<a href="#" onclick="showSpinner(); return false;">Show</a>
+			<a href="#" onclick="hideSpinner(); return false;">Hide</a>-->
+		</ul>
+		<div id="folderlist">
+			<div id="foldertree"></div>
+			<div id="foldertree2" class="ui-treeview"></div>
+		</div>
+		<div id="leftbar_bottom_info" class="ui-widget">
+			<br />
+		</div>
+	</div>
+
+<noscript><h1>This site requires javascript to be enabled</h1></noscript>
+
+
+
+
+
+	<div id="contentpane" class="content pure-u-21-24">
+		<div id="serverMessage" class="ui-widget ui-state-highlight ui-corner-all"></div>
+		<div id="searchOptions">
+			Before:
+			After:
+			Unread:
+			From
+			To
+			Subject:
+		</div>
+		<div id="msglist">
+		</div>
+		<div id="checkedTools">
+			<!--Mark Messages: -->
+			<select id="checkedFolder"
+				class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only">
+				{% for flags, delim, folder in folderlist %}
+				<option>{{ folder }}</option>
+				{% endfor %}
+			</select>
+			<button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"
+				id="checkedMove" onclick="dw.msglist.mc(event, 'move');">
+				<span class="ui-button">Move</span>
+			</button>
+			<button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"
+				id="checkedCopy" onclick="dw.msglist.mc(event, 'copy');">
+				<span class="ui-button">Copy</span>
+			</button>
+			<button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"
+				id="checkedDelete" onclick="dw.msglist.markmsg(event, 'deleted', '0');">
+				<span class="ui-button">Delete</span>
+			</button>
+			<button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"
+				id="checkedMarkRead" onclick="dw.msglist.markmsg(event, 'read', '0');">
+				<span class="ui-button">Mark Read</span>
+			</button>
+			<button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"
+				id="checkedMarkRead" onclick="dw.msglist.markmsg(event, 'unread', '0');">
+				<span class="ui-button">Mark Unread</span>
+			</button>
+			<button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"
+				id="searchOptions" onclick="dw.dialog.searchOptions.slideDown(2000);">
+				<span class="ui-button">Search Options</span>
+			</button>
+		</div>
+	</div>
+
+</div><!-- end page -->
+
+
+{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+  <script type="text/javascript" src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="{% static "js/common.js" %}"></script>
+  <script type="text/javascript" src="{% static "js/jsonTree.min.js" %}"></script>
+{% endblock %}

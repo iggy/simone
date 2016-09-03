@@ -1,0 +1,14 @@
+# version: '2'
+# services:
+#   simone_example:
+#     build: .
+    # user: django
+    # depends_on:
+      # - redis
+    # ports:
+    #   - "8000:8000"
+    # volumes:
+    #   - .:/app
+    # tty: true
+  # redis:
+    # image: redis:alpine

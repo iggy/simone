@@ -1,0 +1,8 @@
+<h2>Please enter your IMAP server settings.</h2>
+<form method="post" action="/mail/config/addnew/" onsubmit="YAHOO.dw.submitNewServer(this); return false;">
+<table>
+{{ iform }}
+</table>
+<input type="hidden" name="srvtype" value="{{ srvtype }}" />
+<input type="submit" value="Submit" />
+</form>
