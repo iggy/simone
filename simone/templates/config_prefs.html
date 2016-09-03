@@ -1,0 +1,25 @@
+<div id="prefstabs">
+    <ul>
+        <li><a href="#tab0">General</a></li>
+        <li><a href="#tab1">IMAP</a></li>
+        <li><a href="#tab2">SMTP</a></li>
+    </ul>
+    <div id="tab0">
+        <h2>General Settings</h2>
+        <p>stuff</p>
+    </div>
+    <div id="tab1">
+        <h2>IMAP Settings</h2>
+        <p>stuff</p>
+    </div>
+    <div id="tab2">
+        <h2>SMTP Settings</h2>
+        <form method="post" action="/mail/config/addnewsmtp/" onsubmit="dw.addSMTP(event, this);">
+            {% csrf_token %}
+            <table>
+                {{ smtpform }}
+            </table>
+            <input class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text" 
+                type="submit" value="Submit" />
+        </form>
+    </div>
