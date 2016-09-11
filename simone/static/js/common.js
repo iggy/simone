@@ -15,7 +15,7 @@ dw.dialog = {};
 
 $(document).ready(function() {
     //console.log('doc ready');
-    
+
     // refresh msg list periodically
     // TODO stuff a configurable time into the body or something
     refid = window.setInterval(function(){
@@ -46,13 +46,13 @@ $(document).ready(function() {
         dw.updateFolderCounts();
         $('#foldertree2 i').on('click', dw.updateFolderCounts); // HACK treefolder should have a onExpand
     });
-    
+
     // hide the spinner
 	console.log(dw.dialog);
 	//dw.dialog.searchOptions = $('#searchOptions').dialog();
     $('#searchOptions').hide();
 	console.log(dw.dialog.searchOptions);
-		
+
     $('#spinner').hide();
     $('#serverMessage').hide();
 });
@@ -153,7 +153,7 @@ $(document).ready(function() {
         $('#msgnav-firstpage').on('click', firstPage);
 
         update();
-        
+
         // setup the checkboxes
         $('#msglist th input[type="checkbox"]').click(function(event) {
             // clicked the table header checkbox, so check all the visible boxes
@@ -173,11 +173,11 @@ $(document).ready(function() {
             'date/'+
             $sortordersel.val().charAt(0) + '/' + // sort order
             $msgsearch.val() + '/'; // search terms
-            
+
             //console.log('getURL()', url);
             return url;
         };
-        
+
         function firstPage(e) {
             console.log("first page", this);
             e.preventDefault();
@@ -204,9 +204,15 @@ $(document).ready(function() {
         };
         function update(event) {
             event && event.preventDefault();
+
+            if($('#msglist input[type="checkbox"]:checked').length > 0) {
+                console.log('boxes checked, not updating');
+                return;
+            }
+
             $.getJSON(getUrl(), function(data) {
                 //console.log('get msglist callback', data);
-                
+
                 if(data['status'] == 'ERROR') {
                     $('#serverMessage').html('Error searching: <br />' + data['message']);
                     $('#serverMessage').removeClass('ui-state-highlight').addClass('ui-state-error').show().delay(5000).hide(500);
@@ -215,7 +221,7 @@ $(document).ready(function() {
 
                 // fill pagesel
                 $pagesel.empty();
-                //console.log(data['totalmsgs'], $perpagesel.val(), 
+                //console.log(data['totalmsgs'], $perpagesel.val(),
                 //    Math.ceil(data['totalmsgs'] / $perpagesel.val()));
                 $('#lastPageButton').click(function(event) {
                     console.log('lastPageButton click', event);
@@ -270,23 +276,21 @@ $(document).ready(function() {
                 // msg listener
                 $('tr.msg td.subject').click(function(e) {
                     //console.log('subject click', this, e, this.id.replace('msg-', ''), $(window).width(), $(window).height());
+                    server = '0';
+                    folder = $('#msglist .foldersel').val();
+                    uid = this.id.replace('msg-', '');
 
                     if(e.which==2) {
                         // open message in new tab if message was middle clicked
-                        server = '0';
-                        folder = $('#msglist .foldersel').val();
-                        uid = this.id.replace('msg-', '');
+                        // TODO should probably do this for mobile too
                         window.open('viewmsg/' + server + '/' + folder + '/' + uid + '/', '_blank');
-                        
+
                         return true;
                     }
 
                     // show a modal dialog with an email msg
-                    server = '0';
-                    folder = $('#msglist .foldersel').val();
-                    uid = this.id.replace('msg-', '');
-                    dlgw = $(window).width() - 30;
-                    dlgh = $(window).height() - 50;
+                    dlgw = $(window).width() * 0.8;
+                    dlgh = $(window).height() * 0.8;
                     //console.log(dlgw, dlgh);
                     options = {
                         title: 'View Message',
@@ -297,9 +301,11 @@ $(document).ready(function() {
                         height: dlgh
                     };
 
-                    dw.dialog.viewmsg = $('<div></div>').append('body');
-                    $(dw.dialog.viewmsg).load('viewmsg/' + server + '/' + folder + '/' + uid + '/').dialog(options);
-                    
+                    modalHTML = ''
+
+                    dw.dialog.viewmsg = $('<div class=""></div>').append('body');
+                    $(dw.dialog.viewmsg).load('viewmsg/' + server + '/' + folder + '/' + uid + '/').modal(options);
+
                     $(this).parent().removeClass('msgunseen');
                     $(this).parent().addClass('msgseen');
                 });
@@ -319,6 +325,7 @@ dw.viewmsg.markmsg = function(e, how, server, folder, uid) {
     e.preventDefault();
     $.getJSON('action/mark'+how+'/?server='+server+'&folder='+folder+'&uid='+uid, function(j) {
         //console.log('markmsg json callback', this, j);
+        $('#msglist input[type="checkbox"]').prop('checked', false);
         $('#msglist .foldersel').change();
     });
 };
@@ -337,10 +344,11 @@ dw.msglist.markmsg = function(e, how, server) {
     //console.log(uidso, uids);
     $.getJSON('action/mark'+how+'/?server='+server+'&folder='+folder+'&'+$.param(uidso), function(j) {
         //console.log('markmsg json callback', this, j);
+        $('#msglist td input[type="checkbox"]').prop('checked', false);
         $('#msglist .foldersel').change();
     });
-    
-    $('#msglist th input[type="checkbox"]').prop('checked', false);
+
+    $('#msglist input[type="checkbox"]').prop('checked', false);
     dw.updateFolderCounts();
 };
 // move or copy multiple messages from the msglist
@@ -355,11 +363,15 @@ dw.msglist.mc = function(e, how) {
     //console.log(uidso, uids);
     $.getJSON('action/mc'+how+'/?server=0&folder='+curfolder+'&newfolder='+newfolder+'&'+$.param(uidso), function(j) {
         //console.log('markmsg json callback', this, j);
+        $('#msglist td input[type="checkbox"]').prop('checked', false);
         $('#msglist .foldersel').change();
     });
-    
-    $('#msglist .foldersel').delay(3000).change();
-    $('#msglist th input[type="checkbox"]').prop('checked', false);
+
+    $('#msglist td input[type="checkbox"]').prop('checked', false);
+//     $('#msglist .foldersel').delay(3000).change();
+    setTimeout(function() {
+        $('#msglist .foldersel').change();
+    }, 3000);
 };
 
 // load a new compose dialog
@@ -369,13 +381,13 @@ dw.dialog.compose = function(event) {
     $('#compose').length || $('body').append('<div id="compose" class="hidden"></div>');
     $('#compose').load('newmail/', function(j) {
         console.log('compose callback', this, j);
-        
+
         // Set a few style bits here that are calculated
         // FIXME these values are pretty much pulled out of nowhere
         $('#compose input[type=text]').width($(window).width()/2);
         $('#editor').width($(window).width()-130);
         $('#editor').height($(window).height()-300);
-        
+
         $('#compose').dialog({'width':$(window).width()-30, 'height':$(window).height()-50});
     });
 };
@@ -390,13 +402,13 @@ dw.dialog.reply = function(event, who, server, folder, uid) {
     }
     $('#compose').load('replymail/', data, function(j) {
         console.log('reply callback', this, j);
-        
+
         // Set a few style bits here that are calculated
         // FIXME these values are pretty much pulled out of nowhere
         $('#compose input[type=text]').width($(window).width()/2);
         $('#editor').width($(window).width()-130);
         $('#editor').height($(window).height()-300);
-        
+
         $('#compose').dialog({'width':$(window).width()-30, 'height':$(window).height()-50});
     });
 };
@@ -406,22 +418,22 @@ dw.dialog.prefs = function(event) {
     $('body').append('<div id="prefs" class="hidden"></div>');
     $('#prefs').load('prefs/', function(j) {
         console.log('prefs dialog callback', this, j);
-        
+
         $('#prefs').dialog({'width':'auto'});
-        
+
         $('#prefstabs').tabs();
     });
 };
 
 dw.addSMTP = function(event, el) {
-    
+
     console.log('addSMTP', event, el);
 };
 
 dw.sendMail = function(event, el) {
     event.preventDefault();
     //console.log('sendMail', event, el, $(el));
-    
+
     form = $('#compose form');
     fs = $(form).serialize();
     //console.log(fs);
@@ -440,13 +452,13 @@ dw.sendMail = function(event, el) {
 dw.visfolders = [];
 dw.updateFolderCounts = function(d) {
     //console.log('updateFolderCounts', d);
-    
+
     dw.visfolders = [];
     $('#foldertree2 ul > li').each(function(d) {
         // get a list of folders
         // TODO subfolders aren't getting their parent
         //console.log(d, this, $(this).text(), $(this).attr('value'));
-        dw.visfolders.push($(this).attr('value')); 
+        dw.visfolders.push($(this).attr('value'));
         //console.log(dw.visfolders);
     });
     // send list to server, it sends back unread counts per folder

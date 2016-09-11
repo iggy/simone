@@ -36,6 +36,12 @@ There is also a working minimal example that can be used via docker::
 
 Then point your browser at http://localhost:8000
 
+There are some test accounts setup to get you going quicker. Use the example account to login and
+setup you email servers. The admin account is there for emergencies and development.
+
+    example:BiggerOnTheInside
+    admin:WeepingAngels
+
 Features
 --------
 

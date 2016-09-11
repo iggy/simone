@@ -18,7 +18,9 @@ RUN pwd
 RUN chown -R django /app \
     && pip3 install -r requirements.txt \
     && python3 manage.py makemigrations \
-    && python3 manage.py migrate
+    && python3 manage.py migrate \
+    && python3 manage.py makemigrations simone \
+    && python3 manage.py migrate simone
 
 EXPOSE 8000
 

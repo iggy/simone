@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 
 from . import views
 
+app_name = 'simone'
 
 urlpatterns = [
     url(r'^$', views.index),
@@ -13,7 +14,7 @@ urlpatterns = [
     url(r'viewmsg/(?P<server>\d+)/(?P<folder>.*?)/(?P<uid>\d+)/$', views.viewmsg),
     url(r'newmail/', views.newmail),
     url(r'send/$', views.send),
-    url(r'config/(?P<action>.*?)/$', views.config),
+    url(r'config/(?P<action>.*?)/$', views.config, name='config'),
     url(r'json/(?P<action>.*?)/$', views.jsonview),
     url(r'action/(?P<action>.*?)/$', views.action),
     url(r'prefs/$', views.prefs),
