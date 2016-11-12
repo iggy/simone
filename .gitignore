@@ -48,3 +48,4 @@ docs/_build
 
 db.sqlite3
 *rm.me
+*.kate-swp
