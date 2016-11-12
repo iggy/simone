@@ -1,10 +1,6 @@
 simone
 ======
 
-Questions? Answers? General thoughts?
-
-  IRC: #fast-food @ irc.oftc.net
-  Email: iggy(at)theiggy.com
 
 Django webmail package
 

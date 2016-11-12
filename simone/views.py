@@ -68,6 +68,7 @@ class SmtpServerListView(ListView):
     model = SmtpServer
 
 # Create your views here.
+import codecs
 import email
 import json
 import smtplib
@@ -79,6 +80,7 @@ from django.shortcuts import render, render_to_response, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
+from django.urls import reverse
 
 
 def debug(*args):
@@ -129,6 +131,11 @@ def index(request):
         return render(request, 'main.html', locals())
     except imaplib.IMAP4.error as imaperr:
         return HttpResponse('Error connecting to IMAP server: {}<br>{}'.format(srvr.address, imaperr))
+    except OSError as oserr:
+        resp = """Error connecting to IMAP server: {}<br>
+        {}<br>
+        Possibly a DNS issue?"""
+        return HttpResponse(resp.format(srvr.address, oserr))
 
 # FIXME handle sorting
 @login_required
@@ -144,6 +151,8 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     :param sortdir: direction to sort (asc, desc)
     :param search: search terms (urlencoded)
     """
+    reader = codecs.getreader("utf-8")
+
     server = int(server)
     srvr = request.user.imapserver_set.all()[server]
 
@@ -152,7 +161,7 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     folder_info = imap.select_folder(folder)
 
     if search == "":
-        search = u'ALL'
+        search = 'ALL'
     try:
         tofetch = imap.sort(['DATE', 'ARRIVAL'], search)
     except:
@@ -167,7 +176,7 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     if stop > nummsgs:
         stop = nummsgs
 
-    if sortdir == u'D':
+    if sortdir == 'D':
         start = nummsgs - int(page) * int(perpage)
         stop = nummsgs - int(int(page) - 1) * int(perpage)
 
@@ -179,17 +188,18 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
     for uid in fetched:
         try:
             m = fetched[uid]
-            debug('m', m)
-            p = email.parser.BytesHeaderParser()
+            #debug('m', m)
+            #p = email.parser.BytesHeaderParser()
 
-            msg = p.parsebytes(m[b'BODY[HEADER.FIELDS (FROM SUBJECT)]'], True)
-            debug('msg', msg)
+            #msg = p.parsebytes(m[b'BODY[HEADER.FIELDS (FROM SUBJECT)]'], True)
+            msg = email.message_from_bytes(m[b'BODY[HEADER.FIELDS (FROM SUBJECT)]'])
+            #debug('msg', msg)
             fromlist = email.utils.parseaddr(msg['from'])
             if fromlist[0] == '':
                 fromlist = [msg['from'], msg['from']]
             msglst[uid] = {
                 'uid': uid,
-                'flags': m[b'FLAGS'],
+                'flags': [str(flag, 'utf-8') for flag in m[b'FLAGS']],
                 'subject': escape(msg['subject']),  #escape(msubject, u''),
                 'from': [escape(fromlist[0]), fromlist[1]],
                 'date': m[b'INTERNALDATE'].strftime('%b %d %Y - %H:%M'),
@@ -203,7 +213,7 @@ def msglist(request, server, folder, page, perpage, sortc, sortdir, search):
 
     imap.logout()
 
-    return HttpResponse(json.dumps({'totalmsgs': nummsgs, 'start': start, 'stop': stop, 'msglist': msglst}))
+    return HttpResponse(json.dumps({'totalmsgs': nummsgs, 'start': start, 'stop': stop, 'msglist': msglst}, ensure_ascii=False))
 
 @login_required
 def viewmsg(request, server, folder, uid):
@@ -228,13 +238,19 @@ def viewmsg(request, server, folder, uid):
     p = email.parser.Parser()
 
     # BODY = metadata; BODY[] = the actual text of the body
-    mailbody = i.fetch([uid], ['BODY', 'BODY[]'])
+    mailbody = i.fetch([uid], [b'BODY', b'BODY[]'])
     debug(mailbody)
-    mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'ignore')
-    if len(mailbody[uid]['BODY']) > 2 and mailbody[uid]['BODY'][2][1] == u'utf-8':
-        mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'ignore')
-    elif len(mailbody[uid]['BODY']) <= 2 and mailbody[uid]['BODY'][0][0][2][1] == u'utf-8':
-        mailstr = mailbody[uid]['BODY[]']
+    mailstr = mailbody[uid][b'BODY[]'].decode('utf-8', 'ignore')
+    #debug(mailbody[uid][b'BODY'])
+    #debug(mailbody[uid][b'BODY'][0])
+    #debug(mailbody[uid][b'BODY'][0][0])
+    #debug(mailbody[uid][b'BODY'][0][0][2])
+    #debug(mailbody[uid][b'BODY'][0][0][2][1])
+    #debug('utf', mailbody[uid][b'BODY'][0][0][2][1].lower())
+    #if len(mailbody[uid][b'BODY']) > 2 and mailbody[uid][b'BODY'][2][1] == b'utf-8':
+        #mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'ignore')
+    #if len(mailbody[uid][b'BODY']) <= 2 and mailbody[uid][b'BODY'][0][0][2][1].lower() == 'utf-8':
+        #mailstr = mailbody[uid][b'BODY[]']
     mailmsg = p.parsestr(mailstr)
 
     if not mailmsg.is_multipart():
@@ -357,9 +373,10 @@ def config(request, action):
 
     elif action == "addnew":
         """save new IMAP config"""
-        if request.POST.get('newconfig') == "true":
-            for srv in request.user.imapserver_set.all():
-                request.user.imapserver_set.remove(srv)
+        # Not really sure what this was meant to do, but .clear() would probably be better
+        #if request.POST.get('newconfig') == "true":
+            #for srv in request.user.imapserver_set.all():
+                #request.user.imapserver_set.remove(srv)
 
         # we are adding some new configuration
         iform = ImapServerForm(request.POST)
@@ -367,10 +384,10 @@ def config(request, action):
                         port=request.POST.get('port'),
                         username=request.POST.get('username'),
                         passwd=request.POST.get('passwd'),
-                        ssl=request.POST.get('ssl'))
+                        ssl=True if request.POST.get('ssl') == 'on' else False)
         i.save()
 
-        return HttpResponseRedirect('/mail/')
+        return HttpResponseRedirect(reverse('simone:index'))
 
     elif action == "addnewsmtp":
         """save new SMTP config"""
@@ -432,7 +449,7 @@ def jsonview(request, action):
                 'ItemId': folder,
                 'Title': folder.split(str(delim))[-1],
             }
-            if u'\\HasChildren' in flags:
+            if b'\\HasChildren' in flags:
                 fd.update({'HasSubItem':True})
             jstreefolders.append(fd)
 
@@ -550,7 +567,7 @@ def action(request, action):
 
     imap.logout()
 
-    return HttpResponse(json.dumps({'status':rstat, 'msg':rtext}))
+    return HttpResponse(json.dumps({'status':rstat, 'msg': str(rtext)}))
 
 def escape(s, quote=None):
     '''replace special characters "&", "<" and ">" to HTML-safe sequences.
@@ -562,15 +579,23 @@ def escape(s, quote=None):
 
     if s is None:
         return ""
+
     try:
-        s2, enc = email.Header.decode_header(s)[0]
-        s = s2.decode(enc)
-    except:
+        s2, enc = email.header.decode_header(s)[0]
+        if isinstance(s2, str):
+            #debug('s2', s2)
+            s = s2
+        else:
+            s = s2.decode(enc)
+    except Exception as e:
+        debug('failed to decode', e)
         pass # we don't really care if it fails, worst case users see weirdness
+
     try:
         s = s.decode(x, "xmlcharrefreplace")
     except:
         pass
+
     s = s.replace("&", "&amp;") # Must be done first!
     s = s.replace("<", "&lt;")
     s = s.replace(">", "&gt;")

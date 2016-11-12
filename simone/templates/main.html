@@ -35,40 +35,40 @@
 
 <div id="page" class="pure-g">
 
-	<div id="leftbar" class="sidebar pure-u-3-24">
-		<ul id="leftbar_toolbar" class="ui-widget ui-helper-clearfix ">
-			<li class="ui-state-default ui-corner-all ui-button">
-				<a href="#" onclick="$('#msglist .foldersel').change(event);"
-					class="ui-icon ui-icon-refresh" title="Refresh">
-				</a>
-			</li>
-			<li class="ui-state-default ui-corner-all ui-button">
-				<a href="#" id="newmaillink" onclick="dw.dialog.compose(event);"
-					class="ui-icon ui-icon-document" title="Compose New Email">
-				</a>
-			</li>
-	<!-- FIXME don't use the admin site's logout -->
-			<li class="ui-state-default ui-corner-all ui-button">
-				<a href="/admin/logout/"
-					class="ui-icon ui-icon-power" title="Logout">
-				</a>
-			</li>
-			<li class="ui-state-default ui-corner-all ui-button">
-				<a href="#" id="prefslink" onclick="dw.dialog.prefs(event);"
-					class="ui-icon ui-icon-wrench" title>
-				</a>
-			</li>
-	<!--		<a href="#" onclick="showSpinner(); return false;">Show</a>
-			<a href="#" onclick="hideSpinner(); return false;">Hide</a>-->
-		</ul>
-		<div id="folderlist">
-			<div id="foldertree"></div>
-			<div id="foldertree2" class="ui-treeview"></div>
-		</div>
-		<div id="leftbar_bottom_info" class="ui-widget">
-			<br />
-		</div>
-	</div>
+  <div id="leftbar" class="sidebar pure-u-3-24">
+    <ul id="leftbar_toolbar" class="ui-widget ui-helper-clearfix ">
+      <li class="ui-state-default ui-corner-all ui-button">
+        <a href="#" onclick="$('#msglist .foldersel').change(event);"
+            class="ui-icon ui-icon-refresh" title="Refresh">
+        </a>
+      </li>
+      <li class="ui-state-default ui-corner-all ui-button">
+        <a href="#" id="newmaillink" onclick="dw.dialog.compose(event);"
+          class="ui-icon ui-icon-document" title="Compose New Email">
+        </a>
+      </li>
+  <!-- FIXME don't use the admin site's logout -->
+      <li class="ui-state-default ui-corner-all ui-button">
+        <a href="/admin/logout/"
+          class="ui-icon ui-icon-power" title="Logout">
+        </a>
+      </li>
+      <li class="ui-state-default ui-corner-all ui-button">
+        <a href="#" id="prefslink" onclick="dw.dialog.prefs(event);"
+          class="ui-icon ui-icon-wrench" title>
+        </a>
+      </li>
+  		<a href="#" onclick="$('#spinner').show(); return false;">Show</a>
+                  <a href="#" onclick="$('#spinner').hide(); return false;">Hide</a>
+    </ul>
+    <div id="folderlist">
+      <div id="foldertree"></div>
+        <div id="foldertree2" class="ui-treeview"></div>
+        </div>
+      <div id="leftbar_bottom_info" class="ui-widget">
+      <br />
+    </div>
+  </div>
 
 <noscript><h1>This site requires javascript to be enabled</h1></noscript>
 
