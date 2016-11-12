@@ -131,6 +131,11 @@ def index(request):
         return render(request, 'main.html', locals())
     except imaplib.IMAP4.error as imaperr:
         return HttpResponse('Error connecting to IMAP server: {}<br>{}'.format(srvr.address, imaperr))
+    except OSError as oserr:
+        resp = """Error connecting to IMAP server: {}<br>
+        {}<br>
+        Possibly a DNS issue?"""
+        return HttpResponse(resp.format(srvr.address, oserr))
 
 # FIXME handle sorting
 @login_required
@@ -239,12 +244,13 @@ def viewmsg(request, server, folder, uid):
     #debug(mailbody[uid][b'BODY'])
     #debug(mailbody[uid][b'BODY'][0])
     #debug(mailbody[uid][b'BODY'][0][0])
+    #debug(mailbody[uid][b'BODY'][0][0][2])
     #debug(mailbody[uid][b'BODY'][0][0][2][1])
     #debug('utf', mailbody[uid][b'BODY'][0][0][2][1].lower())
     #if len(mailbody[uid][b'BODY']) > 2 and mailbody[uid][b'BODY'][2][1] == b'utf-8':
         #mailstr = mailbody[uid]['BODY[]'].encode('ascii', 'ignore')
-    if len(mailbody[uid][b'BODY']) <= 2 and mailbody[uid][b'BODY'][0][0][2][1].lower() == 'utf-8':
-        mailstr = mailbody[uid][b'BODY[]']
+    #if len(mailbody[uid][b'BODY']) <= 2 and mailbody[uid][b'BODY'][0][0][2][1].lower() == 'utf-8':
+        #mailstr = mailbody[uid][b'BODY[]']
     mailmsg = p.parsestr(mailstr)
 
     if not mailmsg.is_multipart():
