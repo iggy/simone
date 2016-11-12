@@ -47,6 +47,12 @@ Features
 
 * Reads email... not much else
 
+Requirements
+-------------
+
+* Python 3.x (I think 3.3+ should work, but only tested on 3.5)
+* Django 1.9
+
 Running Tests
 --------------
 
@@ -57,6 +63,14 @@ Does the code actually work?
     source <YOURVIRTUALENV>/bin/activate
     (myenv) $ pip install -r requirements_test.txt
     (myenv) $ python runtests.py
+
+Contact
+-------
+
+Questions? Answers? General thoughts?
+
+  IRC: #fast-food @ irc.oftc.net
+  Email: iggy(at)theiggy.com
 
 Credits
 ---------
